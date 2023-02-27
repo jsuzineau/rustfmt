@@ -254,32 +254,29 @@ mod tests {
             )
             .unwrap();
         let _ = emitter.emit_footer(&mut writer);
-        let exp_json = to_json_string(&vec![MismatchedFile {
-            name: String::from(file_name),
-            mismatches: vec![
-                MismatchedBlock {
-                    original_begin_line: 2,
-                    original_end_line: 2,
-                    expected_begin_line: 2,
-                    expected_end_line: 2,
-                    original: String::from("println!(\"Hello, world!\");\n"),
-                    expected: String::from("    println!(\"Hello, world!\");\n"),
-                },
-                MismatchedBlock {
-                    original_begin_line: 7,
-                    original_end_line: 10,
-                    expected_begin_line: 7,
-                    expected_end_line: 10,
-                    original: String::from(
-                        "#[test]\nfn it_works() {\n    assert_eq!(2 + 2, 4);\n}\n",
-                    ),
-                    expected: String::from(
-                        "    #[test]\n    fn it_works() {\n        assert_eq!(2 + 2, 4);\n    }\n",
-                    ),
-                },
-            ],
-        }])
-        .unwrap();
+        let exp_json =
+            to_json_string(&vec![MismatchedFile {
+                name: String::from(file_name),
+                mismatches: vec![
+            MismatchedBlock { original_begin_line: 2,
+                              original_end_line: 2,
+                              expected_begin_line: 2,
+                              expected_end_line: 2,
+                              original: String::from("println!(\"Hello, world!\");\n"),
+                              expected: String::from("    println!(\"Hello, world!\");\n"), },
+            MismatchedBlock { original_begin_line: 7,
+                              original_end_line: 10,
+                              expected_begin_line: 7,
+                              expected_end_line: 10,
+                              original: String::from(
+                "#[test]\nfn it_works() {\n    assert_eq!(2 + 2, 4);\n}\n",
+            ),
+                              expected: String::from(
+                "    #[test]\n    fn it_works() {\n        assert_eq!(2 + 2, 4);\n    }\n",
+            ), },
+        ],
+            }])
+            .unwrap();
         assert_eq!(result.has_diff, true);
         assert_eq!(&writer[..], format!("{}\n", exp_json).as_bytes());
     }

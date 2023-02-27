@@ -1060,12 +1060,14 @@ impl Rewrite for UseSegment {
             UseSegmentKind::Crate(Some(ref rename)) => format!("crate as {}", rename),
             UseSegmentKind::Crate(None) => "crate".to_owned(),
             UseSegmentKind::Glob => "*".to_owned(),
-            UseSegmentKind::List(ref use_tree_list) => rewrite_nested_use_tree(
-                context,
-                use_tree_list,
-                // 1 = "{" and "}"
-                shape.offset_left(1)?.sub_width(1)?,
-            )?,
+            UseSegmentKind::List(ref use_tree_list) => {
+                rewrite_nested_use_tree(
+                    context,
+                    use_tree_list,
+                    // 1 = "{" and "}"
+                    shape.offset_left(1)?.sub_width(1)?,
+                )?
+            }
         })
     }
 }

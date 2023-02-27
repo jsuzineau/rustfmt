@@ -252,15 +252,17 @@ impl Rewrite for ChainItem {
                 Self::rewrite_method_call(segment.ident, types, exprs, self.span, context, shape)?
             }
             ChainItemKind::StructField(ident) => format!(".{}", rewrite_ident(context, ident)),
-            ChainItemKind::TupleField(ident, nested) => format!(
-                "{}.{}",
-                if nested && context.config.version() == Version::One {
-                    " "
-                } else {
-                    ""
-                },
-                rewrite_ident(context, ident)
-            ),
+            ChainItemKind::TupleField(ident, nested) => {
+                format!(
+                    "{}.{}",
+                    if nested && context.config.version() == Version::One {
+                        " "
+                    } else {
+                        ""
+                    },
+                    rewrite_ident(context, ident)
+                )
+            }
             ChainItemKind::Await => ".await".to_owned(),
             ChainItemKind::Comment(ref comment, _) => {
                 rewrite_comment(comment, false, shape, context.config)?

@@ -206,19 +206,19 @@ fn scan_simple_git_diff() {
         &[
             Range {
                 file: "src/ir/item.rs".to_owned(),
-                range: [148, 158],
+                range: [148, 158]
             },
             Range {
                 file: "src/ir/item.rs".to_owned(),
-                range: [160, 170],
+                range: [160, 170]
             },
             Range {
                 file: "src/ir/traversal.rs".to_owned(),
-                range: [9, 16],
+                range: [9, 16]
             },
             Range {
                 file: "src/ir/traversal.rs".to_owned(),
-                range: [35, 43],
+                range: [35, 43]
             },
         ]
     );

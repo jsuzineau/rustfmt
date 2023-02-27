@@ -301,7 +301,7 @@ mod test {
                     Resulting("three".to_owned()),
                     Expected("trois".to_owned()),
                     Context("four".to_owned()),
-                ],
+                ]
             }]
         );
     }
@@ -322,7 +322,7 @@ mod test {
                         Resulting("three".to_owned()),
                         Expected("trois".to_owned()),
                         Context("four".to_owned()),
-                    ],
+                    ]
                 },
                 Mismatch {
                     line_number: 5,
@@ -331,7 +331,7 @@ mod test {
                         Resulting("five".to_owned()),
                         Expected("cinq".to_owned()),
                         Context("six".to_owned()),
-                    ],
+                    ]
                 },
             ]
         );
@@ -347,7 +347,7 @@ mod test {
             vec![Mismatch {
                 line_number: 3,
                 line_number_orig: 3,
-                lines: vec![Resulting("three".to_owned()), Expected("trois".to_owned())],
+                lines: vec![Resulting("three".to_owned()), Expected("trois".to_owned())]
             }]
         );
     }
@@ -362,7 +362,7 @@ mod test {
             vec![Mismatch {
                 line_number: 5,
                 line_number_orig: 5,
-                lines: vec![Context("five".to_owned()), Expected("".to_owned())],
+                lines: vec![Context("five".to_owned()), Expected("".to_owned())]
             }]
         );
     }

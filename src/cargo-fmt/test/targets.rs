@@ -27,7 +27,7 @@ mod all_targets {
             assert!(targets.contains(&Target {
                 path: get_path(target.path),
                 edition: target.edition.to_owned(),
-                kind: target.kind.to_owned(),
+                kind: target.kind.to_owned()
             }));
         }
     }

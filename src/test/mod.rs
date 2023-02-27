@@ -270,12 +270,12 @@ fn modified_test() {
             ModifiedChunk {
                 line_number_orig: 4,
                 lines_removed: 4,
-                lines: vec!["fn blah() {}".into()],
+                lines: vec!["fn blah() {}".into()]
             },
             ModifiedChunk {
                 line_number_orig: 9,
                 lines_removed: 6,
-                lines: vec!["#[cfg(a, b)]".into(), "fn main() {}".into()],
+                lines: vec!["#[cfg(a, b)]".into(), "fn main() {}".into()]
             },
         ],
     );
@@ -894,7 +894,7 @@ fn rustfmt_diff_make_diff_tests() {
                 DiffLine::Expected("e".into()),
                 DiffLine::Context("c".into()),
                 DiffLine::Context("d".into()),
-            ],
+            ]
         }]
     );
 }

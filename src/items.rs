@@ -3043,7 +3043,8 @@ fn format_header(
             item_name,
             missing_span,
             shape,
-            /* allow_extend */ true,
+            /* allow_extend */
+            true,
         ) {
             result = result_with_comment;
         }

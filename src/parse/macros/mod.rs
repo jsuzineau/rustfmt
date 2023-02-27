@@ -56,13 +56,13 @@ fn parse_macro_arg<'a, 'b: 'a>(parser: &'a mut Parser<'b>) -> Option<MacroArg> {
     );
     parse_macro_arg!(
         Pat,
-        |parser: &mut rustc_parse::parser::Parser<'b>| parser.parse_pat_no_top_alt(None),
+        |parser: &mut rustc_parse::parser::Parser<'b>| { parser.parse_pat_no_top_alt(None) },
         |x: ptr::P<ast::Pat>| Some(x)
     );
     // `parse_item` returns `Option<ptr::P<ast::Item>>`.
     parse_macro_arg!(
         Item,
-        |parser: &mut rustc_parse::parser::Parser<'b>| parser.parse_item(ForceCollect::No),
+        |parser: &mut rustc_parse::parser::Parser<'b>| { parser.parse_item(ForceCollect::No) },
         |x: Option<ptr::P<ast::Item>>| x
     );
 
