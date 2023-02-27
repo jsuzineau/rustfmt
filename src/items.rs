@@ -1640,7 +1640,7 @@ fn rewrite_ty<R: Rewrite>(
     let where_clause_str = rewrite_where_clause(
         context,
         before_where_predicates,
-        where_clauses.0.1,
+        where_clauses.0 .1,
         context.config.brace_style(),
         Shape::legacy(where_budget, indent),
         false,
@@ -1664,7 +1664,7 @@ fn rewrite_ty<R: Rewrite>(
         let comment_span = context
             .snippet_provider
             .opt_span_before(span, "=")
-            .map(|op_lo| mk_sp(where_clauses.0.1.hi(), op_lo));
+            .map(|op_lo| mk_sp(where_clauses.0 .1.hi(), op_lo));
 
         let lhs = match comment_span {
             Some(comment_span)

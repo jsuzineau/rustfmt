@@ -46,34 +46,26 @@ fn good_options() {
 
 #[test]
 fn unexpected_option() {
-    assert!(
-        Opts::command()
-            .try_get_matches_from(&["test", "unexpected"])
-            .is_err()
-    );
+    assert!(Opts::command()
+        .try_get_matches_from(&["test", "unexpected"])
+        .is_err());
 }
 
 #[test]
 fn unexpected_flag() {
-    assert!(
-        Opts::command()
-            .try_get_matches_from(&["test", "--flag"])
-            .is_err()
-    );
+    assert!(Opts::command()
+        .try_get_matches_from(&["test", "--flag"])
+        .is_err());
 }
 
 #[test]
 fn mandatory_separator() {
-    assert!(
-        Opts::command()
-            .try_get_matches_from(&["test", "--emit"])
-            .is_err()
-    );
-    assert!(
-        Opts::command()
-            .try_get_matches_from(&["test", "--", "--emit"])
-            .is_ok()
-    );
+    assert!(Opts::command()
+        .try_get_matches_from(&["test", "--emit"])
+        .is_err());
+    assert!(Opts::command()
+        .try_get_matches_from(&["test", "--", "--emit"])
+        .is_ok());
 }
 
 #[test]
@@ -106,36 +98,28 @@ fn multiple_packages_grouped() {
 
 #[test]
 fn empty_packages_1() {
-    assert!(
-        Opts::command()
-            .try_get_matches_from(&["test", "-p"])
-            .is_err()
-    );
+    assert!(Opts::command()
+        .try_get_matches_from(&["test", "-p"])
+        .is_err());
 }
 
 #[test]
 fn empty_packages_2() {
-    assert!(
-        Opts::command()
-            .try_get_matches_from(&["test", "-p", "--", "--check"])
-            .is_err()
-    );
+    assert!(Opts::command()
+        .try_get_matches_from(&["test", "-p", "--", "--check"])
+        .is_err());
 }
 
 #[test]
 fn empty_packages_3() {
-    assert!(
-        Opts::command()
-            .try_get_matches_from(&["test", "-p", "--verbose"])
-            .is_err()
-    );
+    assert!(Opts::command()
+        .try_get_matches_from(&["test", "-p", "--verbose"])
+        .is_err());
 }
 
 #[test]
 fn empty_packages_4() {
-    assert!(
-        Opts::command()
-            .try_get_matches_from(&["test", "-p", "--check"])
-            .is_err()
-    );
+    assert!(Opts::command()
+        .try_get_matches_from(&["test", "-p", "--check"])
+        .is_err());
 }

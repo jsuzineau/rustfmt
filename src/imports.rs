@@ -774,12 +774,10 @@ fn merge_rest(
             DUMMY_SP,
         )];
         match rest {
-            [
-                UseSegment {
-                    kind: UseSegmentKind::List(rest_list),
-                    ..
-                },
-            ] => list.extend(rest_list.clone()),
+            [UseSegment {
+                kind: UseSegmentKind::List(rest_list),
+                ..
+            }] => list.extend(rest_list.clone()),
             _ => list.push(UseTree::from_path(rest.to_vec(), DUMMY_SP)),
         }
         return Some(vec![

@@ -245,37 +245,29 @@ mod cmd_line_tests {
 
     #[test]
     fn unexpected_option() {
-        assert!(
-            Opts::command()
-                .try_get_matches_from(&["test", "unexpected"])
-                .is_err()
-        );
+        assert!(Opts::command()
+            .try_get_matches_from(&["test", "unexpected"])
+            .is_err());
     }
 
     #[test]
     fn unexpected_flag() {
-        assert!(
-            Opts::command()
-                .try_get_matches_from(&["test", "--flag"])
-                .is_err()
-        );
+        assert!(Opts::command()
+            .try_get_matches_from(&["test", "--flag"])
+            .is_err());
     }
 
     #[test]
     fn overridden_option() {
-        assert!(
-            Opts::command()
-                .try_get_matches_from(&["test", "-p", "10", "-p", "20"])
-                .is_err()
-        );
+        assert!(Opts::command()
+            .try_get_matches_from(&["test", "-p", "10", "-p", "20"])
+            .is_err());
     }
 
     #[test]
     fn negative_filter() {
-        assert!(
-            Opts::command()
-                .try_get_matches_from(&["test", "-p", "-1"])
-                .is_err()
-        );
+        assert!(Opts::command()
+            .try_get_matches_from(&["test", "-p", "-1"])
+            .is_err());
     }
 }
