@@ -29,17 +29,23 @@ fn parse_macro_arg<'a, 'b: 'a>(parser: &'a mut Parser<'b>) -> Option<MacroArg>
     macro_rules! parse_macro_arg {
         ($macro_arg:ident, $parser:expr, $f:expr) => {
             let mut cloned_parser = (*parser).clone();
-            match $parser(&mut cloned_parser) {
-                Ok(x) => {
-                    if parser.sess.span_diagnostic.has_errors().is_some() {
+            match $parser(&mut cloned_parser)
+            {
+                Ok(x) =>
+                {
+                    if parser.sess.span_diagnostic.has_errors().is_some()
+                    {
                         parser.sess.span_diagnostic.reset_err_count();
-                    } else {
+                    }
+                    else
+                    {
                         // Parsing succeeded.
                         *parser = cloned_parser;
                         return Some(MacroArg::$macro_arg($f(x)?));
                     }
                 }
-                Err(e) => {
+                Err(e) =>
+                {
                     e.cancel();
                     parser.sess.span_diagnostic.reset_err_count();
                 }
@@ -81,7 +87,8 @@ pub(crate) struct ParsedMacroArgs
 
 fn check_keyword<'a, 'b: 'a>(parser: &'a mut Parser<'b>) -> Option<MacroArg>
 {
-    for &keyword in RUST_KW.iter() {
+    for &keyword in RUST_KW.iter()
+    {
         if parser.token.is_keyword(keyword)
             && parser.look_ahead(1, |t| {
                 t.kind == TokenKind::Eof || t.kind == TokenKind::Comma
@@ -109,34 +116,49 @@ pub(crate) fn parse_macro_args(
     let mut vec_with_semi = false;
     let mut trailing_comma = false;
 
-    if Delimiter::Brace != style {
-        loop {
-            if let Some(arg) = check_keyword(&mut parser) {
+    if Delimiter::Brace != style
+    {
+        loop
+        {
+            if let Some(arg) = check_keyword(&mut parser)
+            {
                 args.push(arg);
-            } else if let Some(arg) = parse_macro_arg(&mut parser) {
+            }
+            else if let Some(arg) = parse_macro_arg(&mut parser)
+            {
                 args.push(arg);
-            } else {
+            }
+            else
+            {
                 return None;
             }
 
-            match parser.token.kind {
+            match parser.token.kind
+            {
                 TokenKind::Eof => break,
                 TokenKind::Comma => (),
-                TokenKind::Semi => {
+                TokenKind::Semi =>
+                {
                     // Try to parse `vec![expr; expr]`
-                    if forced_bracket {
+                    if forced_bracket
+                    {
                         parser.bump();
-                        if parser.token.kind != TokenKind::Eof {
-                            match parse_macro_arg(&mut parser) {
-                                Some(arg) => {
+                        if parser.token.kind != TokenKind::Eof
+                        {
+                            match parse_macro_arg(&mut parser)
+                            {
+                                Some(arg) =>
+                                {
                                     args.push(arg);
                                     parser.bump();
-                                    if parser.token.kind == TokenKind::Eof && args.len() == 2 {
+                                    if parser.token.kind == TokenKind::Eof && args.len() == 2
+                                    {
                                         vec_with_semi = true;
                                         break;
                                     }
                                 }
-                                None => {
+                                None =>
+                                {
                                     return None;
                                 }
                             }
@@ -150,7 +172,8 @@ pub(crate) fn parse_macro_args(
 
             parser.bump();
 
-            if parser.token.kind == TokenKind::Eof {
+            if parser.token.kind == TokenKind::Eof
+            {
                 trailing_comma = true;
                 break;
             }

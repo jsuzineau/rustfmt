@@ -100,10 +100,12 @@ impl Emitter for SilentOnIgnoredFilesEmitter
 
     fn emit_diagnostic(&mut self, db: &Diagnostic)
     {
-        if db.level() == DiagnosticLevel::Fatal {
+        if db.level() == DiagnosticLevel::Fatal
+        {
             return self.handle_non_ignoreable_error(db);
         }
-        if let Some(primary_span) = &db.span.primary_span() {
+        if let Some(primary_span) = &db.span.primary_span()
+        {
             let file_name = self.source_map.span_to_filename(*primary_span);
             if let rustc_span::FileName::Real(rustc_span::RealFileName::LocalPath(ref path)) =
                 file_name
@@ -112,7 +114,8 @@ impl Emitter for SilentOnIgnoredFilesEmitter
                     .ignore_path_set
                     .is_match(&FileName::Real(path.to_path_buf()))
                 {
-                    if !self.has_non_ignorable_parser_errors {
+                    if !self.has_non_ignorable_parser_errors
+                    {
                         self.can_reset.store(true, Ordering::Release);
                     }
                     return;
@@ -131,15 +134,21 @@ fn default_handler(
 ) -> Handler
 {
     let supports_color = term::stderr().map_or(false, |term| term.supports_color());
-    let color_cfg = if supports_color {
+    let color_cfg = if supports_color
+    {
         ColorConfig::Auto
-    } else {
+    }
+    else
+    {
         ColorConfig::Never
     };
 
-    let emitter = if hide_parse_errors {
+    let emitter = if hide_parse_errors
+    {
         silent_emitter()
-    } else {
+    }
+    else
+    {
         let fallback_bundle =
             rustc_errors::fallback_fluent_bundle(rustc_errors::DEFAULT_LOCALE_RESOURCES, false);
         Box::new(EmitterWriter::stderr(
@@ -171,7 +180,8 @@ impl ParseSess
 {
     pub(crate) fn new(config: &Config) -> Result<ParseSess, ErrorKind>
     {
-        let ignore_path_set = match IgnorePathSet::from_ignore_list(&config.ignore()) {
+        let ignore_path_set = match IgnorePathSet::from_ignore_list(&config.ignore())
+        {
             Ok(ignore_path_set) => Lrc::new(ignore_path_set),
             Err(e) => return Err(ErrorKind::InvalidGlobPattern(e)),
         };
@@ -213,10 +223,13 @@ impl ParseSess
                 // could not be found, then try to resolve the module relative to {dir_path}.
                 // If we still can't find the module after searching for it in {dir_path},
                 // surface the original error.
-                if matches!(e, ModError::FileNotFound(..)) && relative.is_some() {
+                if matches!(e, ModError::FileNotFound(..)) && relative.is_some()
+                {
                     rustc_expand::module::default_submod_path(&self.parse_sess, id, None, dir_path)
                         .map_err(|_| e)
-                } else {
+                }
+                else
+                {
                     Err(e)
                 }
             },
@@ -259,7 +272,8 @@ impl ParseSess
     {
         let file_lines = self.parse_sess.source_map().span_to_lines(span).ok();
 
-        match file_lines {
+        match file_lines
+        {
             Some(fl) => fl
                 .file
                 .get_line(fl.lines[0].line_index)
@@ -317,7 +331,8 @@ impl ParseSess
 {
     pub(super) fn emit_diagnostics(&self, diagnostics: Vec<Diagnostic>)
     {
-        for mut diagnostic in diagnostics {
+        for mut diagnostic in diagnostics
+        {
             self.parse_sess
                 .span_diagnostic
                 .emit_diagnostic(&mut diagnostic);
@@ -422,7 +437,8 @@ mod tests
         {
             let mut diag = Diagnostic::new(level, "");
             diag.message.clear();
-            if let Some(span) = span {
+            if let Some(span) = span
+            {
                 diag.span = span;
             }
             diag

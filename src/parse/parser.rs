@@ -55,10 +55,13 @@ impl<'a> ParserBuilder<'a>
         let sess = self.sess.ok_or(ParserError::NoParseSess)?;
         let input = self.input.ok_or(ParserError::NoInput)?;
 
-        let parser = match Self::parser(sess.inner(), input) {
+        let parser = match Self::parser(sess.inner(), input)
+        {
             Ok(p) => p,
-            Err(db) => {
-                if let Some(diagnostics) = db {
+            Err(db) =>
+            {
+                if let Some(diagnostics) = db
+                {
                     sess.emit_diagnostics(diagnostics);
                     return Err(ParserError::ParserCreationError);
                 }
@@ -74,7 +77,8 @@ impl<'a> ParserBuilder<'a>
         input: Input,
     ) -> Result<rustc_parse::parser::Parser<'a>, Option<Vec<Diagnostic>>>
     {
-        match input {
+        match input
+        {
             Input::File(ref file) => catch_unwind(AssertUnwindSafe(move || {
                 new_parser_from_file(sess, file, None)
             }))
@@ -124,20 +128,25 @@ impl<'a> Parser<'a>
     {
         let result = catch_unwind(AssertUnwindSafe(|| {
             let mut parser = new_parser_from_file(sess.inner(), path, Some(span));
-            match parser.parse_mod(&TokenKind::Eof) {
+            match parser.parse_mod(&TokenKind::Eof)
+            {
                 Ok((a, i, spans)) => Some((a, i, spans.inner_span)),
-                Err(mut e) => {
+                Err(mut e) =>
+                {
                     e.emit();
-                    if sess.can_reset_errors() {
+                    if sess.can_reset_errors()
+                    {
                         sess.reset_errors();
                     }
                     None
                 }
             }
         }));
-        match result {
+        match result
+        {
             Ok(Some(m)) if !sess.has_errors() => Ok(m),
-            Ok(Some(m)) if sess.can_reset_errors() => {
+            Ok(Some(m)) if sess.can_reset_errors() =>
+            {
                 sess.reset_errors();
                 Ok(m)
             }
@@ -151,11 +160,13 @@ impl<'a> Parser<'a>
         -> Result<ast::Crate, ParserError>
     {
         let krate = Parser::parse_crate_inner(input, sess)?;
-        if !sess.has_errors() {
+        if !sess.has_errors()
+        {
             return Ok(krate);
         }
 
-        if sess.can_reset_errors() {
+        if sess.can_reset_errors()
+        {
             sess.reset_errors();
             return Ok(krate);
         }
@@ -176,9 +187,11 @@ impl<'a> Parser<'a>
     {
         let mut parser = AssertUnwindSafe(&mut self.parser);
 
-        match catch_unwind(move || parser.parse_crate_mod()) {
+        match catch_unwind(move || parser.parse_crate_mod())
+        {
             Ok(Ok(k)) => Ok(k),
-            Ok(Err(mut db)) => {
+            Ok(Err(mut db)) =>
+            {
                 db.emit();
                 Err(ParserError::ParseError)
             }

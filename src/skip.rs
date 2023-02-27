@@ -57,8 +57,10 @@ impl Extend<String> for SkipNameContext
 {
     fn extend<T: IntoIterator<Item = String>>(&mut self, iter: T)
     {
-        match self {
-            Self::All => {}
+        match self
+        {
+            Self::All =>
+            {}
             Self::Values(values) => values.extend(iter),
         }
     }
@@ -68,15 +70,19 @@ impl SkipNameContext
 {
     pub(crate) fn update(&mut self, other: Self)
     {
-        match (self, other) {
+        match (self, other)
+        {
             // If we're already skipping everything, nothing more can be added
-            (Self::All, _) => {}
+            (Self::All, _) =>
+            {}
             // If we want to skip all, set it
-            (this, Self::All) => {
+            (this, Self::All) =>
+            {
                 *this = Self::All;
             }
             // If we have some new values to skip, add them
-            (Self::Values(existing_values), Self::Values(new_values)) => {
+            (Self::Values(existing_values), Self::Values(new_values)) =>
+            {
                 existing_values.extend(new_values)
             }
         }
@@ -84,7 +90,8 @@ impl SkipNameContext
 
     pub(crate) fn skip(&self, name: &str) -> bool
     {
-        match self {
+        match self
+        {
             Self::All => true,
             Self::Values(values) => values.contains(name),
         }
@@ -102,12 +109,15 @@ static SKIP: &str = "skip";
 /// Say if you're playing with `rustfmt`'s skip attribute
 pub(crate) fn is_skip_attr(segments: &[ast::PathSegment]) -> bool
 {
-    if segments.len() < 2 || segments[0].ident.to_string() != RUSTFMT {
+    if segments.len() < 2 || segments[0].ident.to_string() != RUSTFMT
+    {
         return false;
     }
-    match segments.len() {
+    match segments.len()
+    {
         2 => segments[1].ident.to_string() == SKIP,
-        3 => {
+        3 =>
+        {
             segments[1].ident.to_string() == SKIP
                 && ["macros", "attributes"]
                     .iter()
@@ -121,18 +131,24 @@ fn get_skip_names(kind: &str, attrs: &[ast::Attribute]) -> Vec<String>
 {
     let mut skip_names = vec![];
     let path = format!("{}::{}::{}", RUSTFMT, SKIP, kind);
-    for attr in attrs {
+    for attr in attrs
+    {
         // rustc_ast::ast::Path is implemented partialEq
         // but it is designed for segments.len() == 1
-        if let ast::AttrKind::Normal(normal) = &attr.kind {
-            if pprust::path_to_string(&normal.item.path) != path {
+        if let ast::AttrKind::Normal(normal) = &attr.kind
+        {
+            if pprust::path_to_string(&normal.item.path) != path
+            {
                 continue;
             }
         }
 
-        if let Some(list) = attr.meta_item_list() {
-            for nested_meta_item in list {
-                if let Some(name) = nested_meta_item.ident() {
+        if let Some(list) = attr.meta_item_list()
+        {
+            for nested_meta_item in list
+            {
+                if let Some(name) = nested_meta_item.ident()
+                {
                     skip_names.push(name.to_string());
                 }
             }

@@ -62,13 +62,18 @@ impl<'a> Display for FormatReportFormatter<'a>
             ..Default::default()
         };
 
-        for (file, errors) in errors_by_file {
-            for error in errors {
+        for (file, errors) in errors_by_file
+        {
+            for error in errors
+            {
                 let error_kind = error.kind.to_string();
                 let title = Some(Annotation {
-                    id: if error.is_internal() {
+                    id: if error.is_internal()
+                    {
                         Some("internal")
-                    } else {
+                    }
+                    else
+                    {
                         None
                     },
                     label: Some(&error_kind),
@@ -76,13 +81,16 @@ impl<'a> Display for FormatReportFormatter<'a>
                 });
 
                 let message_suffix = error.msg_suffix();
-                let footer = if !message_suffix.is_empty() {
+                let footer = if !message_suffix.is_empty()
+                {
                     Some(Annotation {
                         id: None,
                         label: Some(message_suffix),
                         annotation_type: AnnotationType::Note,
                     })
-                } else {
+                }
+                else
+                {
                     None
                 };
 
@@ -105,7 +113,8 @@ impl<'a> Display for FormatReportFormatter<'a>
             }
         }
 
-        if !errors_by_file.is_empty() {
+        if !errors_by_file.is_empty()
+        {
             let label = format!(
                 "rustfmt has failed to format. See previous {} errors.",
                 self.report.warning_count()
@@ -132,20 +141,24 @@ fn slice_annotation(error: &FormattingError) -> Option<SourceAnnotation<'_>>
     let (range_start, range_length) = error.format_len();
     let range_end = range_start + range_length;
 
-    if range_length > 0 {
+    if range_length > 0
+    {
         Some(SourceAnnotation {
             annotation_type: AnnotationType::Error,
             range: (range_start, range_end),
             label: "",
         })
-    } else {
+    }
+    else
+    {
         None
     }
 }
 
 fn error_kind_to_snippet_annotation_type(error_kind: &ErrorKind) -> AnnotationType
 {
-    match error_kind {
+    match error_kind
+    {
         ErrorKind::LineOverflow(..)
         | ErrorKind::TrailingWhitespace
         | ErrorKind::IoError(_)

@@ -17,7 +17,8 @@ impl Emitter for FilesWithBackupEmitter
     ) -> Result<EmitterResult, io::Error>
     {
         let filename = ensure_real_path(filename);
-        if original_text != formatted_text {
+        if original_text != formatted_text
+        {
             // Do a little dance to make writing safer - write to a temp file
             // rename the original to a .bk, then rename the temp file to the
             // original.

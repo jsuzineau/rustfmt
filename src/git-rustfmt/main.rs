@@ -21,8 +21,10 @@ fn prune_files(files: Vec<&str>) -> Vec<&str>
         .collect();
 
     let mut pruned_prefixes = vec![];
-    for p1 in prefixes {
-        if p1.starts_with("src/bin/") || pruned_prefixes.iter().all(|p2| !p1.starts_with(p2)) {
+    for p1 in prefixes
+    {
+        if p1.starts_with("src/bin/") || pruned_prefixes.iter().all(|p2| !p1.starts_with(p2))
+        {
             pruned_prefixes.push(p1);
         }
     }
@@ -31,7 +33,8 @@ fn prune_files(files: Vec<&str>) -> Vec<&str>
     files
         .into_iter()
         .filter(|f| {
-            if f.ends_with("mod.rs") || f.ends_with("lib.rs") || f.starts_with("src/bin/") {
+            if f.ends_with("mod.rs") || f.ends_with("lib.rs") || f.starts_with("src/bin/")
+            {
                 return true;
             }
             pruned_prefixes.iter().all(|pp| !f.starts_with(pp))
@@ -43,7 +46,8 @@ fn git_diff(commits: &str) -> String
 {
     let mut cmd = Command::new("git");
     cmd.arg("diff");
-    if commits != "0" {
+    if commits != "0"
+    {
         cmd.arg(format!("HEAD~{}", commits));
     }
     let output = cmd.output().expect("Couldn't execute `git diff`");
@@ -67,12 +71,15 @@ fn fmt_files(files: &[&str]) -> i32
     let mut exit_code = 0;
     let mut out = stdout();
     let mut session = Session::new(config, Some(&mut out));
-    for file in files {
+    for file in files
+    {
         let report = session.format(Input::File(PathBuf::from(file))).unwrap();
-        if report.has_warnings() {
+        if report.has_warnings()
+        {
             eprintln!("{}", FormatReportFormatterBuilder::new(&report).build());
         }
-        if !session.has_no_errors() {
+        if !session.has_no_errors()
+        {
             exit_code = 1;
         }
     }
@@ -113,9 +120,11 @@ fn check_uncommitted()
 {
     let uncommitted = uncommitted_files();
     debug!("uncommitted files: {:?}", uncommitted);
-    if !uncommitted.is_empty() {
+    if !uncommitted.is_empty()
+    {
         println!("Found untracked changes:");
-        for f in &uncommitted {
+        for f in &uncommitted
+        {
             println!("  {}", f);
         }
         println!("Commit your work, or run with `-u`.");
@@ -144,7 +153,8 @@ impl Config
     fn from_args(matches: &Matches, opts: &Options) -> Config
     {
         // `--help` display help message and quit
-        if matches.opt_present("h") {
+        if matches.opt_present("h")
+        {
             let message = format!(
                 "\nusage: {} <commits> [options]\n\n\
                  commits: number of commits to format, default: 1",
@@ -159,20 +169,25 @@ impl Config
             uncommitted: false,
         };
 
-        if matches.opt_present("c") {
+        if matches.opt_present("c")
+        {
             unimplemented!();
         }
 
-        if matches.opt_present("u") {
+        if matches.opt_present("u")
+        {
             config.uncommitted = true;
         }
 
-        if matches.free.len() > 1 {
+        if matches.free.len() > 1
+        {
             panic!("unknown arguments, use `-h` for usage");
         }
-        if matches.free.len() == 1 {
+        if matches.free.len() == 1
+        {
             let commits = matches.free[0].trim();
-            if u32::from_str(commits).is_err() {
+            if u32::from_str(commits).is_err()
+            {
                 panic!("Couldn't parse number of commits");
             }
             config.commits = commits.to_owned();
@@ -192,7 +207,8 @@ fn main()
         .expect("Couldn't parse command line");
     let config = Config::from_args(&matches, &opts);
 
-    if !config.uncommitted {
+    if !config.uncommitted
+    {
         check_uncommitted();
     }
 

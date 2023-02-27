@@ -48,13 +48,16 @@ where
     T: Write,
 {
     write!(writer, r#"<file name="{}">"#, filename)?;
-    for mismatch in diff {
+    for mismatch in diff
+    {
         let begin_line = mismatch.line_number;
         let mut current_line;
         let mut line_counter = 0;
-        for line in mismatch.lines {
+        for line in mismatch.lines
+        {
             // Do nothing with `DiffLine::Context` and `DiffLine::Resulting`.
-            if let DiffLine::Expected(message) = line {
+            if let DiffLine::Expected(message) = line
+            {
                 current_line = begin_line + line_counter;
                 line_counter += 1;
                 write!(

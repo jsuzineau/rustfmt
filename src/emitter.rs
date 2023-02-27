@@ -51,7 +51,8 @@ pub(crate) trait Emitter
 
 fn ensure_real_path(filename: &FileName) -> &Path
 {
-    match *filename {
+    match *filename
+    {
         FileName::Real(ref path) => path,
         _ => panic!("cannot format `{}` and emit to files", filename),
     }

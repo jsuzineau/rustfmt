@@ -102,7 +102,8 @@ impl Density
 {
     pub fn to_list_tactic(self, len: usize) -> ListTactic
     {
-        match self {
+        match self
+        {
             Density::Compressed => ListTactic::Mixed,
             Density::Tall => ListTactic::HorizontalVertical,
             Density::Vertical if len == 1 => ListTactic::Horizontal,
@@ -214,7 +215,8 @@ impl Color
     /// Whether we should use a coloured terminal.
     pub fn use_colored_tty(self) -> bool
     {
-        match self {
+        match self
+        {
             Color::Always | Color::Auto => true,
             Color::Never => false,
         }
@@ -299,11 +301,14 @@ impl WidthHeuristics
     pub fn scaled(max_width: usize) -> WidthHeuristics
     {
         const DEFAULT_MAX_WIDTH: usize = 100;
-        let max_width_ratio = if max_width > DEFAULT_MAX_WIDTH {
+        let max_width_ratio = if max_width > DEFAULT_MAX_WIDTH
+        {
             let ratio = max_width as f32 / DEFAULT_MAX_WIDTH as f32;
             // round to the closest 0.1
             (ratio * 10.0).round() / 10.0
-        } else {
+        }
+        else
+        {
             1.0
         };
         WidthHeuristics {
@@ -370,7 +375,8 @@ impl Serialize for IgnoreList
         S: Serializer,
     {
         let mut seq = serializer.serialize_seq(Some(self.path_set.len()))?;
-        for e in &self.path_set {
+        for e in &self.path_set
+        {
             seq.serialize_element(e)?;
         }
         seq.end()
@@ -398,7 +404,8 @@ impl<'de> Deserialize<'de> for IgnoreList
                 A: SeqAccess<'v>,
             {
                 let mut path_set = HashSet::new();
-                while let Some(elem) = seq.next_element()? {
+                while let Some(elem) = seq.next_element()?
+                {
                     path_set.insert(elem);
                 }
                 Ok(path_set)
@@ -487,7 +494,8 @@ impl From<Edition> for rustc_span::edition::Edition
 {
     fn from(edition: Edition) -> Self
     {
-        match edition {
+        match edition
+        {
             Edition::Edition2015 => Self::Edition2015,
             Edition::Edition2018 => Self::Edition2018,
             Edition::Edition2021 => Self::Edition2021,

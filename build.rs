@@ -8,7 +8,8 @@ fn main()
 {
     // Only check .git/HEAD dirty status if it exists - doing so when
     // building dependent crates may lead to false positives and rebuilds
-    if Path::new(".git/HEAD").exists() {
+    if Path::new(".git/HEAD").exists()
+    {
         println!("cargo:rerun-if-changed=.git/HEAD");
     }
 
@@ -26,7 +27,8 @@ fn main()
 // (git not installed or if this is not a git repository) just return an empty string.
 fn commit_info() -> String
 {
-    match (channel(), commit_hash(), commit_date()) {
+    match (channel(), commit_hash(), commit_date())
+    {
         (channel, Some(hash), Some(date)) => format!("{} ({} {})", channel, hash.trim_end(), date),
         _ => String::new(),
     }
@@ -34,9 +36,12 @@ fn commit_info() -> String
 
 fn channel() -> String
 {
-    if let Ok(channel) = env::var("CFG_RELEASE_CHANNEL") {
+    if let Ok(channel) = env::var("CFG_RELEASE_CHANNEL")
+    {
         channel
-    } else {
+    }
+    else
+    {
         "nightly".to_owned()
     }
 }

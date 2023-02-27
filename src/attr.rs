@@ -41,7 +41,8 @@ pub(crate) fn get_attrs_from_stmt(stmt: &ast::Stmt) -> &[ast::Attribute]
 
 pub(crate) fn get_span_without_attrs(stmt: &ast::Stmt) -> Span
 {
-    match stmt.kind {
+    match stmt.kind
+    {
         ast::StmtKind::Local(ref local) => local.span,
         ast::StmtKind::Item(ref item) => item.span,
         ast::StmtKind::Expr(ref expr) | ast::StmtKind::Semi(ref expr) => expr.span,
@@ -74,11 +75,16 @@ fn argument_shape(
     context: &RewriteContext<'_>,
 ) -> Option<Shape>
 {
-    match context.config.indent_style() {
-        IndentStyle::Block => {
-            if combine {
+    match context.config.indent_style()
+    {
+        IndentStyle::Block =>
+        {
+            if combine
+            {
                 shape.offset_left(left)
-            } else {
+            }
+            else
+            {
                 Some(
                     shape
                         .block_indent(context.config.tab_spaces())
@@ -156,7 +162,8 @@ fn format_derive(
         Separator::Comma,
         argument_shape.width,
     );
-    let trailing_separator = match context.config.indent_style() {
+    let trailing_separator = match context.config.indent_style()
+    {
         // We always add the trailing comma and remove it if it is not needed.
         IndentStyle::Block => SeparatorTactic::Always,
         IndentStyle::Visual => SeparatorTactic::Never,
@@ -181,18 +188,25 @@ fn format_derive(
     let mut result = String::with_capacity(128);
     result.push_str(prefix);
     result.push_str("[derive(");
-    if nested {
+    if nested
+    {
         let nested_indent = argument_shape.indent.to_string_with_newline(context.config);
         result.push_str(&nested_indent);
         result.push_str(&item_str);
         result.push_str(&shape.indent.to_string_with_newline(context.config));
-    } else if let SeparatorTactic::Always = context.config.trailing_comma() {
+    }
+    else if let SeparatorTactic::Always = context.config.trailing_comma()
+    {
         // Retain the trailing comma.
         result.push_str(&item_str);
-    } else if item_str.ends_with(',') {
+    }
+    else if item_str.ends_with(',')
+    {
         // Remove the trailing comma.
         result.push_str(&item_str[..item_str.len() - 1]);
-    } else {
+    }
+    else
+    {
         result.push_str(&item_str);
     }
     result.push_str(")]");
@@ -213,17 +227,23 @@ where
     let mut len = 0;
     let mut iter = attrs.iter().peekable();
 
-    while let Some(attr) = iter.next() {
-        if pred(attr) {
+    while let Some(attr) = iter.next()
+    {
+        if pred(attr)
+        {
             len += 1;
-        } else {
+        }
+        else
+        {
             break;
         }
-        if let Some(next_attr) = iter.peek() {
+        if let Some(next_attr) = iter.peek()
+        {
             // Extract comments between two attributes.
             let span_between_attr = mk_sp(attr.span.hi(), next_attr.span.lo());
             let snippet = context.snippet(span_between_attr);
-            if count_newlines(snippet) >= 2 || snippet.contains('/') {
+            if count_newlines(snippet) >= 2 || snippet.contains('/')
+            {
                 break;
             }
         }
@@ -239,12 +259,14 @@ fn rewrite_initial_doc_comments(
     shape: Shape,
 ) -> Option<(usize, Option<String>)>
 {
-    if attrs.is_empty() {
+    if attrs.is_empty()
+    {
         return Some((0, None));
     }
     // Rewrite doc comments
     let sugared_docs = take_while_with_pred(context, attrs, |a| a.is_doc_comment());
-    if !sugared_docs.is_empty() {
+    if !sugared_docs.is_empty()
+    {
         let snippet = sugared_docs
             .iter()
             .map(|a| context.snippet(a.span))
@@ -267,9 +289,11 @@ impl Rewrite for ast::NestedMetaItem
 {
     fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
     {
-        match self {
+        match self
+        {
             ast::NestedMetaItem::MetaItem(ref meta_item) => meta_item.rewrite(context, shape),
-            ast::NestedMetaItem::Lit(ref l) => {
+            ast::NestedMetaItem::Lit(ref l) =>
+            {
                 rewrite_literal(context, l.as_token_lit(), l.span, shape)
             }
         }
@@ -282,9 +306,12 @@ fn has_newlines_before_after_comment(comment: &str) -> (&str, &str)
     let comment_begin = comment.find('/');
     let len = comment_begin.unwrap_or_else(|| comment.len());
     let mlb = count_newlines(&comment[..len]) > 1;
-    let mla = if comment_begin.is_none() {
+    let mla = if comment_begin.is_none()
+    {
         mlb
-    } else {
+    }
+    else
+    {
         comment
             .chars()
             .rev()
@@ -300,11 +327,14 @@ impl Rewrite for ast::MetaItem
 {
     fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
     {
-        Some(match self.kind {
-            ast::MetaItemKind::Word => {
+        Some(match self.kind
+        {
+            ast::MetaItemKind::Word =>
+            {
                 rewrite_path(context, PathContext::Type, &None, &self.path, shape)?
             }
-            ast::MetaItemKind::List(ref list) => {
+            ast::MetaItemKind::List(ref list) =>
+            {
                 let path = rewrite_path(context, PathContext::Type, &None, &self.path, shape)?;
                 let has_trailing_comma = crate::expr::span_ends_with_comma(context, self.span);
                 overflow::rewrite_with_parens(
@@ -315,14 +345,20 @@ impl Rewrite for ast::MetaItem
                     shape.sub_width(1)?,
                     self.span,
                     context.config.attr_fn_like_width(),
-                    Some(if has_trailing_comma {
-                        SeparatorTactic::Always
-                    } else {
-                        SeparatorTactic::Never
-                    }),
+                    Some(
+                        if has_trailing_comma
+                        {
+                            SeparatorTactic::Always
+                        }
+                        else
+                        {
+                            SeparatorTactic::Never
+                        },
+                    ),
                 )?
             }
-            ast::MetaItemKind::NameValue(ref lit) => {
+            ast::MetaItemKind::NameValue(ref lit) =>
+            {
                 let path = rewrite_path(context, PathContext::Type, &None, &self.path, shape)?;
                 // 3 = ` = `
                 let lit_shape = shape.shrink_left(path.len() + 3)?;
@@ -345,24 +381,32 @@ impl Rewrite for ast::Attribute
     fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
     {
         let snippet = context.snippet(self.span);
-        if self.is_doc_comment() {
+        if self.is_doc_comment()
+        {
             rewrite_doc_comment(snippet, shape.comment(context.config), context.config)
-        } else {
+        }
+        else
+        {
             let should_skip = self
                 .ident()
                 .map(|s| context.skip_context.attributes.skip(s.name.as_str()))
                 .unwrap_or(false);
             let prefix = attr_prefix(self);
 
-            if should_skip || contains_comment(snippet) {
+            if should_skip || contains_comment(snippet)
+            {
                 return Some(snippet.to_owned());
             }
 
-            if let Some(ref meta) = self.meta() {
+            if let Some(ref meta) = self.meta()
+            {
                 // This attribute is possibly a doc attribute needing normalization to a doc comment
-                if context.config.normalize_doc_attributes() && meta.has_name(sym::doc) {
-                    if let Some(ref literal) = meta.value_str() {
-                        let comment_style = match self.style {
+                if context.config.normalize_doc_attributes() && meta.has_name(sym::doc)
+                {
+                    if let Some(ref literal) = meta.value_str()
+                    {
+                        let comment_style = match self.style
+                        {
                             ast::AttrStyle::Inner => CommentStyle::Doc,
                             ast::AttrStyle::Outer => CommentStyle::TripleSlash,
                         };
@@ -385,7 +429,9 @@ impl Rewrite for ast::Attribute
                     meta.rewrite(context, shape)
                         .map_or_else(|| snippet.to_owned(), |rw| format!("{}[{}]", prefix, rw)),
                 )
-            } else {
+            }
+            else
+            {
                 Some(snippet.to_owned())
             }
         }
@@ -396,7 +442,8 @@ impl Rewrite for [ast::Attribute]
 {
     fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
     {
-        if self.is_empty() {
+        if self.is_empty()
+        {
             return Some(String::new());
         }
 
@@ -411,22 +458,26 @@ impl Rewrite for [ast::Attribute]
         // This is not just a simple map because we need to handle doc comments
         // (where we take as many doc comment attributes as possible) and possibly
         // merging derives into a single attribute.
-        loop {
-            if attrs.is_empty() {
+        loop
+        {
+            if attrs.is_empty()
+            {
                 return Some(result);
             }
 
             // Handle doc comments.
             let (doc_comment_len, doc_comment_str) =
                 rewrite_initial_doc_comments(context, attrs, shape)?;
-            if doc_comment_len > 0 {
+            if doc_comment_len > 0
+            {
                 let doc_comment_str = doc_comment_str.expect("doc comments, but no result");
                 result.push_str(&doc_comment_str);
 
                 let missing_span = attrs
                     .get(doc_comment_len)
                     .map(|next| mk_sp(attrs[doc_comment_len - 1].span.hi(), next.span.lo()));
-                if let Some(missing_span) = missing_span {
+                if let Some(missing_span) = missing_span
+                {
                     let snippet = context.snippet(missing_span);
                     let (mla, mlb) = has_newlines_before_after_comment(snippet);
                     let comment = crate::comment::recover_missing_comment_in_span(
@@ -435,9 +486,12 @@ impl Rewrite for [ast::Attribute]
                         context,
                         0,
                     )?;
-                    let comment = if comment.is_empty() {
+                    let comment = if comment.is_empty()
+                    {
                         format!("\n{}", mlb)
-                    } else {
+                    }
+                    else
+                    {
                         format!("{}{}\n{}", mla, comment, mlb)
                     };
                     result.push_str(&comment);
@@ -450,7 +504,8 @@ impl Rewrite for [ast::Attribute]
             }
 
             // Handle derives if we will merge them.
-            if !skip_derives && context.config.merge_derives() && is_derive(&attrs[0]) {
+            if !skip_derives && context.config.merge_derives() && is_derive(&attrs[0])
+            {
                 let derives = take_while_with_pred(context, attrs, is_derive);
                 let derive_str = format_derive(derives, shape, context)?;
                 result.push_str(&derive_str);
@@ -458,7 +513,8 @@ impl Rewrite for [ast::Attribute]
                 let missing_span = attrs
                     .get(derives.len())
                     .map(|next| mk_sp(attrs[derives.len() - 1].span.hi(), next.span.lo()));
-                if let Some(missing_span) = missing_span {
+                if let Some(missing_span) = missing_span
+                {
                     let comment = crate::comment::recover_missing_comment_in_span(
                         missing_span,
                         shape.with_max_width(context.config),
@@ -466,8 +522,10 @@ impl Rewrite for [ast::Attribute]
                         0,
                     )?;
                     result.push_str(&comment);
-                    if let Some(next) = attrs.get(derives.len()) {
-                        if next.is_doc_comment() {
+                    if let Some(next) = attrs.get(derives.len())
+                    {
+                        if next.is_doc_comment()
+                        {
                             let snippet = context.snippet(missing_span);
                             let (_, mlb) = has_newlines_before_after_comment(snippet);
                             result.push_str(mlb);
@@ -491,7 +549,8 @@ impl Rewrite for [ast::Attribute]
             let missing_span = attrs
                 .get(1)
                 .map(|next| mk_sp(attrs[0].span.hi(), next.span.lo()));
-            if let Some(missing_span) = missing_span {
+            if let Some(missing_span) = missing_span
+            {
                 let comment = crate::comment::recover_missing_comment_in_span(
                     missing_span,
                     shape.with_max_width(context.config),
@@ -499,8 +558,10 @@ impl Rewrite for [ast::Attribute]
                     0,
                 )?;
                 result.push_str(&comment);
-                if let Some(next) = attrs.get(1) {
-                    if next.is_doc_comment() {
+                if let Some(next) = attrs.get(1)
+                {
+                    if next.is_doc_comment()
+                    {
                         let snippet = context.snippet(missing_span);
                         let (_, mlb) = has_newlines_before_after_comment(snippet);
                         result.push_str(mlb);
@@ -517,7 +578,8 @@ impl Rewrite for [ast::Attribute]
 
 fn attr_prefix(attr: &ast::Attribute) -> &'static str
 {
-    match attr.style {
+    match attr.style
+    {
         ast::AttrStyle::Inner => "#!",
         ast::AttrStyle::Outer => "#",
     }
@@ -527,7 +589,8 @@ pub(crate) trait MetaVisitor<'ast>
 {
     fn visit_meta_item(&mut self, meta_item: &'ast ast::MetaItem)
     {
-        match meta_item.kind {
+        match meta_item.kind
+        {
             ast::MetaItemKind::Word => self.visit_meta_word(meta_item),
             ast::MetaItemKind::List(ref list) => self.visit_meta_list(meta_item, list),
             ast::MetaItemKind::NameValue(ref lit) => self.visit_meta_name_value(meta_item, lit),
@@ -540,7 +603,8 @@ pub(crate) trait MetaVisitor<'ast>
         list: &'ast [ast::NestedMetaItem],
     )
     {
-        for nm in list {
+        for nm in list
+        {
             self.visit_nested_meta_item(nm);
         }
     }
@@ -557,7 +621,8 @@ pub(crate) trait MetaVisitor<'ast>
 
     fn visit_nested_meta_item(&mut self, nm: &'ast ast::NestedMetaItem)
     {
-        match nm {
+        match nm
+        {
             ast::NestedMetaItem::MetaItem(ref meta_item) => self.visit_meta_item(meta_item),
             ast::NestedMetaItem::Lit(ref lit) => self.visit_meta_item_lit(lit),
         }

@@ -26,7 +26,8 @@ mod all_targets
 
         assert_eq!(targets.len(), exp_num_targets);
 
-        for target in exp_targets {
+        for target in exp_targets
+        {
             assert!(targets.contains(&Target {
                 path: get_path(target.path),
                 edition: target.edition.to_owned(),

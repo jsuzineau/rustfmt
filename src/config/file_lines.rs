@@ -31,7 +31,8 @@ impl From<rustc_span::FileName> for FileName
 {
     fn from(name: rustc_span::FileName) -> FileName
     {
-        match name {
+        match name
+        {
             rustc_span::FileName::Real(rustc_span::RealFileName::LocalPath(p)) => FileName::Real(p),
             rustc_span::FileName::Custom(ref f) if f == "stdin" => FileName::Stdin,
             _ => unreachable!(),
@@ -43,7 +44,8 @@ impl fmt::Display for FileName
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
     {
-        match self {
+        match self
+        {
             FileName::Real(p) => write!(f, "{}", p.to_str().unwrap()),
             FileName::Stdin => write!(f, "<stdin>"),
         }
@@ -57,9 +59,12 @@ impl<'de> Deserialize<'de> for FileName
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        if s == "stdin" {
+        if s == "stdin"
+        {
             Ok(FileName::Stdin)
-        } else {
+        }
+        else
+        {
             Ok(FileName::Real(s.into()))
         }
     }
@@ -71,7 +76,8 @@ impl Serialize for FileName
     where
         S: Serializer,
     {
-        let s = match self {
+        let s = match self
+        {
             FileName::Stdin => Ok("stdin"),
             FileName::Real(path) => path
                 .to_str()
@@ -129,18 +135,24 @@ impl Range
     #[allow(dead_code)]
     fn contains(self, other: Range) -> bool
     {
-        if other.is_empty() {
+        if other.is_empty()
+        {
             true
-        } else {
+        }
+        else
+        {
             !self.is_empty() && self.lo <= other.lo && self.hi >= other.hi
         }
     }
 
     fn intersects(self, other: Range) -> bool
     {
-        if self.is_empty() || other.is_empty() {
+        if self.is_empty() || other.is_empty()
+        {
             false
-        } else {
+        }
+        else
+        {
             (self.lo <= other.hi && other.hi <= self.hi)
                 || (other.lo <= self.hi && self.hi <= other.hi)
         }
@@ -148,9 +160,12 @@ impl Range
 
     fn adjacent_to(self, other: Range) -> bool
     {
-        if self.is_empty() || other.is_empty() {
+        if self.is_empty() || other.is_empty()
+        {
             false
-        } else {
+        }
+        else
+        {
             self.hi + 1 == other.lo || other.hi + 1 == self.lo
         }
     }
@@ -159,12 +174,15 @@ impl Range
     /// intersect; returns `None` otherwise.
     fn merge(self, other: Range) -> Option<Range>
     {
-        if self.adjacent_to(other) || self.intersects(other) {
+        if self.adjacent_to(other) || self.intersects(other)
+        {
             Some(Range::new(
                 cmp::min(self.lo, other.lo),
                 cmp::max(self.hi, other.hi),
             ))
-        } else {
+        }
+        else
+        {
             None
         }
     }
@@ -182,10 +200,13 @@ impl fmt::Display for FileLines
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
     {
-        match &self.0 {
+        match &self.0
+        {
             None => write!(f, "None")?,
-            Some(map) => {
-                for (file_name, ranges) in map.iter() {
+            Some(map) =>
+            {
+                for (file_name, ranges) in map.iter()
+                {
                     write!(f, "{}: ", file_name)?;
                     write!(f, "{}\n", ranges.iter().format(", "))?;
                 }
@@ -199,17 +220,23 @@ impl fmt::Display for FileLines
 /// and ordered by their start point.
 fn normalize_ranges(ranges: &mut HashMap<FileName, Vec<Range>>)
 {
-    for ranges in ranges.values_mut() {
+    for ranges in ranges.values_mut()
+    {
         ranges.sort();
         let mut result = vec![];
         let mut iter = ranges.iter_mut().peekable();
-        while let Some(next) = iter.next() {
+        while let Some(next) = iter.next()
+        {
             let mut next = *next;
-            while let Some(&&mut peek) = iter.peek() {
-                if let Some(merged) = next.merge(peek) {
+            while let Some(&&mut peek) = iter.peek()
+            {
+                if let Some(merged) = next.merge(peek)
+                {
                     iter.next().unwrap();
                     next = merged;
-                } else {
+                }
+                else
+                {
                     break;
                 }
             }
@@ -248,7 +275,8 @@ impl FileLines
     /// Returns JSON representation as accepted by the `--file-lines JSON` arg.
     pub fn to_json_spans(&self) -> Vec<JsonSpan>
     {
-        match &self.0 {
+        match &self.0
+        {
             None => vec![],
             Some(file_ranges) => file_ranges
                 .iter()
@@ -267,13 +295,15 @@ impl FileLines
     where
         F: FnMut(&Range) -> bool,
     {
-        let map = match self.0 {
+        let map = match self.0
+        {
             // `None` means "all lines in all files".
             None => return true,
             Some(ref map) => map,
         };
 
-        match canonicalize_path_string(file_name).and_then(|file| map.get(&file)) {
+        match canonicalize_path_string(file_name).and_then(|file| map.get(&file))
+        {
             Some(ranges) => ranges.iter().any(f),
             None => false,
         }
@@ -320,7 +350,8 @@ impl<'a> iter::Iterator for Files<'a>
 
 fn canonicalize_path_string(file: &FileName) -> Option<FileName>
 {
-    match *file {
+    match *file
+    {
         FileName::Real(ref path) => path.canonicalize().ok().map(FileName::Real),
         _ => Some(file.clone()),
     }
@@ -344,7 +375,8 @@ impl str::FromStr for FileLines
     {
         let v: Vec<JsonSpan> = json::from_str(s).map_err(FileLinesError::Json)?;
         let mut m = HashMap::new();
-        for js in v {
+        for js in v
+        {
             let (s, r) = JsonSpan::into_tuple(js)?;
             m.entry(s).or_insert_with(Vec::new).push(r);
         }

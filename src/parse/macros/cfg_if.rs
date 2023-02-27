@@ -13,7 +13,8 @@ pub(crate) fn parse_cfg_if<'a>(
     mac: &'a ast::MacCall,
 ) -> Result<Vec<ast::Item>, &'static str>
 {
-    match catch_unwind(AssertUnwindSafe(|| parse_cfg_if_inner(sess, mac))) {
+    match catch_unwind(AssertUnwindSafe(|| parse_cfg_if_inner(sess, mac)))
+    {
         Ok(Ok(items)) => Ok(items),
         Ok(err @ Err(_)) => err,
         Err(..) => Err("failed to parse cfg_if!"),
@@ -31,9 +32,12 @@ fn parse_cfg_if_inner<'a>(
     let mut items = vec![];
     let mut process_if_cfg = true;
 
-    while parser.token.kind != TokenKind::Eof {
-        if process_if_cfg {
-            if !parser.eat_keyword(kw::If) {
+    while parser.token.kind != TokenKind::Eof
+    {
+        if process_if_cfg
+        {
+            if !parser.eat_keyword(kw::If)
+            {
                 return Err("Expected `if`");
             }
             // Inner attributes are not actually syntactically permitted here, but we don't
@@ -49,17 +53,20 @@ fn parse_cfg_if_inner<'a>(
                 .map_err(|_| "Failed to parse attributes")?;
         }
 
-        if !parser.eat(&TokenKind::OpenDelim(Delimiter::Brace)) {
+        if !parser.eat(&TokenKind::OpenDelim(Delimiter::Brace))
+        {
             return Err("Expected an opening brace");
         }
 
         while parser.token != TokenKind::CloseDelim(Delimiter::Brace)
             && parser.token.kind != TokenKind::Eof
         {
-            let item = match parser.parse_item(ForceCollect::No) {
+            let item = match parser.parse_item(ForceCollect::No)
+            {
                 Ok(Some(item_ptr)) => item_ptr.into_inner(),
                 Ok(None) => continue,
-                Err(err) => {
+                Err(err) =>
+                {
                     err.cancel();
                     parser.sess.span_diagnostic.reset_err_count();
                     return Err(
@@ -67,20 +74,24 @@ fn parse_cfg_if_inner<'a>(
                     );
                 }
             };
-            if let ast::ItemKind::Mod(..) = item.kind {
+            if let ast::ItemKind::Mod(..) = item.kind
+            {
                 items.push(item);
             }
         }
 
-        if !parser.eat(&TokenKind::CloseDelim(Delimiter::Brace)) {
+        if !parser.eat(&TokenKind::CloseDelim(Delimiter::Brace))
+        {
             return Err("Expected a closing brace");
         }
 
-        if parser.eat(&TokenKind::Eof) {
+        if parser.eat(&TokenKind::Eof)
+        {
             break;
         }
 
-        if !parser.eat_keyword(kw::Else) {
+        if !parser.eat_keyword(kw::Else)
+        {
             return Err("Expected `else`");
         }
 

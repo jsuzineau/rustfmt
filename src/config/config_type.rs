@@ -504,9 +504,11 @@ where
 {
     let nightly = crate::is_nightly_channel!();
     let variant_stable = option_value.stable_variant();
-    match (nightly, option_stable, variant_stable) {
+    match (nightly, option_stable, variant_stable)
+    {
         // Stable with an unstable option
-        (false, false, _) => {
+        (false, false, _) =>
+        {
             eprintln!(
                 "Warning: can't set `{} = {:?}`, unstable features are only \
                        available in nightly channel.",
@@ -515,7 +517,8 @@ where
             false
         }
         // Stable with a stable option, but an unstable variant
-        (false, true, false) => {
+        (false, true, false) =>
+        {
             eprintln!(
                 "Warning: can't set `{} = {:?}`, unstable variants are only \
                        available in nightly channel.",

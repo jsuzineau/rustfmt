@@ -31,11 +31,14 @@ impl Indent
 
     pub(crate) fn from_width(config: &Config, width: usize) -> Indent
     {
-        if config.hard_tabs() {
+        if config.hard_tabs()
+        {
             let tab_num = width / config.tab_spaces();
             let alignment = width % config.tab_spaces();
             Indent::new(config.tab_spaces() * tab_num, alignment)
-        } else {
+        }
+        else
+        {
             Indent::new(width, 0)
         }
     }
@@ -61,9 +64,12 @@ impl Indent
 
     pub(crate) fn block_unindent(mut self, config: &Config) -> Indent
     {
-        if self.block_indent < config.tab_spaces() {
+        if self.block_indent < config.tab_spaces()
+        {
             Indent::new(self.block_indent, 0)
-        } else {
+        }
+        else
+        {
             self.block_indent -= config.tab_spaces();
             self
         }
@@ -86,23 +92,32 @@ impl Indent
 
     fn to_string_inner(&self, config: &Config, offset: usize) -> Cow<'static, str>
     {
-        let (num_tabs, num_spaces) = if config.hard_tabs() {
+        let (num_tabs, num_spaces) = if config.hard_tabs()
+        {
             (self.block_indent / config.tab_spaces(), self.alignment)
-        } else {
+        }
+        else
+        {
             (0, self.width())
         };
         let num_chars = num_tabs + num_spaces;
-        if num_tabs == 0 && num_chars + offset <= INDENT_BUFFER_LEN {
+        if num_tabs == 0 && num_chars + offset <= INDENT_BUFFER_LEN
+        {
             Cow::from(&INDENT_BUFFER[offset..=num_chars])
-        } else {
+        }
+        else
+        {
             let mut indent = String::with_capacity(num_chars + if offset == 0 { 1 } else { 0 });
-            if offset == 0 {
+            if offset == 0
+            {
                 indent.push('\n');
             }
-            for _ in 0..num_tabs {
+            for _ in 0..num_tabs
+            {
                 indent.push('\t')
             }
-            for _ in 0..num_spaces {
+            for _ in 0..num_spaces
+            {
                 indent.push(' ')
             }
             Cow::from(indent)
@@ -225,13 +240,16 @@ impl Shape
 
     pub(crate) fn block_indent(&self, extra_width: usize) -> Shape
     {
-        if self.indent.alignment == 0 {
+        if self.indent.alignment == 0
+        {
             Shape {
                 width: self.width,
                 indent: Indent::new(self.indent.block_indent + extra_width, 0),
                 offset: 0,
             }
-        } else {
+        }
+        else
+        {
             Shape {
                 width: self.width,
                 indent: self.indent + extra_width,

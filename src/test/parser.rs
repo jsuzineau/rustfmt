@@ -27,10 +27,14 @@ fn parser_errors_in_submods_are_surfaced()
                 unparseable_file,
                 PathBuf::from("tests/parser/issue-4126/invalid.rs"),
             );
-        } else {
+        }
+        else
+        {
             panic!("Expected parser error");
         }
-    } else {
+    }
+    else
+    {
         panic!("Expected ModuleResolution operation error");
     }
 }

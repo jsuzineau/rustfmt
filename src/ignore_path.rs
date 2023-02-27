@@ -13,7 +13,8 @@ impl IgnorePathSet
     {
         let mut ignore_builder = gitignore::GitignoreBuilder::new(ignore_list.rustfmt_toml_path());
 
-        for ignore_path in ignore_list {
+        for ignore_path in ignore_list
+        {
             ignore_builder.add_line(None, ignore_path.to_str().unwrap())?;
         }
 
@@ -24,7 +25,8 @@ impl IgnorePathSet
 
     pub(crate) fn is_match(&self, file_name: &FileName) -> bool
     {
-        match file_name {
+        match file_name
+        {
             FileName::Stdin => false,
             FileName::Real(p) => self
                 .ignore_set

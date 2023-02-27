@@ -14,7 +14,8 @@ fn verify_mod_resolution(input_file_name: &str, exp_misformatted_files: &[&str])
         .format(Input::File(input_file_name.into()))
         .expect("Should not have had any execution errors");
     let errors_by_file = &report.internal.borrow().0;
-    for exp_file in exp_misformatted_files {
+    for exp_file in exp_misformatted_files
+    {
         assert!(errors_by_file.contains_key(&FileName::Real(PathBuf::from(exp_file))));
     }
 }

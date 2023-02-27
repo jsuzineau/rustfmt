@@ -12,7 +12,8 @@ pub(crate) fn apply_newline_style(
     raw_input_text: &str,
 )
 {
-    *formatted_text = match effective_newline_style(newline_style, raw_input_text) {
+    *formatted_text = match effective_newline_style(newline_style, raw_input_text)
+    {
         EffectiveNewlineStyle::Windows => convert_to_windows_newlines(formatted_text),
         EffectiveNewlineStyle::Unix => convert_to_unix_newlines(formatted_text),
     }
@@ -30,7 +31,8 @@ fn effective_newline_style(
     raw_input_text: &str,
 ) -> EffectiveNewlineStyle
 {
-    match newline_style {
+    match newline_style
+    {
         NewlineStyle::Auto => auto_detect_newline_style(raw_input_text),
         NewlineStyle::Native => native_newline_style(),
         NewlineStyle::Windows => EffectiveNewlineStyle::Windows,
@@ -46,11 +48,14 @@ const UNIX_NEWLINE: &str = "\n";
 fn auto_detect_newline_style(raw_input_text: &str) -> EffectiveNewlineStyle
 {
     let first_line_feed_pos = raw_input_text.chars().position(|ch| ch == LINE_FEED);
-    match first_line_feed_pos {
-        Some(first_line_feed_pos) => {
+    match first_line_feed_pos
+    {
+        Some(first_line_feed_pos) =>
+        {
             let char_before_line_feed_pos = first_line_feed_pos.saturating_sub(1);
             let char_before_line_feed = raw_input_text.chars().nth(char_before_line_feed_pos);
-            match char_before_line_feed {
+            match char_before_line_feed
+            {
                 Some(CARRIAGE_RETURN) => EffectiveNewlineStyle::Windows,
                 _ => EffectiveNewlineStyle::Unix,
             }
@@ -61,9 +66,12 @@ fn auto_detect_newline_style(raw_input_text: &str) -> EffectiveNewlineStyle
 
 fn native_newline_style() -> EffectiveNewlineStyle
 {
-    if cfg!(windows) {
+    if cfg!(windows)
+    {
         EffectiveNewlineStyle::Windows
-    } else {
+    }
+    else
+    {
         EffectiveNewlineStyle::Unix
     }
 }
@@ -72,11 +80,14 @@ fn convert_to_windows_newlines(formatted_text: &String) -> String
 {
     let mut transformed = String::with_capacity(2 * formatted_text.capacity());
     let mut chars = formatted_text.chars().peekable();
-    while let Some(current_char) = chars.next() {
+    while let Some(current_char) = chars.next()
+    {
         let next_char = chars.peek();
-        match current_char {
+        match current_char
+        {
             LINE_FEED => transformed.push_str(WINDOWS_NEWLINE),
-            CARRIAGE_RETURN if next_char == Some(&LINE_FEED) => {}
+            CARRIAGE_RETURN if next_char == Some(&LINE_FEED) =>
+            {}
             current_char => transformed.push(current_char),
         }
     }
@@ -123,9 +134,12 @@ mod tests
     #[test]
     fn falls_back_to_native_newlines_if_no_newlines_are_found()
     {
-        let expected_newline_style = if cfg!(windows) {
+        let expected_newline_style = if cfg!(windows)
+        {
             EffectiveNewlineStyle::Windows
-        } else {
+        }
+        else
+        {
             EffectiveNewlineStyle::Unix
         };
         assert_eq!(
@@ -165,12 +179,15 @@ mod tests
         let mut out = String::from(formatted_text);
         apply_newline_style(NewlineStyle::Auto, &mut out, raw_input_text);
 
-        if cfg!(windows) {
+        if cfg!(windows)
+        {
             assert_eq!(
                 "One\r\nTwo\r\nThree", &out,
                 "auto-native-windows should detect 'crlf'"
             );
-        } else {
+        }
+        else
+        {
             assert_eq!(
                 "One\nTwo\nThree", &out,
                 "auto-native-unix should detect 'lf'"

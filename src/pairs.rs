@@ -58,9 +58,12 @@ fn rewrite_pairs_one_line<T: Rewrite>(
     let mut result = String::new();
     let base_shape = shape.block();
 
-    for ((_, rewrite), s) in list.list.iter().zip(list.separators.iter()) {
-        if let Some(rewrite) = rewrite {
-            if !is_single_line(rewrite) || result.len() > shape.width {
+    for ((_, rewrite), s) in list.list.iter().zip(list.separators.iter())
+    {
+        if let Some(rewrite) = rewrite
+        {
+            if !is_single_line(rewrite) || result.len() > shape.width
+            {
                 return None;
             }
 
@@ -68,7 +71,9 @@ fn rewrite_pairs_one_line<T: Rewrite>(
             result.push(' ');
             result.push_str(s);
             result.push(' ');
-        } else {
+        }
+        else
+        {
             return None;
         }
     }
@@ -79,7 +84,8 @@ fn rewrite_pairs_one_line<T: Rewrite>(
     let last_rewrite = last.rewrite(context, cur_shape)?;
     result.push_str(&last_rewrite);
 
-    if first_line_width(&result) > shape.width {
+    if first_line_width(&result) > shape.width
+    {
         return None;
     }
 
@@ -101,7 +107,8 @@ fn rewrite_pairs_multiline<T: Rewrite>(
 ) -> Option<String>
 {
     let rhs_offset = shape.rhs_overhead(context.config);
-    let nested_shape = (match context.config.indent_style() {
+    let nested_shape = (match context.config.indent_style()
+    {
         IndentStyle::Visual => shape.visual_indent(0),
         IndentStyle::Block => shape.block_indent(context.config.tab_spaces()),
     })
@@ -113,21 +120,27 @@ fn rewrite_pairs_multiline<T: Rewrite>(
 
     result.push_str(list.list[0].1.as_ref()?);
 
-    for ((e, default_rw), s) in list.list[1..].iter().zip(list.separators.iter()) {
+    for ((e, default_rw), s) in list.list[1..].iter().zip(list.separators.iter())
+    {
         // The following test checks if we should keep two subexprs on the same
         // line. We do this if not doing so would create an orphan and there is
         // enough space to do so.
-        let offset = if result.contains('\n') {
+        let offset = if result.contains('\n')
+        {
             0
-        } else {
+        }
+        else
+        {
             shape.used_width()
         };
-        if last_line_width(&result) + offset <= nested_shape.used_width() {
+        if last_line_width(&result) + offset <= nested_shape.used_width()
+        {
             // We must snuggle the next line onto the previous line to avoid an orphan.
             if let Some(line_shape) =
                 shape.offset_left(s.len() + 2 + trimmed_last_line_width(&result))
             {
-                if let Some(rewrite) = e.rewrite(context, line_shape) {
+                if let Some(rewrite) = e.rewrite(context, line_shape)
+                {
                     result.push(' ');
                     result.push_str(s);
                     result.push(' ');
@@ -137,13 +150,16 @@ fn rewrite_pairs_multiline<T: Rewrite>(
             }
         }
 
-        match context.config.binop_separator() {
-            SeparatorPlace::Back => {
+        match context.config.binop_separator()
+        {
+            SeparatorPlace::Back =>
+            {
                 result.push(' ');
                 result.push_str(s);
                 result.push_str(&indent_str);
             }
-            SeparatorPlace::Front => {
+            SeparatorPlace::Front =>
+            {
                 result.push_str(&indent_str);
                 result.push_str(s);
                 result.push(' ');
@@ -169,7 +185,8 @@ where
     RHS: Rewrite,
 {
     let tab_spaces = context.config.tab_spaces();
-    let lhs_overhead = match separator_place {
+    let lhs_overhead = match separator_place
+    {
         SeparatorPlace::Back => shape.used_width() + pp.prefix.len() + pp.infix.trim_end().len(),
         SeparatorPlace::Front => shape.used_width(),
     };
@@ -186,7 +203,8 @@ where
         .offset_left(last_line_width(&lhs_result) + pp.infix.len())
         .and_then(|s| s.sub_width(pp.suffix.len()))
         .and_then(|rhs_shape| rhs.rewrite(context, rhs_shape));
-    if let Some(ref rhs_result) = rhs_orig_result {
+    if let Some(ref rhs_result) = rhs_orig_result
+    {
         // If the length of the lhs is equal to or shorter than the tab width or
         // the rhs looks like block expression, we put the rhs on the same
         // line with the lhs even if the rhs is multi-lined.
@@ -196,12 +214,14 @@ where
                 .next()
                 .map(|first_line| first_line.ends_with('{'))
                 .unwrap_or(false);
-        if !rhs_result.contains('\n') || allow_same_line {
+        if !rhs_result.contains('\n') || allow_same_line
+        {
             let one_line_width = last_line_width(&lhs_result)
                 + pp.infix.len()
                 + first_line_width(rhs_result)
                 + pp.suffix.len();
-            if one_line_width <= shape.width {
+            if one_line_width <= shape.width
+            {
                 return Some(format!(
                     "{}{}{}{}",
                     lhs_result, pp.infix, rhs_result, pp.suffix
@@ -212,27 +232,32 @@ where
 
     // We have to use multiple lines.
     // Re-evaluate the rhs because we have more space now:
-    let mut rhs_shape = match context.config.indent_style() {
+    let mut rhs_shape = match context.config.indent_style()
+    {
         IndentStyle::Visual => shape
             .sub_width(pp.suffix.len() + pp.prefix.len())?
             .visual_indent(pp.prefix.len()),
-        IndentStyle::Block => {
+        IndentStyle::Block =>
+        {
             // Try to calculate the initial constraint on the right hand side.
             let rhs_overhead = shape.rhs_overhead(context.config);
             Shape::indented(shape.indent.block_indent(context.config), context.config)
                 .sub_width(rhs_overhead)?
         }
     };
-    let infix = match separator_place {
+    let infix = match separator_place
+    {
         SeparatorPlace::Back => pp.infix.trim_end(),
         SeparatorPlace::Front => pp.infix.trim_start(),
     };
-    if separator_place == SeparatorPlace::Front {
+    if separator_place == SeparatorPlace::Front
+    {
         rhs_shape = rhs_shape.offset_left(infix.len())?;
     }
     let rhs_result = rhs.rewrite(context, rhs_shape)?;
     let indent_str = rhs_shape.indent.to_string_with_newline(context.config);
-    let infix_with_sep = match separator_place {
+    let infix_with_sep = match separator_place
+    {
         SeparatorPlace::Back => format!("{}{}", infix, indent_str),
         SeparatorPlace::Front => format!("{}{}", indent_str, infix),
     };
@@ -265,24 +290,28 @@ impl FlattenPair for ast::Expr
         shape: Shape,
     ) -> Option<PairList<'_, '_, ast::Expr>>
     {
-        let top_op = match self.kind {
+        let top_op = match self.kind
+        {
             ast::ExprKind::Binary(op, _, _) => op.node,
             _ => return None,
         };
 
         let default_rewrite = |node: &ast::Expr, sep: usize, is_first: bool| {
-            if is_first {
+            if is_first
+            {
                 return node.rewrite(context, shape);
             }
             let nested_overhead = sep + 1;
             let rhs_offset = shape.rhs_overhead(context.config);
-            let nested_shape = (match context.config.indent_style() {
+            let nested_shape = (match context.config.indent_style()
+            {
                 IndentStyle::Visual => shape.visual_indent(0),
                 IndentStyle::Block => shape.block_indent(context.config.tab_spaces()),
             })
             .with_max_width(context.config)
             .sub_width(rhs_offset)?;
-            let default_shape = match context.config.binop_separator() {
+            let default_shape = match context.config.binop_separator()
+            {
                 SeparatorPlace::Back => nested_shape.sub_width(nested_overhead)?,
                 SeparatorPlace::Front => nested_shape.offset_left(nested_overhead)?,
             };
@@ -295,25 +324,34 @@ impl FlattenPair for ast::Expr
         let mut list = vec![];
         let mut separators = vec![];
         let mut node = self;
-        loop {
-            match node.kind {
-                ast::ExprKind::Binary(op, ref lhs, _) if op.node == top_op => {
+        loop
+        {
+            match node.kind
+            {
+                ast::ExprKind::Binary(op, ref lhs, _) if op.node == top_op =>
+                {
                     stack.push(node);
                     node = lhs;
                 }
-                _ => {
+                _ =>
+                {
                     let op_len = separators.last().map_or(0, |s: &&str| s.len());
                     let rw = default_rewrite(node, op_len, list.is_empty());
                     list.push((node, rw));
-                    if let Some(pop) = stack.pop() {
-                        match pop.kind {
-                            ast::ExprKind::Binary(op, _, ref rhs) => {
+                    if let Some(pop) = stack.pop()
+                    {
+                        match pop.kind
+                        {
+                            ast::ExprKind::Binary(op, _, ref rhs) =>
+                            {
                                 separators.push(op.node.to_string());
                                 node = rhs;
                             }
                             _ => unreachable!(),
                         }
-                    } else {
+                    }
+                    else
+                    {
                         break;
                     }
                 }

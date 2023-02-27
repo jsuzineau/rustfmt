@@ -87,9 +87,12 @@ fn execute() -> i32
     // Drop extra `fmt` argument provided by `cargo`.
     let mut found_fmt = false;
     let args = env::args().filter(|x| {
-        if found_fmt {
+        if found_fmt
+        {
             true
-        } else {
+        }
+        else
+        {
             found_fmt = x == "fmt";
             x != "fmt"
         }
@@ -97,36 +100,43 @@ fn execute() -> i32
 
     let opts = Opts::parse_from(args);
 
-    let verbosity = match (opts.verbose, opts.quiet) {
+    let verbosity = match (opts.verbose, opts.quiet)
+    {
         (false, false) => Verbosity::Normal,
         (false, true) => Verbosity::Quiet,
         (true, false) => Verbosity::Verbose,
-        (true, true) => {
+        (true, true) =>
+        {
             print_usage_to_stderr("quiet mode and verbose mode are not compatible");
             return FAILURE;
         }
     };
 
-    if opts.version {
+    if opts.version
+    {
         return handle_command_status(get_rustfmt_info(&[String::from("--version")]));
     }
     if opts.rustfmt_options.iter().any(|s| {
         ["--print-config", "-h", "--help", "-V", "--version"].contains(&s.as_str())
             || s.starts_with("--help=")
             || s.starts_with("--print-config=")
-    }) {
+    })
+    {
         return handle_command_status(get_rustfmt_info(&opts.rustfmt_options));
     }
 
     let strategy = CargoFmtStrategy::from_opts(&opts);
     let mut rustfmt_args = opts.rustfmt_options;
-    if opts.check {
+    if opts.check
+    {
         let check_flag = "--check";
-        if !rustfmt_args.iter().any(|o| o == check_flag) {
+        if !rustfmt_args.iter().any(|o| o == check_flag)
+        {
             rustfmt_args.push(check_flag.to_owned());
         }
     }
-    if let Some(message_format) = opts.message_format {
+    if let Some(message_format) = opts.message_format
+    {
         if let Err(msg) = convert_message_format_to_rustfmt_args(&message_format, &mut rustfmt_args)
         {
             print_usage_to_stderr(&msg);
@@ -134,8 +144,10 @@ fn execute() -> i32
         }
     }
 
-    if let Some(specified_manifest_path) = opts.manifest_path {
-        if !specified_manifest_path.ends_with("Cargo.toml") {
+    if let Some(specified_manifest_path) = opts.manifest_path
+    {
+        if !specified_manifest_path.ends_with("Cargo.toml")
+        {
             print_usage_to_stderr("the manifest-path must be a path to a Cargo.toml file");
             return FAILURE;
         }
@@ -146,7 +158,9 @@ fn execute() -> i32
             rustfmt_args,
             Some(&manifest_path),
         ))
-    } else {
+    }
+    else
+    {
         handle_command_status(format_crate(verbosity, &strategy, rustfmt_args, None))
     }
 }
@@ -154,7 +168,8 @@ fn execute() -> i32
 fn rustfmt_command() -> Command
 {
     let rustfmt_var = env::var_os("RUSTFMT");
-    let rustfmt = match &rustfmt_var {
+    let rustfmt = match &rustfmt_var
+    {
         Some(rustfmt) => rustfmt,
         None => OsStr::new("rustfmt"),
     };
@@ -169,31 +184,41 @@ fn convert_message_format_to_rustfmt_args(
     let mut contains_emit_mode = false;
     let mut contains_check = false;
     let mut contains_list_files = false;
-    for arg in rustfmt_args.iter() {
-        if arg.starts_with("--emit") {
+    for arg in rustfmt_args.iter()
+    {
+        if arg.starts_with("--emit")
+        {
             contains_emit_mode = true;
         }
-        if arg == "--check" {
+        if arg == "--check"
+        {
             contains_check = true;
         }
-        if arg == "-l" || arg == "--files-with-diff" {
+        if arg == "-l" || arg == "--files-with-diff"
+        {
             contains_list_files = true;
         }
     }
-    match message_format {
-        "short" => {
-            if !contains_list_files {
+    match message_format
+    {
+        "short" =>
+        {
+            if !contains_list_files
+            {
                 rustfmt_args.push(String::from("-l"));
             }
             Ok(())
         }
-        "json" => {
-            if contains_emit_mode {
+        "json" =>
+        {
+            if contains_emit_mode
+            {
                 return Err(String::from(
                     "cannot include --emit arg when --message-format is set to json",
                 ));
             }
-            if contains_check {
+            if contains_check
+            {
                 return Err(String::from(
                     "cannot include --check arg when --message-format is set to json",
                 ));
@@ -229,8 +254,10 @@ pub enum Verbosity
 
 fn handle_command_status(status: Result<i32, io::Error>) -> i32
 {
-    match status {
-        Err(e) => {
+    match status
+    {
+        Err(e) =>
+        {
             print_usage_to_stderr(&e.to_string());
             FAILURE
         }
@@ -244,7 +271,8 @@ fn get_rustfmt_info(args: &[String]) -> Result<i32, io::Error>
         .stdout(std::process::Stdio::inherit())
         .args(args)
         .spawn()
-        .map_err(|e| match e.kind() {
+        .map_err(|e| match e.kind()
+        {
             io::ErrorKind::NotFound => io::Error::new(
                 io::ErrorKind::Other,
                 "Could not run rustfmt, please make sure it is in your PATH.",
@@ -252,9 +280,12 @@ fn get_rustfmt_info(args: &[String]) -> Result<i32, io::Error>
             _ => e,
         })?;
     let result = command.wait()?;
-    if result.success() {
+    if result.success()
+    {
         Ok(SUCCESS)
-    } else {
+    }
+    else
+    {
         Ok(result.code().unwrap_or(SUCCESS))
     }
 }
@@ -348,7 +379,8 @@ impl CargoFmtStrategy
 {
     pub fn from_opts(opts: &Opts) -> CargoFmtStrategy
     {
-        match (opts.format_all, opts.packages.is_empty()) {
+        match (opts.format_all, opts.packages.is_empty())
+        {
             (false, true) => CargoFmtStrategy::Root,
             (true, _) => CargoFmtStrategy::All,
             (false, false) => CargoFmtStrategy::Some(opts.packages.clone()),
@@ -364,22 +396,28 @@ fn get_targets(
 {
     let mut targets = BTreeSet::new();
 
-    match *strategy {
+    match *strategy
+    {
         CargoFmtStrategy::Root => get_targets_root_only(manifest_path, &mut targets)?,
-        CargoFmtStrategy::All => {
+        CargoFmtStrategy::All =>
+        {
             get_targets_recursive(manifest_path, &mut targets, &mut BTreeSet::new())?
         }
-        CargoFmtStrategy::Some(ref hitlist) => {
+        CargoFmtStrategy::Some(ref hitlist) =>
+        {
             get_targets_with_hitlist(manifest_path, hitlist, &mut targets)?
         }
     }
 
-    if targets.is_empty() {
+    if targets.is_empty()
+    {
         Err(io::Error::new(
             io::ErrorKind::Other,
             "Failed to find targets".to_owned(),
         ))
-    } else {
+    }
+    else
+    {
         Ok(targets)
     }
 }
@@ -391,12 +429,15 @@ fn get_targets_root_only(
 {
     let metadata = get_cargo_metadata(manifest_path)?;
     let workspace_root_path = PathBuf::from(&metadata.workspace_root).canonicalize()?;
-    let (in_workspace_root, current_dir_manifest) = if let Some(target_manifest) = manifest_path {
+    let (in_workspace_root, current_dir_manifest) = if let Some(target_manifest) = manifest_path
+    {
         (
             workspace_root_path == target_manifest,
             target_manifest.canonicalize()?,
         )
-    } else {
+    }
+    else
+    {
         let current_dir = env::current_dir()?.canonicalize()?;
         (
             workspace_root_path == current_dir,
@@ -404,7 +445,8 @@ fn get_targets_root_only(
         )
     };
 
-    let package_targets = match metadata.packages.len() {
+    let package_targets = match metadata.packages.len()
+    {
         1 => metadata.packages.into_iter().next().unwrap().targets,
         _ => metadata
             .packages
@@ -420,7 +462,8 @@ fn get_targets_root_only(
             .collect(),
     };
 
-    for target in package_targets {
+    for target in package_targets
+    {
         targets.insert(Target::from_target(&target));
     }
 
@@ -434,7 +477,8 @@ fn get_targets_recursive(
 ) -> Result<(), io::Error>
 {
     let metadata = get_cargo_metadata(manifest_path)?;
-    for package in &metadata.packages {
+    for package in &metadata.packages
+    {
         add_targets(&package.targets, targets);
 
         // Look for local dependencies using information available since cargo v1.51
@@ -443,8 +487,10 @@ fn get_targets_recursive(
         // If someone reports an issue with path-based deps not being formatted, be sure to
         // confirm their version of `cargo` (not `cargo-fmt`) is >= v1.51
         // https://github.com/rust-lang/cargo/pull/8994
-        for dependency in &package.dependencies {
-            if dependency.path.is_none() || visited.contains(&dependency.name) {
+        for dependency in &package.dependencies
+        {
+            if dependency.path.is_none() || visited.contains(&dependency.name)
+            {
                 continue;
             }
 
@@ -473,17 +519,23 @@ fn get_targets_with_hitlist(
     let metadata = get_cargo_metadata(manifest_path)?;
     let mut workspace_hitlist: BTreeSet<&String> = BTreeSet::from_iter(hitlist);
 
-    for package in metadata.packages {
-        if workspace_hitlist.remove(&package.name) {
-            for target in package.targets {
+    for package in metadata.packages
+    {
+        if workspace_hitlist.remove(&package.name)
+        {
+            for target in package.targets
+            {
                 targets.insert(Target::from_target(&target));
             }
         }
     }
 
-    if workspace_hitlist.is_empty() {
+    if workspace_hitlist.is_empty()
+    {
         Ok(())
-    } else {
+    }
+    else
+    {
         let package = workspace_hitlist.iter().next().unwrap();
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
@@ -494,7 +546,8 @@ fn get_targets_with_hitlist(
 
 fn add_targets(target_paths: &[cargo_metadata::Target], targets: &mut BTreeSet<Target>)
 {
-    for target in target_paths {
+    for target in target_paths
+    {
         targets.insert(Target::from_target(target));
     }
 }
@@ -508,7 +561,8 @@ fn run_rustfmt(
     let by_edition = targets
         .iter()
         .inspect(|t| {
-            if verbosity == Verbosity::Verbose {
+            if verbosity == Verbosity::Verbose
+            {
                 println!("[{} ({})] {:?}", t.kind, t.edition, t.path)
             }
         })
@@ -518,14 +572,19 @@ fn run_rustfmt(
         });
 
     let mut status = vec![];
-    for (edition, files) in by_edition {
-        let stdout = if verbosity == Verbosity::Quiet {
+    for (edition, files) in by_edition
+    {
+        let stdout = if verbosity == Verbosity::Quiet
+        {
             std::process::Stdio::null()
-        } else {
+        }
+        else
+        {
             std::process::Stdio::inherit()
         };
 
-        if verbosity == Verbosity::Verbose {
+        if verbosity == Verbosity::Verbose
+        {
             print!("rustfmt");
             print!(" --edition {}", edition);
             fmt_args.iter().for_each(|f| print!(" {}", f));
@@ -539,7 +598,8 @@ fn run_rustfmt(
             .args(&["--edition", edition])
             .args(fmt_args)
             .spawn()
-            .map_err(|e| match e.kind() {
+            .map_err(|e| match e.kind()
+            {
                 io::ErrorKind::NotFound => io::Error::new(
                     io::ErrorKind::Other,
                     "Could not run rustfmt, please make sure it is in your PATH.",
@@ -552,7 +612,16 @@ fn run_rustfmt(
 
     Ok(status
         .iter()
-        .filter_map(|s| if s.success() { None } else { s.code() })
+        .filter_map(|s| {
+            if s.success()
+            {
+                None
+            }
+            else
+            {
+                s.code()
+            }
+        })
         .next()
         .unwrap_or(SUCCESS))
 }
@@ -561,16 +630,20 @@ fn get_cargo_metadata(manifest_path: Option<&Path>) -> Result<cargo_metadata::Me
 {
     let mut cmd = cargo_metadata::MetadataCommand::new();
     cmd.no_deps();
-    if let Some(manifest_path) = manifest_path {
+    if let Some(manifest_path) = manifest_path
+    {
         cmd.manifest_path(manifest_path);
     }
     cmd.other_options(vec![String::from("--offline")]);
 
-    match cmd.exec() {
+    match cmd.exec()
+    {
         Ok(metadata) => Ok(metadata),
-        Err(_) => {
+        Err(_) =>
+        {
             cmd.other_options(vec![]);
-            match cmd.exec() {
+            match cmd.exec()
+            {
                 Ok(metadata) => Ok(metadata),
                 Err(error) => Err(io::Error::new(io::ErrorKind::Other, error.to_string())),
             }

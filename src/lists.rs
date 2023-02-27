@@ -103,11 +103,13 @@ impl<'a> ListFormatting<'a>
 
     pub(crate) fn needs_trailing_separator(&self) -> bool
     {
-        match self.trailing_separator {
+        match self.trailing_separator
+        {
             // We always put separator in front.
             SeparatorTactic::Always => true,
             SeparatorTactic::Vertical => self.tactic == DefinitiveListTactic::Vertical,
-            SeparatorTactic::Never => {
+            SeparatorTactic::Never =>
+            {
                 self.tactic == DefinitiveListTactic::Vertical && self.separator_place.is_front()
             }
         }
@@ -239,7 +241,8 @@ impl Separator
 {
     pub(crate) fn len(self) -> usize
     {
-        match self {
+        match self
+        {
             // 2 = `, `
             Separator::Comma => 2,
             // 3 = ` | `
@@ -263,7 +266,8 @@ where
         .into_iter()
         .any(|item| item.as_ref().has_single_line_comment());
 
-    let limit = match tactic {
+    let limit = match tactic
+    {
         _ if pre_line_comments => return DefinitiveListTactic::Vertical,
         ListTactic::Horizontal => return DefinitiveListTactic::Horizontal,
         ListTactic::Vertical => return DefinitiveListTactic::Vertical,
@@ -275,10 +279,14 @@ where
     let total_sep_len = sep.len() * sep_count.saturating_sub(1);
     let real_total = total_width + total_sep_len;
 
-    if real_total <= limit && !items.into_iter().any(|item| item.as_ref().is_multiline()) {
+    if real_total <= limit && !items.into_iter().any(|item| item.as_ref().is_multiline())
+    {
         DefinitiveListTactic::Horizontal
-    } else {
-        match tactic {
+    }
+    else
+    {
+        match tactic
+        {
             ListTactic::Mixed => DefinitiveListTactic::Mixed,
             _ => DefinitiveListTactic::Vertical,
         }
@@ -308,12 +316,14 @@ where
 
     let mut line_len = 0;
     let indent_str = &formatting.shape.indent.to_string(formatting.config);
-    while let Some((i, item)) = iter.next() {
+    while let Some((i, item)) = iter.next()
+    {
         let item = item.as_ref();
         let inner_item = item.item.as_ref()?;
         let first = i == 0;
         let last = iter.peek().is_none();
-        let mut separate = match sep_place {
+        let mut separate = match sep_place
+        {
             SeparatorPlace::Front => !first,
             SeparatorPlace::Back => !last || trailing_separator,
         };
@@ -321,33 +331,48 @@ where
 
         // Item string may be multi-line. Its length (used for block comment alignment)
         // should be only the length of the last line.
-        let item_last_line = if item.is_multiline() {
+        let item_last_line = if item.is_multiline()
+        {
             inner_item.lines().last().unwrap_or("")
-        } else {
+        }
+        else
+        {
             inner_item.as_ref()
         };
         let mut item_last_line_width = unicode_str_width(item_last_line) + item_sep_len;
-        if item_last_line.starts_with(&**indent_str) {
+        if item_last_line.starts_with(&**indent_str)
+        {
             item_last_line_width -= unicode_str_width(indent_str);
         }
 
-        if !item.is_substantial() {
+        if !item.is_substantial()
+        {
             continue;
         }
 
-        match tactic {
-            DefinitiveListTactic::Horizontal if !first => {
+        match tactic
+        {
+            DefinitiveListTactic::Horizontal if !first =>
+            {
                 result.push(' ');
             }
-            DefinitiveListTactic::SpecialMacro(num_args_before) => {
-                if i == 0 {
+            DefinitiveListTactic::SpecialMacro(num_args_before) =>
+            {
+                if i == 0
+                {
                     // Nothing
-                } else if i < num_args_before {
+                }
+                else if i < num_args_before
+                {
                     result.push(' ');
-                } else if i <= num_args_before + 1 {
+                }
+                else if i <= num_args_before + 1
+                {
                     result.push('\n');
                     result.push_str(indent_str);
-                } else {
+                }
+                else
+                {
                     result.push(' ');
                 }
             }
@@ -357,7 +382,8 @@ where
                 result.push('\n');
                 result.push_str(indent_str);
             }
-            DefinitiveListTactic::Mixed => {
+            DefinitiveListTactic::Mixed =>
+            {
                 let total_width = total_item_width(item) + item_sep_len;
 
                 // 1 is space between separator and item.
@@ -369,25 +395,31 @@ where
                     result.push('\n');
                     result.push_str(indent_str);
                     line_len = 0;
-                    if formatting.ends_with_newline {
+                    if formatting.ends_with_newline
+                    {
                         trailing_separator = true;
                     }
-                } else if line_len > 0 {
+                }
+                else if line_len > 0
+                {
                     result.push(' ');
                     line_len += 1;
                 }
 
-                if last && formatting.ends_with_newline {
+                if last && formatting.ends_with_newline
+                {
                     separate = formatting.trailing_separator != SeparatorTactic::Never;
                 }
 
                 line_len += total_width;
             }
-            _ => {}
+            _ =>
+            {}
         }
 
         // Pre-comments
-        if let Some(ref comment) = item.pre_comment {
+        if let Some(ref comment) = item.pre_comment
+        {
             // Block style in non-vertical mode.
             let block_mode = tactic == DefinitiveListTactic::Horizontal;
             // Width restriction is only relevant in vertical mode.
@@ -395,43 +427,54 @@ where
                 rewrite_comment(comment, block_mode, formatting.shape, formatting.config)?;
             result.push_str(&comment);
 
-            if !inner_item.is_empty() {
+            if !inner_item.is_empty()
+            {
                 use DefinitiveListTactic::*;
-                if matches!(tactic, Vertical | Mixed | SpecialMacro(_)) {
+                if matches!(tactic, Vertical | Mixed | SpecialMacro(_))
+                {
                     // We cannot keep pre-comments on the same line if the comment is normalized.
                     let keep_comment = if formatting.config.normalize_comments()
                         || item.pre_comment_style == ListItemCommentStyle::DifferentLine
                     {
                         false
-                    } else {
+                    }
+                    else
+                    {
                         // We will try to keep the comment on the same line with the item here.
                         // 1 = ` `
                         let total_width = total_item_width(item) + item_sep_len + 1;
                         total_width <= formatting.shape.width
                     };
-                    if keep_comment {
+                    if keep_comment
+                    {
                         result.push(' ');
-                    } else {
+                    }
+                    else
+                    {
                         result.push('\n');
                         result.push_str(indent_str);
                         // This is the width of the item (without comments).
                         line_len = item.item.as_ref().map_or(0, |s| unicode_str_width(s));
                     }
-                } else {
+                }
+                else
+                {
                     result.push(' ')
                 }
             }
             item_max_width = None;
         }
 
-        if separate && sep_place.is_front() && !first {
+        if separate && sep_place.is_front() && !first
+        {
             result.push_str(formatting.separator.trim());
             result.push(' ');
         }
         result.push_str(inner_item);
 
         // Post-comments
-        if tactic == DefinitiveListTactic::Horizontal && item.post_comment.is_some() {
+        if tactic == DefinitiveListTactic::Horizontal && item.post_comment.is_some()
+        {
             let comment = item.post_comment.as_ref().unwrap();
             let formatted_comment = rewrite_comment(
                 comment,
@@ -444,16 +487,19 @@ where
             result.push_str(&formatted_comment);
         }
 
-        if separate && sep_place.is_back() {
+        if separate && sep_place.is_back()
+        {
             result.push_str(formatting.separator);
         }
 
-        if tactic != DefinitiveListTactic::Horizontal && item.post_comment.is_some() {
+        if tactic != DefinitiveListTactic::Horizontal && item.post_comment.is_some()
+        {
             let comment = item.post_comment.as_ref().unwrap();
             let overhead = last_line_width(&result) + first_line_width(comment.trim());
 
             let rewrite_post_comment = |item_max_width: &mut Option<usize>| {
-                if item_max_width.is_none() && !last && !inner_item.contains('\n') {
+                if item_max_width.is_none() && !last && !inner_item.contains('\n')
+                {
                     *item_max_width = Some(max_width_of_item_with_post_comment(
                         &cloned_items,
                         i,
@@ -461,11 +507,16 @@ where
                         formatting.config.max_width(),
                     ));
                 }
-                let overhead = if starts_with_newline(comment) {
+                let overhead = if starts_with_newline(comment)
+                {
                     0
-                } else if let Some(max_width) = *item_max_width {
+                }
+                else if let Some(max_width) = *item_max_width
+                {
                     max_width + 2
-                } else {
+                }
+                else
+                {
                     // 1 = space between item and comment.
                     item_last_line_width + 1
                 };
@@ -473,11 +524,16 @@ where
                 let offset = formatting.shape.indent + overhead;
                 let comment_shape = Shape::legacy(width, offset);
 
-                let block_style = if !formatting.ends_with_newline && last {
+                let block_style = if !formatting.ends_with_newline && last
+                {
                     true
-                } else if starts_with_newline(comment) {
+                }
+                else if starts_with_newline(comment)
+                {
                     false
-                } else {
+                }
+                else
+                {
                     comment.trim().contains('\n') || unicode_str_width(comment.trim()) > width
                 };
 
@@ -491,8 +547,10 @@ where
 
             let mut formatted_comment = rewrite_post_comment(&mut item_max_width)?;
 
-            if !starts_with_newline(comment) {
-                if formatting.align_comments {
+            if !starts_with_newline(comment)
+            {
+                if formatting.align_comments
+                {
                     let mut comment_alignment =
                         post_comment_alignment(item_max_width, unicode_str_width(inner_item));
                     if first_line_width(&formatted_comment)
@@ -506,7 +564,8 @@ where
                         comment_alignment =
                             post_comment_alignment(item_max_width, unicode_str_width(inner_item));
                     }
-                    for _ in 0..=comment_alignment {
+                    for _ in 0..=comment_alignment
+                    {
                         result.push(' ');
                     }
                 }
@@ -520,15 +579,20 @@ where
                 {
                     result.push(' ');
                 }
-            } else {
+            }
+            else
+            {
                 result.push('\n');
                 result.push_str(indent_str);
             }
-            if formatted_comment.contains('\n') {
+            if formatted_comment.contains('\n')
+            {
                 item_max_width = None;
             }
             result.push_str(&formatted_comment);
-        } else {
+        }
+        else
+        {
             item_max_width = None;
         }
 
@@ -560,7 +624,8 @@ where
 {
     let mut max_width = 0;
     let mut first = true;
-    for item in items.clone().into_iter().skip(i) {
+    for item in items.clone().into_iter().skip(i)
+    {
         let item = item.as_ref();
         let inner_item_width = unicode_str_width(item.inner_as_ref());
         if !first
@@ -570,10 +635,12 @@ where
         {
             return max_width;
         }
-        if max_width < inner_item_width {
+        if max_width < inner_item_width
+        {
             max_width = inner_item_width;
         }
-        if item.new_lines {
+        if item.new_lines
+        {
             return max_width;
         }
         first = false;
@@ -615,25 +682,33 @@ pub(crate) fn extract_pre_comment(pre_snippet: &str) -> (Option<String>, ListIte
     let starts_with_block_comment = trimmed_pre_snippet.starts_with("/*");
     let ends_with_block_comment = trimmed_pre_snippet.ends_with("*/");
     let starts_with_single_line_comment = trimmed_pre_snippet.starts_with("//");
-    if ends_with_block_comment {
+    if ends_with_block_comment
+    {
         let comment_end = pre_snippet.rfind(|c| c == '/').unwrap();
-        if pre_snippet[comment_end..].contains('\n') {
+        if pre_snippet[comment_end..].contains('\n')
+        {
             (
                 Some(trimmed_pre_snippet.to_owned()),
                 ListItemCommentStyle::DifferentLine,
             )
-        } else {
+        }
+        else
+        {
             (
                 Some(trimmed_pre_snippet.to_owned()),
                 ListItemCommentStyle::SameLine,
             )
         }
-    } else if starts_with_single_line_comment || starts_with_block_comment {
+    }
+    else if starts_with_single_line_comment || starts_with_block_comment
+    {
         (
             Some(trimmed_pre_snippet.to_owned()),
             ListItemCommentStyle::DifferentLine,
         )
-    } else {
+    }
+    else
+    {
         (None, ListItemCommentStyle::None)
     }
 }
@@ -650,21 +725,32 @@ pub(crate) fn extract_post_comment(
     // Cleanup post-comment: strip separators and whitespace.
     let post_snippet = post_snippet[..comment_end].trim();
 
-    let last_inline_comment_ends_with_separator = if is_last {
-        if let Some(line) = post_snippet.lines().last() {
+    let last_inline_comment_ends_with_separator = if is_last
+    {
+        if let Some(line) = post_snippet.lines().last()
+        {
             line.ends_with(separator) && line.trim().starts_with("//")
-        } else {
+        }
+        else
+        {
             false
         }
-    } else {
+    }
+    else
+    {
         false
     };
 
-    let post_snippet_trimmed = if post_snippet.starts_with(|c| c == ',' || c == ':') {
+    let post_snippet_trimmed = if post_snippet.starts_with(|c| c == ',' || c == ':')
+    {
         post_snippet[1..].trim_matches(white_space)
-    } else if let Some(stripped) = post_snippet.strip_prefix(separator) {
+    }
+    else if let Some(stripped) = post_snippet.strip_prefix(separator)
+    {
         stripped.trim_matches(white_space)
-    } else if last_inline_comment_ends_with_separator {
+    }
+    else if last_inline_comment_ends_with_separator
+    {
         // since we're on the last item it's fine to keep any trailing separators in comments
         post_snippet.trim_matches(white_space)
     }
@@ -673,7 +759,9 @@ pub(crate) fn extract_post_comment(
         && (!post_snippet.trim().starts_with("//") || post_snippet.trim().contains('\n'))
     {
         post_snippet[..(post_snippet.len() - 1)].trim_matches(white_space)
-    } else {
+    }
+    else
+    {
         post_snippet
     };
     // FIXME(#3441): post_snippet includes 'const' now
@@ -683,7 +771,9 @@ pub(crate) fn extract_post_comment(
         && (removed_newline_snippet.starts_with("//") || removed_newline_snippet.starts_with("/*"))
     {
         Some(post_snippet_trimmed.to_owned())
-    } else {
+    }
+    else
+    {
         None
     }
 }
@@ -695,7 +785,8 @@ pub(crate) fn get_comment_end(
     is_last: bool,
 ) -> usize
 {
-    if is_last {
+    if is_last
+    {
         return post_snippet
             .find_uncommented(terminator)
             .unwrap_or_else(|| post_snippet.len());
@@ -703,16 +794,20 @@ pub(crate) fn get_comment_end(
 
     let mut block_open_index = post_snippet.find("/*");
     // check if it really is a block comment (and not `//*` or a nested comment)
-    if let Some(i) = block_open_index {
-        match post_snippet.find('/') {
+    if let Some(i) = block_open_index
+    {
+        match post_snippet.find('/')
+        {
             Some(j) if j < i => block_open_index = None,
             _ if post_snippet[..i].ends_with('/') => block_open_index = None,
             _ => (),
         }
     }
     let newline_index = post_snippet.find('\n');
-    if let Some(separator_index) = post_snippet.find_uncommented(separator) {
-        match (block_open_index, newline_index) {
+    if let Some(separator_index) = post_snippet.find_uncommented(separator)
+    {
+        match (block_open_index, newline_index)
+        {
             // Separator before comment, with the next item on same line.
             // Comment belongs to next item.
             (Some(i), None) if i > separator_index => separator_index + 1,
@@ -730,12 +825,16 @@ pub(crate) fn get_comment_end(
             (_, Some(j)) if j > separator_index => j + 1,
             _ => post_snippet.len(),
         }
-    } else if let Some(newline_index) = newline_index {
+    }
+    else if let Some(newline_index) = newline_index
+    {
         // Match arms may not have trailing comma. In any case, for match arms,
         // we will assume that the post comment belongs to the next arm if they
         // do not end with trailing comma.
         newline_index + 1
-    } else {
+    }
+    else
+    {
         0
     }
 }
@@ -744,7 +843,8 @@ pub(crate) fn get_comment_end(
 // because of the way we divide pre- and post- comments.
 pub(crate) fn has_extra_newline(post_snippet: &str, comment_end: usize) -> bool
 {
-    if post_snippet.is_empty() || comment_end == 0 {
+    if post_snippet.is_empty() || comment_end == 0
+    {
         return false;
     }
 
@@ -790,7 +890,8 @@ where
             let (pre_comment, pre_comment_style) = extract_pre_comment(pre_snippet);
 
             // Post-comment
-            let next_start = match self.inner.peek() {
+            let next_start = match self.inner.peek()
+            {
                 Some(next_item) => (self.get_lo)(next_item),
                 None => self.next_span_start,
             };
@@ -810,9 +911,12 @@ where
             ListItem {
                 pre_comment,
                 pre_comment_style,
-                item: if self.inner.peek().is_none() && self.leave_last {
+                item: if self.inner.peek().is_none() && self.leave_last
+                {
                     None
-                } else {
+                }
+                else
+                {
                     (self.get_item_string)(&item)
                 },
                 post_comment,
@@ -877,13 +981,18 @@ pub(crate) fn total_item_width(item: &ListItem) -> usize
 
 fn comment_len(comment: Option<&str>) -> usize
 {
-    match comment {
-        Some(s) => {
+    match comment
+    {
+        Some(s) =>
+        {
             let text_len = s.trim().len();
-            if text_len > 0 {
+            if text_len > 0
+            {
                 // We'll put " /*" before and " */" after inline comments.
                 text_len + 6
-            } else {
+            }
+            else
+            {
                 text_len
             }
         }
@@ -899,12 +1008,14 @@ pub(crate) fn struct_lit_shape(
     suffix_width: usize,
 ) -> Option<(Option<Shape>, Shape)>
 {
-    let v_shape = match context.config.indent_style() {
+    let v_shape = match context.config.indent_style()
+    {
         IndentStyle::Visual => shape
             .visual_indent(0)
             .shrink_left(prefix_width)?
             .sub_width(suffix_width)?,
-        IndentStyle::Block => {
+        IndentStyle::Block =>
+        {
             let shape = shape.block_indent(context.config.tab_spaces());
             Shape {
                 width: context.budget(shape.indent.width()),
@@ -913,10 +1024,13 @@ pub(crate) fn struct_lit_shape(
         }
     };
     let shape_width = shape.width.checked_sub(prefix_width + suffix_width);
-    if let Some(w) = shape_width {
+    if let Some(w) = shape_width
+    {
         let shape_width = cmp::min(w, context.config.struct_lit_width());
         Some((Some(Shape::legacy(shape_width, shape.indent)), v_shape))
-    } else {
+    }
+    else
+    {
         Some((None, v_shape))
     }
 }
@@ -928,14 +1042,18 @@ pub(crate) fn struct_lit_tactic(
     items: &[ListItem],
 ) -> DefinitiveListTactic
 {
-    if let Some(h_shape) = h_shape {
-        let prelim_tactic = match (context.config.indent_style(), items.len()) {
+    if let Some(h_shape) = h_shape
+    {
+        let prelim_tactic = match (context.config.indent_style(), items.len())
+        {
             (IndentStyle::Visual, 1) => ListTactic::HorizontalVertical,
             _ if context.config.struct_lit_single_line() => ListTactic::HorizontalVertical,
             _ => ListTactic::Vertical,
         };
         definitive_tactic(items, prelim_tactic, Separator::Comma, h_shape.width)
-    } else {
+    }
+    else
+    {
         DefinitiveListTactic::Vertical
     }
 }
@@ -948,7 +1066,8 @@ pub(crate) fn shape_for_tactic(
     v_shape: Shape,
 ) -> Shape
 {
-    match tactic {
+    match tactic
+    {
         DefinitiveListTactic::Horizontal => h_shape.unwrap(),
         _ => v_shape,
     }
@@ -968,9 +1087,12 @@ pub(crate) fn struct_lit_formatting<'a>(
     ListFormatting {
         tactic,
         separator: ",",
-        trailing_separator: if force_no_trailing_comma {
+        trailing_separator: if force_no_trailing_comma
+        {
             SeparatorTactic::Never
-        } else {
+        }
+        else
+        {
             context.config.trailing_comma()
         },
         separator_place: SeparatorPlace::Back,

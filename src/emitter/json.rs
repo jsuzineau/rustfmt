@@ -49,7 +49,8 @@ impl Emitter for JsonEmitter
         let diff = make_diff(original_text, formatted_text, CONTEXT_SIZE);
         let has_diff = !diff.is_empty();
 
-        if has_diff {
+        if has_diff
+        {
             self.add_misformatted_file(filename, diff)?;
         }
 
@@ -66,7 +67,8 @@ impl JsonEmitter
     ) -> Result<(), io::Error>
     {
         let mut mismatches = vec![];
-        for mismatch in diff {
+        for mismatch in diff
+        {
             let original_begin_line = mismatch.line_number_orig;
             let expected_begin_line = mismatch.line_number;
             let mut original_end_line = original_begin_line;
@@ -76,15 +78,19 @@ impl JsonEmitter
             let mut original = String::new();
             let mut expected = String::new();
 
-            for line in mismatch.lines {
-                match line {
-                    DiffLine::Expected(msg) => {
+            for line in mismatch.lines
+            {
+                match line
+                {
+                    DiffLine::Expected(msg) =>
+                    {
                         expected_end_line = expected_begin_line + expected_line_counter;
                         expected_line_counter += 1;
                         expected.push_str(&msg);
                         expected.push('\n');
                     }
-                    DiffLine::Resulting(msg) => {
+                    DiffLine::Resulting(msg) =>
+                    {
                         original_end_line = original_begin_line + original_line_counter;
                         original_line_counter += 1;
                         original.push_str(&msg);

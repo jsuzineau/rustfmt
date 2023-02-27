@@ -11,7 +11,8 @@ fn cargo_fmt(args: &[&str]) -> (String, String)
 {
     let mut bin_dir = env::current_exe().unwrap();
     bin_dir.pop(); // chop off test exe name
-    if bin_dir.ends_with("deps") {
+    if bin_dir.ends_with("deps")
+    {
         bin_dir.pop();
     }
     let cmd = bin_dir.join(format!("cargo-fmt{}", env::consts::EXE_SUFFIX));
@@ -22,7 +23,8 @@ fn cargo_fmt(args: &[&str]) -> (String, String)
     paths.insert(0, bin_dir);
     let new_path = env::join_paths(paths).unwrap();
 
-    match Command::new(&cmd).args(args).env("PATH", new_path).output() {
+    match Command::new(&cmd).args(args).env("PATH", new_path).output()
+    {
         Ok(output) => (
             String::from_utf8(output.stdout).expect("utf-8"),
             String::from_utf8(output.stderr).expect("utf-8"),
@@ -98,7 +100,8 @@ fn cargo_fmt_out_of_line_test_modules()
         "tests/mod-resolver/test-submodule-issue-5119/Cargo.toml",
     ];
     let (stdout, _) = cargo_fmt(&args);
-    for file in expected_modified_files {
+    for file in expected_modified_files
+    {
         let path = Path::new(file).canonicalize().unwrap();
         assert!(stdout.contains(&format!("Diff in {}", path.display())))
     }

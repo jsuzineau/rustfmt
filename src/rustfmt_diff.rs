@@ -67,7 +67,8 @@ impl From<Vec<Mismatch>> for ModifiedLines
                 .filter(|line| matches!(line, DiffLine::Resulting(_)))
                 .count();
 
-            let new_lines = mismatch.lines.into_iter().filter_map(|line| match line {
+            let new_lines = mismatch.lines.into_iter().filter_map(|line| match line
+            {
                 DiffLine::Context(_) | DiffLine::Resulting(_) => None,
                 DiffLine::Expected(str) => Some(str),
             });
@@ -95,7 +96,8 @@ impl fmt::Display for ModifiedLines
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
     {
-        for chunk in &self.chunks {
+        for chunk in &self.chunks
+        {
             writeln!(
                 f,
                 "{} {} {}",
@@ -104,7 +106,8 @@ impl fmt::Display for ModifiedLines
                 chunk.lines.len()
             )?;
 
-            for line in &chunk.lines {
+            for line in &chunk.lines
+            {
                 writeln!(f, "{}", line)?;
             }
         }
@@ -123,20 +126,24 @@ impl std::str::FromStr for ModifiedLines
         let mut chunks = vec![];
 
         let mut lines = s.lines();
-        while let Some(header) = lines.next() {
+        while let Some(header) = lines.next()
+        {
             let mut header = header.split_whitespace();
-            let (orig, rem, new_lines) = match (header.next(), header.next(), header.next()) {
+            let (orig, rem, new_lines) = match (header.next(), header.next(), header.next())
+            {
                 (Some(orig), Some(removed), Some(added)) => (orig, removed, added),
                 _ => return Err(()),
             };
             let (orig, rem, new_lines): (u32, u32, usize) =
-                match (orig.parse(), rem.parse(), new_lines.parse()) {
+                match (orig.parse(), rem.parse(), new_lines.parse())
+                {
                     (Ok(a), Ok(b), Ok(c)) => (a, b, c),
                     _ => return Err(()),
                 };
             let lines = lines.by_ref().take(new_lines);
             let lines: Vec<_> = lines.map(ToOwned::to_owned).collect();
-            if lines.len() != new_lines {
+            if lines.len() != new_lines
+            {
                 return Err(());
             }
 
@@ -164,8 +171,10 @@ impl OutputWriter
     // for colorized output and the capabilities of the terminal.
     pub(crate) fn new(color: Color) -> Self
     {
-        if let Some(t) = term::stdout() {
-            if color.use_colored_tty() && t.supports_color() {
+        if let Some(t) = term::stdout()
+        {
+            if color.use_colored_tty() && t.supports_color()
+            {
                 return OutputWriter { terminal: Some(t) };
             }
         }
@@ -177,13 +186,17 @@ impl OutputWriter
     // Terminal in its `terminal` field.
     pub(crate) fn writeln(&mut self, msg: &str, color: Option<term::color::Color>)
     {
-        match &mut self.terminal {
-            Some(ref mut t) => {
-                if let Some(color) = color {
+        match &mut self.terminal
+        {
+            Some(ref mut t) =>
+            {
+                if let Some(color) = color
+                {
                     t.fg(color).unwrap();
                 }
                 writeln!(t, "{}", msg).unwrap();
-                if color.is_some() {
+                if color.is_some()
+                {
                     t.reset().unwrap();
                 }
             }
@@ -202,10 +215,14 @@ pub(crate) fn make_diff(expected: &str, actual: &str, context_size: usize) -> Ve
     let mut results = Vec::new();
     let mut mismatch = Mismatch::new(0, 0);
 
-    for result in diff::lines(expected, actual) {
-        match result {
-            diff::Result::Left(str) => {
-                if lines_since_mismatch >= context_size && lines_since_mismatch > 0 {
+    for result in diff::lines(expected, actual)
+    {
+        match result
+        {
+            diff::Result::Left(str) =>
+            {
+                if lines_since_mismatch >= context_size && lines_since_mismatch > 0
+                {
                     results.push(mismatch);
                     mismatch = Mismatch::new(
                         line_number - context_queue.len() as u32,
@@ -213,7 +230,8 @@ pub(crate) fn make_diff(expected: &str, actual: &str, context_size: usize) -> Ve
                     );
                 }
 
-                while let Some(line) = context_queue.pop_front() {
+                while let Some(line) = context_queue.pop_front()
+                {
                     mismatch.lines.push(DiffLine::Context(line.to_owned()));
                 }
 
@@ -221,8 +239,10 @@ pub(crate) fn make_diff(expected: &str, actual: &str, context_size: usize) -> Ve
                 line_number_orig += 1;
                 lines_since_mismatch = 0;
             }
-            diff::Result::Right(str) => {
-                if lines_since_mismatch >= context_size && lines_since_mismatch > 0 {
+            diff::Result::Right(str) =>
+            {
+                if lines_since_mismatch >= context_size && lines_since_mismatch > 0
+                {
                     results.push(mismatch);
                     mismatch = Mismatch::new(
                         line_number - context_queue.len() as u32,
@@ -230,7 +250,8 @@ pub(crate) fn make_diff(expected: &str, actual: &str, context_size: usize) -> Ve
                     );
                 }
 
-                while let Some(line) = context_queue.pop_front() {
+                while let Some(line) = context_queue.pop_front()
+                {
                     mismatch.lines.push(DiffLine::Context(line.to_owned()));
                 }
 
@@ -238,14 +259,19 @@ pub(crate) fn make_diff(expected: &str, actual: &str, context_size: usize) -> Ve
                 line_number += 1;
                 lines_since_mismatch = 0;
             }
-            diff::Result::Both(str, _) => {
-                if context_queue.len() >= context_size {
+            diff::Result::Both(str, _) =>
+            {
+                if context_queue.len() >= context_size
+                {
                     let _ = context_queue.pop_front();
                 }
 
-                if lines_since_mismatch < context_size {
+                if lines_since_mismatch < context_size
+                {
                     mismatch.lines.push(DiffLine::Context(str.to_owned()));
-                } else if context_size > 0 {
+                }
+                else if context_size > 0
+                {
                     context_queue.push_back(str);
                 }
 
@@ -267,21 +293,28 @@ where
     F: Fn(u32) -> String,
 {
     let color = config.color();
-    let line_terminator = if config.verbose() == Verbosity::Verbose {
+    let line_terminator = if config.verbose() == Verbosity::Verbose
+    {
         "⏎"
-    } else {
+    }
+    else
+    {
         ""
     };
 
     let mut writer = OutputWriter::new(color);
 
-    for mismatch in diff {
+    for mismatch in diff
+    {
         let title = get_section_title(mismatch.line_number_orig);
         writer.writeln(&title, None);
 
-        for line in mismatch.lines {
-            match line {
-                DiffLine::Context(ref str) => {
+        for line in mismatch.lines
+        {
+            match line
+            {
+                DiffLine::Context(ref str) =>
+                {
                     writer.writeln(&format!(" {}{}", str, line_terminator), None)
                 }
                 DiffLine::Expected(ref str) => writer.writeln(

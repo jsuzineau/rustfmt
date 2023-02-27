@@ -31,17 +31,23 @@ impl Emitter for DiffEmitter
         let mismatch = make_diff(original_text, formatted_text, CONTEXT_SIZE);
         let has_diff = !mismatch.is_empty();
 
-        if has_diff {
-            if self.config.print_misformatted_file_names() {
+        if has_diff
+        {
+            if self.config.print_misformatted_file_names()
+            {
                 writeln!(output, "{}", filename)?;
-            } else {
+            }
+            else
+            {
                 print_diff(
                     mismatch,
                     |line_num| format!("Diff in {} at line {}:", filename, line_num),
                     &self.config,
                 );
             }
-        } else if original_text != formatted_text {
+        }
+        else if original_text != formatted_text
+        {
             // This occurs when the only difference between the original and formatted values
             // is the newline style. This happens because The make_diff function compares the
             // original and formatted values line by line, independent of line endings.

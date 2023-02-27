@@ -229,29 +229,37 @@ impl FormatReport
     fn track_errors(&self, new_errors: &[FormattingError])
     {
         let errs = &mut self.internal.borrow_mut().1;
-        if !new_errors.is_empty() {
+        if !new_errors.is_empty()
+        {
             errs.has_formatting_errors = true;
         }
         if errs.has_operational_errors && errs.has_check_errors && errs.has_unformatted_code_errors
         {
             return;
         }
-        for err in new_errors {
-            match err.kind {
-                ErrorKind::LineOverflow(..) => {
+        for err in new_errors
+        {
+            match err.kind
+            {
+                ErrorKind::LineOverflow(..) =>
+                {
                     errs.has_operational_errors = true;
                 }
-                ErrorKind::TrailingWhitespace => {
+                ErrorKind::TrailingWhitespace =>
+                {
                     errs.has_operational_errors = true;
                     errs.has_unformatted_code_errors = true;
                 }
-                ErrorKind::LostComment => {
+                ErrorKind::LostComment =>
+                {
                     errs.has_unformatted_code_errors = true;
                 }
-                ErrorKind::DeprecatedAttr | ErrorKind::BadAttr | ErrorKind::VersionMismatch => {
+                ErrorKind::DeprecatedAttr | ErrorKind::BadAttr | ErrorKind::VersionMismatch =>
+                {
                     errs.has_check_errors = true;
                 }
-                _ => {}
+                _ =>
+                {}
             }
         }
     }
@@ -329,7 +337,8 @@ fn format_snippet(snippet: &str, config: &Config, is_macro_def: bool) -> Option<
         config.set().emit_mode(config::EmitMode::Stdout);
         config.set().verbose(Verbosity::Quiet);
         config.set().hide_parse_errors(true);
-        if is_macro_def {
+        if is_macro_def
+        {
             config.set().error_on_unformatted(true);
         }
 
@@ -345,9 +354,12 @@ fn format_snippet(snippet: &str, config: &Config, is_macro_def: bool) -> Option<
                 result,
             )
         };
-        if formatting_error {
+        if formatting_error
+        {
             None
-        } else {
+        }
+        else
+        {
             String::from_utf8(out).ok().map(|snippet| FormattedSnippet {
                 snippet,
                 non_formatted_ranges: result.unwrap().non_formatted_ranges,
@@ -377,8 +389,10 @@ fn format_code_block(
         let mut result = String::with_capacity(s.len() * 2);
         result.push_str(FN_MAIN_PREFIX);
         let mut need_indent = true;
-        for (kind, line) in LineClasses::new(s) {
-            if need_indent {
+        for (kind, line) in LineClasses::new(s)
+        {
+            if need_indent
+            {
                 result.push_str(&indent.to_string(config));
             }
             result.push_str(&line);
@@ -414,33 +428,50 @@ fn format_code_block(
         .unwrap_or_else(|| formatted.snippet.len());
     let mut is_indented = true;
     let indent_str = Indent::from_width(config, config.tab_spaces()).to_string(config);
-    for (kind, ref line) in LineClasses::new(&formatted.snippet[FN_MAIN_PREFIX.len()..block_len]) {
-        if !is_first {
+    for (kind, ref line) in LineClasses::new(&formatted.snippet[FN_MAIN_PREFIX.len()..block_len])
+    {
+        if !is_first
+        {
             result.push('\n');
-        } else {
+        }
+        else
+        {
             is_first = false;
         }
-        let trimmed_line = if !is_indented {
+        let trimmed_line = if !is_indented
+        {
             line
-        } else if line.len() > config.max_width() {
+        }
+        else if line.len() > config.max_width()
+        {
             // If there are lines that are larger than max width, we cannot tell
             // whether we have succeeded but have some comments or strings that
             // are too long, or we have failed to format code block. We will be
             // conservative and just return `None` in this case.
             return None;
-        } else if line.len() > indent_str.len() {
+        }
+        else if line.len() > indent_str.len()
+        {
             // Make sure that the line has leading whitespaces.
-            if line.starts_with(indent_str.as_ref()) {
-                let offset = if config.hard_tabs() {
+            if line.starts_with(indent_str.as_ref())
+            {
+                let offset = if config.hard_tabs()
+                {
                     1
-                } else {
+                }
+                else
+                {
                     config.tab_spaces()
                 };
                 &line[offset..]
-            } else {
+            }
+            else
+            {
                 line
             }
-        } else {
+        }
+        else
+        {
             line
         };
         result.push_str(trimmed_line);
@@ -468,7 +499,8 @@ impl<'b, T: Write + 'b> Session<'b, T>
     {
         let emitter = create_emitter(&config);
 
-        if let Some(ref mut out) = out {
+        if let Some(ref mut out) = out
+        {
             let _ = emitter.emit_header(out);
         }
 
@@ -547,14 +579,17 @@ impl<'b, T: Write + 'b> Session<'b, T>
 
 pub(crate) fn create_emitter<'a>(config: &Config) -> Box<dyn Emitter + 'a>
 {
-    match config.emit_mode() {
-        EmitMode::Files if config.make_backup() => {
+    match config.emit_mode()
+    {
+        EmitMode::Files if config.make_backup() =>
+        {
             Box::new(emitter::FilesWithBackupEmitter::default())
         }
         EmitMode::Files => Box::new(emitter::FilesEmitter::new(
             config.print_misformatted_file_names(),
         )),
-        EmitMode::Stdout | EmitMode::Coverage => {
+        EmitMode::Stdout | EmitMode::Coverage =>
+        {
             Box::new(emitter::StdoutEmitter::new(config.verbose()))
         }
         EmitMode::Json => Box::new(emitter::JsonEmitter::default()),
@@ -568,7 +603,8 @@ impl<'b, T: Write + 'b> Drop for Session<'b, T>
 {
     fn drop(&mut self)
     {
-        if let Some(ref mut out) = self.out {
+        if let Some(ref mut out) = self.out
+        {
             let _ = self.emitter.emit_footer(out);
         }
     }
@@ -585,7 +621,8 @@ impl Input
 {
     fn file_name(&self) -> FileName
     {
-        match *self {
+        match *self
+        {
             Input::File(ref file) => FileName::Real(file.clone()),
             Input::Text(..) => FileName::Stdin,
         }
@@ -593,16 +630,21 @@ impl Input
 
     fn to_directory_ownership(&self) -> Option<DirectoryOwnership>
     {
-        match self {
-            Input::File(ref file) => {
+        match self
+        {
+            Input::File(ref file) =>
+            {
                 // If there exists a directory with the same name as an input,
                 // then the input should be parsed as a sub module.
                 let file_stem = file.file_stem()?;
-                if file.parent()?.to_path_buf().join(file_stem).is_dir() {
+                if file.parent()?.to_path_buf().join(file_stem).is_dir()
+                {
                     Some(DirectoryOwnership::Owned {
                         relative: file_stem.to_str().map(symbol::Ident::from_str),
                     })
-                } else {
+                }
+                else
+                {
                     None
                 }
             }

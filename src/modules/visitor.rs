@@ -38,7 +38,8 @@ impl<'a, 'ast: 'a> Visitor<'ast> for CfgIfVisitor<'a>
 {
     fn visit_mac_call(&mut self, mac: &'ast ast::MacCall)
     {
-        match self.visit_mac_inner(mac) {
+        match self.visit_mac_inner(mac)
+        {
             Ok(()) => (),
             Err(e) => debug!("{}", e),
         }
@@ -60,13 +61,17 @@ impl<'a, 'ast: 'a> CfgIfVisitor<'a>
         // extern crate cfg_if;
         // cfg_if! {..}
         // ```
-        match mac.path.segments.first() {
-            Some(first_segment) => {
-                if first_segment.ident.name != Symbol::intern("cfg_if") {
+        match mac.path.segments.first()
+        {
+            Some(first_segment) =>
+            {
+                if first_segment.ident.name != Symbol::intern("cfg_if")
+                {
                     return Err("Expected cfg_if");
                 }
             }
-            None => {
+            None =>
+            {
                 return Err("Expected cfg_if");
             }
         };
@@ -99,7 +104,8 @@ impl<'ast> MetaVisitor<'ast> for PathVisitor
 {
     fn visit_meta_name_value(&mut self, meta_item: &'ast ast::MetaItem, lit: &'ast ast::MetaItemLit)
     {
-        if meta_item.has_name(Symbol::intern("path")) && lit.kind.is_str() {
+        if meta_item.has_name(Symbol::intern("path")) && lit.kind.is_str()
+        {
             self.paths.push(meta_item_lit_to_str(lit));
         }
     }
@@ -108,7 +114,8 @@ impl<'ast> MetaVisitor<'ast> for PathVisitor
 #[cfg(not(windows))]
 fn meta_item_lit_to_str(lit: &ast::MetaItemLit) -> String
 {
-    match lit.kind {
+    match lit.kind
+    {
         ast::LitKind::Str(symbol, ..) => symbol.to_string(),
         _ => unreachable!(),
     }
@@ -117,7 +124,8 @@ fn meta_item_lit_to_str(lit: &ast::MetaItemLit) -> String
 #[cfg(windows)]
 fn meta_item_lit_to_str(lit: &ast::MetaItemLit) -> String
 {
-    match lit.kind {
+    match lit.kind
+    {
         ast::LitKind::Str(symbol, ..) => symbol.as_str().replace("/", "\\"),
         _ => unreachable!(),
     }

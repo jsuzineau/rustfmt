@@ -106,16 +106,21 @@ fn is_file_skip(path: &Path) -> bool
 fn get_test_files(path: &Path, recursive: bool) -> Vec<PathBuf>
 {
     let mut files = vec![];
-    if path.is_dir() {
+    if path.is_dir()
+    {
         for entry in fs::read_dir(path).expect(&format!(
             "couldn't read directory {}",
             path.to_str().unwrap()
-        )) {
+        ))
+        {
             let entry = entry.expect("couldn't get `DirEntry`");
             let path = entry.path();
-            if path.is_dir() && recursive {
+            if path.is_dir() && recursive
+            {
                 files.append(&mut get_test_files(&path, recursive));
-            } else if path.extension().map_or(false, |f| f == "rs") && !is_file_skip(&path) {
+            }
+            else if path.extension().map_or(false, |f| f == "rs") && !is_file_skip(&path)
+            {
                 files.push(path);
             }
         }
@@ -128,10 +133,12 @@ fn verify_config_used(path: &Path, config_name: &str)
     for entry in fs::read_dir(path).expect(&format!(
         "couldn't read {} directory",
         path.to_str().unwrap()
-    )) {
+    ))
+    {
         let entry = entry.expect("couldn't get directory entry");
         let path = entry.path();
-        if path.extension().map_or(false, |f| f == "rs") {
+        if path.extension().map_or(false, |f| f == "rs")
+        {
             // check if "// rustfmt-<config_name>:" appears in the file.
             let filebuf = BufReader::new(
                 fs::File::open(&path)
@@ -157,11 +164,14 @@ fn verify_config_test_names()
     for path in &[
         Path::new("tests/source/configs"),
         Path::new("tests/target/configs"),
-    ] {
-        for entry in fs::read_dir(path).expect("couldn't read configs directory") {
+    ]
+    {
+        for entry in fs::read_dir(path).expect("couldn't read configs directory")
+        {
             let entry = entry.expect("couldn't get directory entry");
             let path = entry.path();
-            if path.is_dir() {
+            if path.is_dir()
+            {
                 let config_name = path.file_name().unwrap().to_str().unwrap();
 
                 // Make sure that config name is used in the files in the directory.
@@ -257,7 +267,8 @@ fn modified_test()
 
     let mut lines = data.lines();
     let mut chunks = Vec::new();
-    while let Some(Ok(header)) = lines.next() {
+    while let Some(Ok(header)) = lines.next()
+    {
         // Parse the header line
         let values: Vec<_> = header
             .split(' ')
@@ -268,7 +279,8 @@ fn modified_test()
         let lines_removed = values[1];
         let num_added = values[2];
         let mut added_lines = Vec::new();
-        for _ in 0..num_added {
+        for _ in 0..num_added
+        {
             added_lines.push(lines.next().unwrap().unwrap());
         }
         chunks.push(ModifiedChunk {
@@ -314,7 +326,8 @@ fn assert_output(source: &Path, expected_filename: &Path)
         .expect("Failed reading target");
 
     let compare = make_diff(&expected_text, &output, DIFF_CONTEXT_SIZE);
-    if !compare.is_empty() {
+    if !compare.is_empty()
+    {
         let mut failures = HashMap::new();
         failures.insert(source.to_owned(), compare);
         print_mismatches_default_message(failures);
@@ -357,7 +370,8 @@ fn assert_stdin_output(source: &Path, expected_filename: &Path, emit_mode: EmitM
 
     let output = String::from_utf8(buf).unwrap();
     let compare = make_diff(&expected_text, &output, DIFF_CONTEXT_SIZE);
-    if !compare.is_empty() {
+    if !compare.is_empty()
+    {
         let mut failures = HashMap::new();
         failures.insert(source.to_owned(), compare);
         print_mismatches_default_message(failures);
@@ -397,7 +411,8 @@ fn self_tests()
     init_log();
     let mut files = get_test_files(Path::new("tests"), false);
     let bin_directories = vec!["cargo-fmt", "git-rustfmt", "bin", "format-diff"];
-    for dir in bin_directories {
+    for dir in bin_directories
+    {
         let mut path = PathBuf::from("src");
         path.push(dir);
         path.push("main.rs");
@@ -412,7 +427,8 @@ fn self_tests()
     println!("Ran {} self tests.", count);
     assert_eq!(fails, 0, "{} self tests failed", fails);
 
-    for format_report in reports {
+    for format_report in reports
+    {
         println!(
             "{}",
             FormatReportFormatterBuilder::new(&format_report).build()
@@ -443,7 +459,8 @@ fn format_files_find_new_files_via_cfg_if()
         let mut session = Session::<io::Stdout>::new(config, None);
 
         let mut write_result = HashMap::new();
-        for file in files {
+        for file in files
+        {
             assert!(file.exists());
             let result = session.format(Input::File(file.into())).unwrap();
             assert!(!session.has_formatting_errors());
@@ -451,8 +468,10 @@ fn format_files_find_new_files_via_cfg_if()
             let mut source_file = SourceFile::new();
             mem::swap(&mut session.source_file, &mut source_file);
 
-            for (filename, text) in source_file {
-                if let FileName::Real(ref filename) = filename {
+            for (filename, text) in source_file
+            {
+                if let FileName::Real(ref filename) = filename
+                {
                     write_result.insert(filename.to_owned(), text);
                 }
             }
@@ -491,7 +510,8 @@ fn stdin_parser_panic_caught()
 {
     init_log();
     // See issue #3239.
-    for text in ["{", "}"].iter().cloned().map(String::from) {
+    for text in ["{", "}"].iter().cloned().map(String::from)
+    {
         let mut buf = vec![];
         let mut session = Session::new(Default::default(), Some(&mut buf));
         let _ = session.format(Input::Text(text));
@@ -659,9 +679,11 @@ fn check_files(files: Vec<PathBuf>, opt_config: &Option<PathBuf>) -> (Vec<Format
     let mut fails = 0;
     let mut reports = vec![];
 
-    for file_name in files {
+    for file_name in files
+    {
         let sig_comments = read_significant_comments(&file_name);
-        if sig_comments.contains_key("unstable") && !is_nightly_channel!() {
+        if sig_comments.contains_key("unstable") && !is_nightly_channel!()
+        {
             debug!(
                 "Skipping '{}' because it requires unstable \
                  features which are only available on nightly...",
@@ -672,14 +694,18 @@ fn check_files(files: Vec<PathBuf>, opt_config: &Option<PathBuf>) -> (Vec<Format
 
         debug!("Testing '{}'...", file_name.display());
 
-        match idempotent_check(&file_name, opt_config) {
-            Ok(ref report) if report.has_warnings() => {
+        match idempotent_check(&file_name, opt_config)
+        {
+            Ok(ref report) if report.has_warnings() =>
+            {
                 print!("{}", FormatReportFormatterBuilder::new(report).build());
                 fails += 1;
             }
             Ok(report) => reports.push(report),
-            Err(err) => {
-                if let IdempotentCheckError::Mismatch(msg) = err {
+            Err(err) =>
+            {
+                if let IdempotentCheckError::Mismatch(msg) = err
+                {
                     print_mismatches_default_message(msg);
                 }
                 fails += 1;
@@ -694,13 +720,15 @@ fn check_files(files: Vec<PathBuf>, opt_config: &Option<PathBuf>) -> (Vec<Format
 
 fn print_mismatches_default_message(result: HashMap<PathBuf, Vec<Mismatch>>)
 {
-    for (file_name, diff) in result {
+    for (file_name, diff) in result
+    {
         let mismatch_msg_formatter =
             |line_num| format!("\nMismatch at {}:{}:", file_name.display(), line_num);
         print_diff(diff, &mismatch_msg_formatter, &Default::default());
     }
 
-    if let Some(mut t) = term::stdout() {
+    if let Some(mut t) = term::stdout()
+    {
         t.reset().unwrap_or(());
     }
 }
@@ -710,11 +738,13 @@ fn print_mismatches<T: Fn(u32) -> String>(
     mismatch_msg_formatter: T,
 )
 {
-    for (_file_name, diff) in result {
+    for (_file_name, diff) in result
+    {
         print_diff(diff, &mismatch_msg_formatter, &Default::default());
     }
 
-    if let Some(mut t) = term::stdout() {
+    if let Some(mut t) = term::stdout()
+    {
         t.reset().unwrap_or(());
     }
 }
@@ -725,16 +755,22 @@ fn read_config(filename: &Path) -> Config
     // Look for a config file. If there is a 'config' property in the significant comments, use
     // that. Otherwise, if there are no significant comments at all, look for a config file with
     // the same name as the test file.
-    let mut config = if !sig_comments.is_empty() {
+    let mut config = if !sig_comments.is_empty()
+    {
         get_config(sig_comments.get("config").map(Path::new))
-    } else {
+    }
+    else
+    {
         get_config(filename.with_extension("toml").file_name().map(Path::new))
     };
 
-    for (key, val) in &sig_comments {
-        if key != "target" && key != "config" && key != "unstable" {
+    for (key, val) in &sig_comments
+    {
+        if key != "target" && key != "config" && key != "unstable"
+        {
             config.override_value(key, val);
-            if config.is_default(key) {
+            if config.is_default(key)
+            {
                 warn!("Default value {} used explicitly for {}", val, key);
             }
         }
@@ -767,19 +803,25 @@ fn idempotent_check(
 ) -> Result<FormatReport, IdempotentCheckError>
 {
     let sig_comments = read_significant_comments(filename);
-    let config = if let Some(ref config_file_path) = opt_config {
+    let config = if let Some(ref config_file_path) = opt_config
+    {
         Config::from_toml_path(config_file_path).expect("`rustfmt.toml` not found")
-    } else {
+    }
+    else
+    {
         read_config(filename)
     };
     let (parsing_errors, source_file, format_report) = format_file(filename, config);
-    if parsing_errors {
+    if parsing_errors
+    {
         return Err(IdempotentCheckError::Parse);
     }
 
     let mut write_result = HashMap::new();
-    for (filename, text) in source_file {
-        if let FileName::Real(ref filename) = filename {
+    for (filename, text) in source_file
+    {
+        if let FileName::Real(ref filename) = filename
+        {
             write_result.insert(filename.to_owned(), text);
         }
     }
@@ -794,12 +836,15 @@ fn idempotent_check(
 // successfully.
 fn get_config(config_file: Option<&Path>) -> Config
 {
-    let config_file_name = match config_file {
+    let config_file_name = match config_file
+    {
         None => return Default::default(),
-        Some(file_name) => {
+        Some(file_name) =>
+        {
             let mut full_path = PathBuf::from("tests/config/");
             full_path.push(file_name);
-            if !full_path.exists() {
+            if !full_path.exists()
+            {
                 return Default::default();
             };
             full_path
@@ -860,7 +905,8 @@ fn handle_result(
 {
     let mut failures = HashMap::new();
 
-    for (file_name, fmt_text) in result {
+    for (file_name, fmt_text) in result
+    {
         // If file is in tests/source, compare to file with same name in tests/target.
         let target = get_target(&file_name, target);
         let open_error = format!("couldn't open target {:?}", target);
@@ -871,7 +917,8 @@ fn handle_result(
         f.read_to_string(&mut text).expect(&read_error);
 
         // Ignore LF and CRLF difference for Windows.
-        if !string_eq_ignore_newline_repr(&fmt_text, &text) {
+        if !string_eq_ignore_newline_repr(&fmt_text, &text)
+        {
             let diff = make_diff(&text, &fmt_text, DIFF_CONTEXT_SIZE);
             assert!(
                 !diff.is_empty(),
@@ -881,9 +928,12 @@ fn handle_result(
         }
     }
 
-    if failures.is_empty() {
+    if failures.is_empty()
+    {
         Ok(())
-    } else {
+    }
+    else
+    {
         Err(IdempotentCheckError::Mismatch(failures))
     }
 }
@@ -896,19 +946,28 @@ fn get_target(file_name: &Path, target: Option<&str>) -> PathBuf
         .position(|c| c.as_os_str() == "source")
     {
         let mut target_file_name = PathBuf::new();
-        for (i, c) in file_name.components().enumerate() {
-            if i == n {
+        for (i, c) in file_name.components().enumerate()
+        {
+            if i == n
+            {
                 target_file_name.push("target");
-            } else {
+            }
+            else
+            {
                 target_file_name.push(c.as_os_str());
             }
         }
-        if let Some(replace_name) = target {
+        if let Some(replace_name) = target
+        {
             target_file_name.with_file_name(replace_name)
-        } else {
+        }
+        else
+        {
             target_file_name
         }
-    } else {
+    }
+    else
+    {
         // This is either and idempotence check or a self check.
         file_name.to_owned()
     }
@@ -960,14 +1019,20 @@ impl<'a> Iterator for CharsIgnoreNewlineRepr<'a>
     fn next(&mut self) -> Option<char>
     {
         self.0.next().map(|c| {
-            if c == '\r' {
-                if *self.0.peek().unwrap_or(&'\0') == '\n' {
+            if c == '\r'
+            {
+                if *self.0.peek().unwrap_or(&'\0') == '\n'
+                {
                     self.0.next();
                     '\n'
-                } else {
+                }
+                else
+                {
                     '\r'
                 }
-            } else {
+            }
+            else
+            {
                 c
             }
         })

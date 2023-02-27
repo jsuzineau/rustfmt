@@ -34,7 +34,8 @@ where
     let mut emitter = create_emitter(config);
 
     emitter.emit_header(out)?;
-    for &(ref filename, ref text) in source_file {
+    for &(ref filename, ref text) in source_file
+    {
         write_file(
             None,
             filename,
@@ -62,7 +63,8 @@ where
 {
     fn ensure_real_path(filename: &FileName) -> &Path
     {
-        match *filename {
+        match *filename
+        {
             FileName::Real(ref path) => path,
             _ => panic!("cannot format `{}` and emit to files", filename),
         }
@@ -72,8 +74,10 @@ where
     {
         fn from(filename: &FileName) -> rustc_span::FileName
         {
-            match filename {
-                FileName::Real(path) => {
+            match filename
+            {
+                FileName::Real(path) =>
+                {
                     rustc_span::FileName::Real(rustc_span::RealFileName::LocalPath(path.to_owned()))
                 }
                 FileName::Stdin => rustc_span::FileName::Custom("stdin".to_owned()),
@@ -90,10 +94,14 @@ where
     // left as the default value, then try getting source from the parse session
     // source map instead of hitting the file system. This also supports getting
     // original text for `FileName::Stdin`.
-    let original_text = if newline_style != NewlineStyle::Auto && *filename != FileName::Stdin {
+    let original_text = if newline_style != NewlineStyle::Auto && *filename != FileName::Stdin
+    {
         Lrc::new(fs::read_to_string(ensure_real_path(filename))?)
-    } else {
-        match parse_sess.and_then(|sess| sess.get_original_snippet(filename)) {
+    }
+    else
+    {
+        match parse_sess.and_then(|sess| sess.get_original_snippet(filename))
+        {
             Some(ori) => ori,
             None => Lrc::new(fs::read_to_string(ensure_real_path(filename))?),
         }

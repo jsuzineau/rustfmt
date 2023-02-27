@@ -49,9 +49,12 @@ impl AlignedItem for ast::FieldDef
     fn rewrite_prefix(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
     {
         let attrs_str = self.attrs.rewrite(context, shape)?;
-        let missing_span = if self.attrs.is_empty() {
+        let missing_span = if self.attrs.is_empty()
+        {
             mk_sp(self.span.lo(), self.span.lo())
-        } else {
+        }
+        else
+        {
             mk_sp(self.attrs.last().unwrap().span.hi(), self.span.lo())
         };
         let attrs_extendable = self.ident.is_none() && is_attributes_extendable(&attrs_str);
@@ -94,9 +97,12 @@ impl AlignedItem for ast::ExprField
     {
         let attrs_str = self.attrs.rewrite(context, shape)?;
         let name = rewrite_ident(context, self.ident);
-        let missing_span = if self.attrs.is_empty() {
+        let missing_span = if self.attrs.is_empty()
+        {
             mk_sp(self.span.lo(), self.span.lo())
-        } else {
+        }
+        else
+        {
             mk_sp(self.attrs.last().unwrap().span.hi(), self.span.lo())
         };
         combine_strs_with_missing_comments(
@@ -128,16 +134,22 @@ pub(crate) fn rewrite_with_alignment<T: AlignedItem>(
     one_line_width: usize,
 ) -> Option<String>
 {
-    let (spaces, group_index) = if context.config.struct_field_align_threshold() > 0 {
+    let (spaces, group_index) = if context.config.struct_field_align_threshold() > 0
+    {
         group_aligned_items(context, fields)
-    } else {
+    }
+    else
+    {
         ("", fields.len() - 1)
     };
     let init = &fields[0..=group_index];
     let rest = &fields[group_index + 1..];
-    let init_last_pos = if rest.is_empty() {
+    let init_last_pos = if rest.is_empty()
+    {
         span.hi()
-    } else {
+    }
+    else
+    {
         // Decide whether the missing comments should stick to init or rest.
         let init_hi = init[init.len() - 1].get_span().hi();
         let rest_lo = rest[0].get_span().lo();
@@ -148,11 +160,14 @@ pub(crate) fn rewrite_with_alignment<T: AlignedItem>(
         );
 
         let snippet = context.snippet(missing_span);
-        if snippet.trim_start().starts_with("//") {
+        if snippet.trim_start().starts_with("//")
+        {
             let offset = snippet.lines().next().map_or(0, str::len);
             // 2 = "," + "\n"
             init_hi + BytePos(offset as u32 + 2)
-        } else if snippet.trim_start().starts_with("/*") {
+        }
+        else if snippet.trim_start().starts_with("/*")
+        {
             let comment_lines = snippet
                 .lines()
                 .position(|line| line.trim_end().ends_with("*/"))
@@ -166,7 +181,9 @@ pub(crate) fn rewrite_with_alignment<T: AlignedItem>(
                 .len();
 
             init_hi + BytePos(offset as u32 + 2)
-        } else {
+        }
+        else
+        {
             missing_span.lo()
         }
     };
@@ -184,9 +201,12 @@ pub(crate) fn rewrite_with_alignment<T: AlignedItem>(
         one_line_width,
         force_separator,
     )?;
-    if rest.is_empty() {
+    if rest.is_empty()
+    {
         Some(result + spaces)
-    } else {
+    }
+    else
+    {
         let rest_span = mk_sp(init_last_pos, span.hi());
         let rest_str = rewrite_with_alignment(rest, context, shape, rest_span, one_line_width)?;
         Some(format!(
@@ -232,7 +252,8 @@ fn rewrite_aligned_items_inner<T: AlignedItem>(
     let (mut field_prefix_max_width, field_prefix_min_width) =
         struct_field_prefix_max_min_width(context, fields, item_shape);
     let max_diff = field_prefix_max_width.saturating_sub(field_prefix_min_width);
-    if max_diff > context.config.struct_field_align_threshold() {
+    if max_diff > context.config.struct_field_align_threshold()
+    {
         field_prefix_max_width = 0;
     }
 
@@ -257,7 +278,8 @@ fn rewrite_aligned_items_inner<T: AlignedItem>(
         one_line_width,
     );
 
-    if tactic == DefinitiveListTactic::Horizontal {
+    if tactic == DefinitiveListTactic::Horizontal
+    {
         // since the items fits on a line, there is no need to align them
         let do_rewrite =
             |field: &T| -> Option<String> { field.rewrite_aligned_item(context, item_shape, 0) };
@@ -265,15 +287,19 @@ fn rewrite_aligned_items_inner<T: AlignedItem>(
             .iter()
             .zip(items.iter_mut())
             .for_each(|(field, list_item): (&T, &mut ListItem)| {
-                if list_item.item.is_some() {
+                if list_item.item.is_some()
+                {
                     list_item.item = do_rewrite(field);
                 }
             });
     }
 
-    let separator_tactic = if force_trailing_separator {
+    let separator_tactic = if force_trailing_separator
+    {
         SeparatorTactic::Always
-    } else {
+    }
+    else
+    {
         context.config.trailing_comma()
     };
 
@@ -293,8 +319,10 @@ fn group_aligned_items<T: AlignedItem>(
 ) -> (&'static str, usize)
 {
     let mut index = 0;
-    for i in 0..fields.len() - 1 {
-        if fields[i].skip() {
+    for i in 0..fields.len() - 1
+    {
+        if fields[i].skip()
+        {
             return ("", index);
         }
         let span = mk_sp(fields[i].get_span().hi(), fields[i + 1].get_span().lo());
@@ -308,7 +336,8 @@ fn group_aligned_items<T: AlignedItem>(
             .lines()
             .dropping_back(1)
             .any(|l| l.trim().is_empty());
-        if has_blank_line {
+        if has_blank_line
+        {
             return ("\n", index);
         }
         index += 1;

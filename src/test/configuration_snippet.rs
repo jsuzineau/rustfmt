@@ -40,10 +40,14 @@ impl ConfigurationSection
                     .expect("failed creating configuration value pattern");
         }
 
-        loop {
-            match file.next() {
-                Some((i, line)) => {
-                    if line.starts_with("```rust") {
+        loop
+        {
+            match file.next()
+            {
+                Some((i, line)) =>
+                {
+                    if line.starts_with("```rust")
+                    {
                         // Get the lines of the code block.
                         let lines: Vec<String> = file
                             .map(|(_i, l)| l)
@@ -56,9 +60,13 @@ impl ConfigurationSection
                         let start_line = (i + 2) as u32;
 
                         return Some(ConfigurationSection::CodeBlock((block, start_line)));
-                    } else if let Some(c) = CONFIG_NAME_REGEX.captures(&line) {
+                    }
+                    else if let Some(c) = CONFIG_NAME_REGEX.captures(&line)
+                    {
                         return Some(ConfigurationSection::ConfigName(String::from(&c[1])));
-                    } else if let Some(c) = CONFIG_VALUE_REGEX.captures(&line) {
+                    }
+                    else if let Some(c) = CONFIG_VALUE_REGEX.captures(&line)
+                    {
                         return Some(ConfigurationSection::ConfigValue(String::from(&c[1])));
                     }
                 }
@@ -111,7 +119,8 @@ impl ConfigCodeBlock
     {
         let mut config = Config::default();
         config.set().verbose(Verbosity::Quiet);
-        if self.config_name.is_some() && self.config_value.is_some() {
+        if self.config_name.is_some() && self.config_value.is_some()
+        {
             config.override_value(
                 self.config_name.as_ref().unwrap(),
                 self.config_value.as_ref().unwrap(),
@@ -128,7 +137,8 @@ impl ConfigCodeBlock
         // See if code block begins with #![rustfmt::skip].
         let fmt_skip = self.fmt_skip();
 
-        if self.config_name.is_none() && !fmt_skip {
+        if self.config_name.is_none() && !fmt_skip
+        {
             write_message(&format!(
                 "No configuration name for {}:{}",
                 CONFIGURATIONS_FILE_NAME,
@@ -136,7 +146,8 @@ impl ConfigCodeBlock
             ));
             return false;
         }
-        if self.config_value.is_none() && !fmt_skip {
+        if self.config_value.is_none() && !fmt_skip
+        {
             write_message(&format!(
                 "No configuration value for {}:{}",
                 CONFIGURATIONS_FILE_NAME,
@@ -161,7 +172,8 @@ impl ConfigCodeBlock
 
     fn has_parsing_errors<T: Write>(&self, session: &Session<'_, T>) -> bool
     {
-        if session.has_parsing_errors() {
+        if session.has_parsing_errors()
+        {
             write_message(&format!(
                 "\u{261d}\u{1f3fd} Cannot format {}:{}",
                 CONFIGURATIONS_FILE_NAME,
@@ -189,7 +201,8 @@ impl ConfigCodeBlock
     fn formatted_has_diff(&self, text: &str) -> bool
     {
         let compare = make_diff(self.code_block.as_ref().unwrap(), text, DIFF_CONTEXT_SIZE);
-        if !compare.is_empty() {
+        if !compare.is_empty()
+        {
             self.print_diff(compare);
             return true;
         }
@@ -203,7 +216,8 @@ impl ConfigCodeBlock
     fn formatted_is_idempotent(&self) -> bool
     {
         // Verify that we have all of the expected information.
-        if !self.code_block_valid() {
+        if !self.code_block_valid()
+        {
             return false;
         }
 
@@ -215,7 +229,8 @@ impl ConfigCodeBlock
         {
             let mut session = Session::new(config, Some(&mut buf));
             session.format(input).unwrap();
-            if self.has_parsing_errors(&session) {
+            if self.has_parsing_errors(&session)
+            {
                 return false;
             }
         }
@@ -241,13 +256,17 @@ impl ConfigCodeBlock
         let mut code_block = ConfigCodeBlock::new();
         code_block.config_name = prev.and_then(|cb| cb.config_name.clone());
 
-        loop {
-            match ConfigurationSection::get_section(file) {
-                Some(ConfigurationSection::CodeBlock((block, start_line))) => {
+        loop
+        {
+            match ConfigurationSection::get_section(file)
+            {
+                Some(ConfigurationSection::CodeBlock((block, start_line))) =>
+                {
                     code_block.set_code_block(block, start_line);
                     break;
                 }
-                Some(ConfigurationSection::ConfigName(name)) => {
+                Some(ConfigurationSection::ConfigName(name)) =>
+                {
                     assert!(
                         Config::is_valid_name(&name),
                         "an unknown configuration option was found: {}",
@@ -260,7 +279,8 @@ impl ConfigCodeBlock
                     );
                     code_block.set_config_name(Some(name));
                 }
-                Some(ConfigurationSection::ConfigValue(value)) => {
+                Some(ConfigurationSection::ConfigValue(value)) =>
+                {
                     code_block.set_config_value(Some(value));
                 }
                 None => return None, // end of file was reached
@@ -306,8 +326,10 @@ fn get_code_blocks() -> Vec<ConfigCodeBlock>
         code_blocks.push(cb);
     }
 
-    for name in hash_set {
-        if !Config::is_hidden_option(&name) {
+    for name in hash_set
+    {
+        if !Config::is_hidden_option(&name)
+        {
             panic!("{} does not have a configuration guide", name);
         }
     }
@@ -331,8 +353,10 @@ fn check_unstable_option_tracking_issue_numbers()
     .map(Result::unwrap)
     .enumerate();
 
-    for (idx, line) in lines {
-        if let Some(capture) = tracking_issue.captures(&line) {
+    for (idx, line) in lines
+    {
+        if let Some(capture) = tracking_issue.captures(&line)
+        {
             let number = capture.name("number").unwrap().as_str();
             let link = capture.name("link").unwrap().as_str();
             assert!(

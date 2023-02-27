@@ -45,16 +45,20 @@ pub(crate) fn rewrite_closure(
     // 1 = space between `|...|` and body.
     let body_shape = shape.offset_left(extra_offset)?;
 
-    if let ast::ExprKind::Block(ref block, _) = body.kind {
+    if let ast::ExprKind::Block(ref block, _) = body.kind
+    {
         // The body of the closure is an empty block.
-        if block.stmts.is_empty() && !block_contains_comment(context, block) {
+        if block.stmts.is_empty() && !block_contains_comment(context, block)
+        {
             return body
                 .rewrite(context, shape)
                 .map(|s| format!("{} {}", prefix, s));
         }
 
-        let result = match fn_decl.output {
-            ast::FnRetTy::Default(_) if !context.inside_macro() => {
+        let result = match fn_decl.output
+        {
+            ast::FnRetTy::Default(_) if !context.inside_macro() =>
+            {
                 try_rewrite_without_block(body, &prefix, context, shape, body_shape)
             }
             _ => None,
@@ -64,7 +68,9 @@ pub(crate) fn rewrite_closure(
             // Either we require a block, or tried without and failed.
             rewrite_closure_block(block, &prefix, context, body_shape)
         })
-    } else {
+    }
+    else
+    {
         rewrite_closure_expr(body, &prefix, context, body_shape).or_else(|| {
             // The closure originally had a non-block expression, but we can't fit on
             // one line, so we'll insert a block.
@@ -83,9 +89,12 @@ fn try_rewrite_without_block(
 {
     let expr = get_inner_expr(expr, prefix, context);
 
-    if is_block_closure_forced(context, expr) {
+    if is_block_closure_forced(context, expr)
+    {
         rewrite_closure_with_block(expr, prefix, context, shape)
-    } else {
+    }
+    else
+    {
         rewrite_closure_expr(expr, prefix, context, body_shape)
     }
 }
@@ -96,11 +105,14 @@ fn get_inner_expr<'a>(
     context: &RewriteContext<'_>,
 ) -> &'a ast::Expr
 {
-    if let ast::ExprKind::Block(ref block, _) = expr.kind {
-        if !needs_block(block, prefix, context) {
+    if let ast::ExprKind::Block(ref block, _) = expr.kind
+    {
+        if !needs_block(block, prefix, context)
+        {
             // block.stmts.len() == 1 except with `|| {{}}`;
             // https://github.com/rust-lang/rustfmt/issues/3844
-            if let Some(expr) = block.stmts.first().and_then(stmt_expr) {
+            if let Some(expr) = block.stmts.first().and_then(stmt_expr)
+            {
                 return get_inner_expr(expr, prefix, context);
             }
         }
@@ -125,7 +137,8 @@ fn needs_block(block: &ast::Block, prefix: &str, context: &RewriteContext<'_>) -
 
 fn veto_block(e: &ast::Expr) -> bool
 {
-    match e.kind {
+    match e.kind
+    {
         ast::ExprKind::Call(..)
         | ast::ExprKind::Binary(..)
         | ast::ExprKind::Cast(..)
@@ -151,7 +164,8 @@ fn rewrite_closure_with_block(
 {
     let left_most = left_most_sub_expr(body);
     let veto_block = veto_block(body) && !expr_requires_semi_to_be_stmt(left_most);
-    if veto_block {
+    if veto_block
+    {
         return None;
     }
 
@@ -193,7 +207,8 @@ fn rewrite_closure_expr(
 {
     fn allow_multi_line(expr: &ast::Expr) -> bool
     {
-        match expr.kind {
+        match expr.kind
+        {
             ast::ExprKind::Match(..)
             | ast::ExprKind::Async(..)
             | ast::ExprKind::Block(..)
@@ -217,9 +232,12 @@ fn rewrite_closure_expr(
         || context.config.force_multiline_blocks();
     expr.rewrite(context, shape)
         .and_then(|rw| {
-            if veto_multiline && rw.contains('\n') {
+            if veto_multiline && rw.contains('\n')
+            {
                 None
-            } else {
+            }
+            else
+            {
                 Some(rw)
             }
         })
@@ -251,32 +269,44 @@ fn rewrite_closure_fn_decl(
     shape: Shape,
 ) -> Option<(String, usize)>
 {
-    let binder = match binder {
-        ast::ClosureBinder::For { generic_params, .. } if generic_params.is_empty() => {
+    let binder = match binder
+    {
+        ast::ClosureBinder::For { generic_params, .. } if generic_params.is_empty() =>
+        {
             "for<> ".to_owned()
         }
-        ast::ClosureBinder::For { generic_params, .. } => {
+        ast::ClosureBinder::For { generic_params, .. } =>
+        {
             let lifetime_str = rewrite_lifetime_param(context, shape, generic_params)?;
             format!("for<{lifetime_str}> ")
         }
         ast::ClosureBinder::NotPresent => "".to_owned(),
     };
 
-    let const_ = if matches!(constness, ast::Const::Yes(_)) {
+    let const_ = if matches!(constness, ast::Const::Yes(_))
+    {
         "const "
-    } else {
+    }
+    else
+    {
         ""
     };
 
-    let immovable = if movability == ast::Movability::Static {
+    let immovable = if movability == ast::Movability::Static
+    {
         "static "
-    } else {
+    }
+    else
+    {
         ""
     };
     let is_async = if asyncness.is_async() { "async " } else { "" };
-    let mover = if capture == ast::CaptureBy::Value {
+    let mover = if capture == ast::CaptureBy::Value
+    {
         "move "
-    } else {
+    }
+    else
+    {
         ""
     };
     // 4 = "|| {".len(), which is overconservative when the closure consists of
@@ -311,7 +341,8 @@ fn rewrite_closure_fn_decl(
         Separator::Comma,
         horizontal_budget,
     );
-    let param_shape = match tactic {
+    let param_shape = match tactic
+    {
         DefinitiveListTactic::Horizontal => param_shape.sub_width(ret_str.len() + 1)?,
         _ => param_shape,
     };
@@ -325,11 +356,15 @@ fn rewrite_closure_fn_decl(
         binder, const_, immovable, is_async, mover, list_str
     );
 
-    if !ret_str.is_empty() {
-        if prefix.contains('\n') {
+    if !ret_str.is_empty()
+    {
+        if prefix.contains('\n')
+        {
             prefix.push('\n');
             prefix.push_str(&param_offset.to_string(context.config));
-        } else {
+        }
+        else
+        {
             prefix.push(' ');
         }
         prefix.push_str(&ret_str);
@@ -348,7 +383,8 @@ pub(crate) fn rewrite_last_closure(
     shape: Shape,
 ) -> Option<String>
 {
-    if let ast::ExprKind::Closure(ref closure) = expr.kind {
+    if let ast::ExprKind::Closure(ref closure) = expr.kind
+    {
         let ast::Closure {
             ref binder,
             constness,
@@ -360,7 +396,8 @@ pub(crate) fn rewrite_last_closure(
             fn_decl_span: _,
             fn_arg_span: _,
         } = **closure;
-        let body = match body.kind {
+        let body = match body.kind
+        {
             ast::ExprKind::Block(ref block, _)
                 if !is_unsafe_block(block)
                     && !context.inside_macro()
@@ -383,22 +420,27 @@ pub(crate) fn rewrite_last_closure(
             shape,
         )?;
         // If the closure goes multi line before its body, do not overflow the closure.
-        if prefix.contains('\n') {
+        if prefix.contains('\n')
+        {
             return None;
         }
 
         let body_shape = shape.offset_left(extra_offset)?;
 
         // We force to use block for the body of the closure for certain kinds of expressions.
-        if is_block_closure_forced(context, body) {
+        if is_block_closure_forced(context, body)
+        {
             return rewrite_closure_with_block(body, &prefix, context, body_shape).map(
                 |body_str| {
-                    match fn_decl.output {
-                        ast::FnRetTy::Default(..) if body_str.lines().count() <= 7 => {
+                    match fn_decl.output
+                    {
+                        ast::FnRetTy::Default(..) if body_str.lines().count() <= 7 =>
+                        {
                             // If the expression can fit in a single line, we need not force block
                             // closure.  However, if the closure has a return type, then we must
                             // keep the blocks.
-                            match rewrite_closure_expr(body, &prefix, context, shape) {
+                            match rewrite_closure_expr(body, &prefix, context, shape)
+                            {
                                 Some(single_line_body_str)
                                     if !single_line_body_str.contains('\n') =>
                                 {
@@ -418,7 +460,8 @@ pub(crate) fn rewrite_last_closure(
         let is_multi_lined_cond = rewrite_cond(context, body, body_shape).map_or(false, |cond| {
             cond.contains('\n') || cond.len() > body_shape.width
         });
-        if is_multi_lined_cond {
+        if is_multi_lined_cond
+        {
             return rewrite_closure_with_block(body, &prefix, context, body_shape);
         }
 
@@ -441,16 +484,20 @@ pub(crate) fn args_have_many_closure(args: &[OverflowableItem<'_>]) -> bool
 fn is_block_closure_forced(context: &RewriteContext<'_>, expr: &ast::Expr) -> bool
 {
     // If we are inside macro, we do not want to add or remove block from closure body.
-    if context.inside_macro() {
+    if context.inside_macro()
+    {
         false
-    } else {
+    }
+    else
+    {
         is_block_closure_forced_inner(expr, context.config.version())
     }
 }
 
 fn is_block_closure_forced_inner(expr: &ast::Expr, version: Version) -> bool
 {
-    match expr.kind {
+    match expr.kind
+    {
         ast::ExprKind::If(..) | ast::ExprKind::While(..) | ast::ExprKind::ForLoop(..) => true,
         ast::ExprKind::Loop(..) if version == Version::Two => true,
         ast::ExprKind::AddrOf(_, _, ref expr)
@@ -472,7 +519,8 @@ fn is_block_closure_forced_inner(expr: &ast::Expr, version: Version) -> bool
 // From https://github.com/rust-lang/rust/blob/master/src/libsyntax/parse/classify.rs.
 fn expr_requires_semi_to_be_stmt(e: &ast::Expr) -> bool
 {
-    match e.kind {
+    match e.kind
+    {
         ast::ExprKind::If(..)
         | ast::ExprKind::Match(..)
         | ast::ExprKind::Block(..)

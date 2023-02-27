@@ -30,11 +30,16 @@ lazy_static! {
 
 fn is_custom_comment(comment: &str) -> bool
 {
-    if !comment.starts_with("//") {
+    if !comment.starts_with("//")
+    {
         false
-    } else if let Some(c) = comment.chars().nth(2) {
+    }
+    else if let Some(c) = comment.chars().nth(2)
+    {
         !c.is_alphanumeric() && !c.is_whitespace()
-    } else {
+    }
+    else
+    {
         false
     }
 }
@@ -65,7 +70,8 @@ impl<'a> CommentStyle<'a>
     /// Returns `true` if the commenting style covers a line only.
     pub(crate) fn is_line_comment(&self) -> bool
     {
-        match *self {
+        match *self
+        {
             CommentStyle::DoubleSlash
             | CommentStyle::TripleSlash
             | CommentStyle::Doc
@@ -77,8 +83,10 @@ impl<'a> CommentStyle<'a>
     /// Returns `true` if the commenting style can span over multiple lines.
     pub(crate) fn is_block_comment(&self) -> bool
     {
-        match *self {
-            CommentStyle::SingleBullet | CommentStyle::DoubleBullet | CommentStyle::Exclamation => {
+        match *self
+        {
+            CommentStyle::SingleBullet | CommentStyle::DoubleBullet | CommentStyle::Exclamation =>
+            {
                 true
             }
             _ => false,
@@ -93,7 +101,8 @@ impl<'a> CommentStyle<'a>
 
     pub(crate) fn opener(&self) -> &'a str
     {
-        match *self {
+        match *self
+        {
             CommentStyle::DoubleSlash => "// ",
             CommentStyle::TripleSlash => "/// ",
             CommentStyle::Doc => "//! ",
@@ -106,12 +115,14 @@ impl<'a> CommentStyle<'a>
 
     pub(crate) fn closer(&self) -> &'a str
     {
-        match *self {
+        match *self
+        {
             CommentStyle::DoubleSlash
             | CommentStyle::TripleSlash
             | CommentStyle::Custom(..)
             | CommentStyle::Doc => "",
-            CommentStyle::SingleBullet | CommentStyle::DoubleBullet | CommentStyle::Exclamation => {
+            CommentStyle::SingleBullet | CommentStyle::DoubleBullet | CommentStyle::Exclamation =>
+            {
                 " */"
             }
         }
@@ -119,11 +130,13 @@ impl<'a> CommentStyle<'a>
 
     pub(crate) fn line_start(&self) -> &'a str
     {
-        match *self {
+        match *self
+        {
             CommentStyle::DoubleSlash => "// ",
             CommentStyle::TripleSlash => "/// ",
             CommentStyle::Doc => "//! ",
-            CommentStyle::SingleBullet | CommentStyle::DoubleBullet | CommentStyle::Exclamation => {
+            CommentStyle::SingleBullet | CommentStyle::DoubleBullet | CommentStyle::Exclamation =>
+            {
                 " * "
             }
             CommentStyle::Custom(opener) => opener,
@@ -138,31 +151,52 @@ impl<'a> CommentStyle<'a>
 
 pub(crate) fn comment_style(orig: &str, normalize_comments: bool) -> CommentStyle<'_>
 {
-    if !normalize_comments {
-        if orig.starts_with("/**") && !orig.starts_with("/**/") {
+    if !normalize_comments
+    {
+        if orig.starts_with("/**") && !orig.starts_with("/**/")
+        {
             CommentStyle::DoubleBullet
-        } else if orig.starts_with("/*!") {
+        }
+        else if orig.starts_with("/*!")
+        {
             CommentStyle::Exclamation
-        } else if orig.starts_with("/*") {
+        }
+        else if orig.starts_with("/*")
+        {
             CommentStyle::SingleBullet
-        } else if orig.starts_with("///") && orig.chars().nth(3).map_or(true, |c| c != '/') {
+        }
+        else if orig.starts_with("///") && orig.chars().nth(3).map_or(true, |c| c != '/')
+        {
             CommentStyle::TripleSlash
-        } else if orig.starts_with("//!") {
+        }
+        else if orig.starts_with("//!")
+        {
             CommentStyle::Doc
-        } else if is_custom_comment(orig) {
+        }
+        else if is_custom_comment(orig)
+        {
             CommentStyle::Custom(custom_opener(orig))
-        } else {
+        }
+        else
+        {
             CommentStyle::DoubleSlash
         }
-    } else if (orig.starts_with("///") && orig.chars().nth(3).map_or(true, |c| c != '/'))
+    }
+    else if (orig.starts_with("///") && orig.chars().nth(3).map_or(true, |c| c != '/'))
         || (orig.starts_with("/**") && !orig.starts_with("/**/"))
     {
         CommentStyle::TripleSlash
-    } else if orig.starts_with("//!") || orig.starts_with("/*!") {
+    }
+    else if orig.starts_with("//!") || orig.starts_with("/*!")
+    {
         CommentStyle::Doc
-    } else if is_custom_comment(orig) {
+    }
+    else if is_custom_comment(orig)
+    {
         CommentStyle::Custom(custom_opener(orig))
-    } else {
+    }
+    else
+    {
         CommentStyle::DoubleSlash
     }
 }
@@ -200,9 +234,12 @@ pub(crate) fn combine_strs_with_missing_comments(
     result.push_str(prev_str);
     let mut allow_one_line = !prev_str.contains('\n') && !next_str.contains('\n');
     let first_sep =
-        if prev_str.is_empty() || next_str.is_empty() || trimmed_last_line_width(prev_str) == 0 {
+        if prev_str.is_empty() || next_str.is_empty() || trimmed_last_line_width(prev_str) == 0
+        {
             ""
-        } else {
+        }
+        else
+        {
             " "
         };
     let mut one_line_width =
@@ -212,10 +249,14 @@ pub(crate) fn combine_strs_with_missing_comments(
     let indent = shape.indent;
     let missing_comment = rewrite_missing_comment(span, shape, context)?;
 
-    if missing_comment.is_empty() {
-        if allow_extend && one_line_width <= shape.width {
+    if missing_comment.is_empty()
+    {
+        if allow_extend && one_line_width <= shape.width
+        {
             result.push_str(first_sep);
-        } else if !prev_str.is_empty() {
+        }
+        else if !prev_str.is_empty()
+        {
             result.push_str(&indent.to_string_with_newline(config))
         }
         result.push_str(next_str);
@@ -228,36 +269,53 @@ pub(crate) fn combine_strs_with_missing_comments(
     // expression and the second expression or the missing comment. We will preserve the original
     // layout whenever possible.
     let original_snippet = context.snippet(span);
-    let prefer_same_line = if let Some(pos) = original_snippet.find('/') {
+    let prefer_same_line = if let Some(pos) = original_snippet.find('/')
+    {
         !original_snippet[..pos].contains('\n')
-    } else {
+    }
+    else
+    {
         !original_snippet.contains('\n')
     };
 
     one_line_width -= first_sep.len();
-    let first_sep = if prev_str.is_empty() || missing_comment.is_empty() {
+    let first_sep = if prev_str.is_empty() || missing_comment.is_empty()
+    {
         Cow::from("")
-    } else {
+    }
+    else
+    {
         let one_line_width = last_line_width(prev_str) + first_line_width(&missing_comment) + 1;
-        if prefer_same_line && one_line_width <= shape.width {
+        if prefer_same_line && one_line_width <= shape.width
+        {
             Cow::from(" ")
-        } else {
+        }
+        else
+        {
             indent.to_string_with_newline(config)
         }
     };
     result.push_str(&first_sep);
     result.push_str(&missing_comment);
 
-    let second_sep = if missing_comment.is_empty() || next_str.is_empty() {
+    let second_sep = if missing_comment.is_empty() || next_str.is_empty()
+    {
         Cow::from("")
-    } else if missing_comment.starts_with("//") {
+    }
+    else if missing_comment.starts_with("//")
+    {
         indent.to_string_with_newline(config)
-    } else {
+    }
+    else
+    {
         one_line_width += missing_comment.len() + first_sep.len() + 1;
         allow_one_line &= !missing_comment.starts_with("//") && !missing_comment.contains('\n');
-        if prefer_same_line && allow_one_line && one_line_width <= shape.width {
+        if prefer_same_line && allow_one_line && one_line_width <= shape.width
+        {
             Cow::from(" ")
-        } else {
+        }
+        else
+        {
             indent.to_string_with_newline(config)
         }
     };
@@ -296,13 +354,19 @@ fn identify_comment(
     // paragraph.
     fn compute_len(orig: &str, line: &str) -> usize
     {
-        if orig.len() > line.len() {
-            if orig.as_bytes()[line.len()] == b'\r' {
+        if orig.len() > line.len()
+        {
+            if orig.as_bytes()[line.len()] == b'\r'
+            {
                 line.len() + 2
-            } else {
+            }
+            else
+            {
                 line.len() + 1
             }
-        } else {
+        }
+        else
+        {
             line.len()
         }
     }
@@ -321,39 +385,49 @@ fn identify_comment(
         let mut first_group_ending = 0;
         let mut hbl = false;
 
-        for line in orig.lines() {
+        for line in orig.lines()
+        {
             let trimmed_line = line.trim_start();
-            if trimmed_line.is_empty() {
+            if trimmed_line.is_empty()
+            {
                 hbl = true;
                 break;
-            } else if trimmed_line.starts_with(line_start)
+            }
+            else if trimmed_line.starts_with(line_start)
                 || comment_style(trimmed_line, false) == style
             {
                 first_group_ending += compute_len(&orig[first_group_ending..], line);
-            } else {
+            }
+            else
+            {
                 break;
             }
         }
         (hbl, first_group_ending)
     }
 
-    let (has_bare_lines, first_group_ending) = match style {
-        CommentStyle::DoubleSlash | CommentStyle::TripleSlash | CommentStyle::Doc => {
+    let (has_bare_lines, first_group_ending) = match style
+    {
+        CommentStyle::DoubleSlash | CommentStyle::TripleSlash | CommentStyle::Doc =>
+        {
             let line_start = style.line_start().trim_start();
             consume_same_line_comments(style, orig, line_start)
         }
-        CommentStyle::Custom(opener) => {
+        CommentStyle::Custom(opener) =>
+        {
             let trimmed_opener = opener.trim_end();
             consume_same_line_comments(style, orig, trimmed_opener)
         }
         // for a block comment, search for the closing symbol
-        CommentStyle::DoubleBullet | CommentStyle::SingleBullet | CommentStyle::Exclamation => {
+        CommentStyle::DoubleBullet | CommentStyle::SingleBullet | CommentStyle::Exclamation =>
+        {
             let closer = style.closer().trim_start();
             let mut count = orig.matches(closer).count();
             let mut closing_symbol_offset = 0;
             let mut hbl = false;
             let mut first = true;
-            for line in orig.lines() {
+            for line in orig.lines()
+            {
                 closing_symbol_offset += compute_len(&orig[closing_symbol_offset..], line);
                 let mut trimmed_line = line.trim_start();
                 if !trimmed_line.starts_with('*')
@@ -364,14 +438,17 @@ fn identify_comment(
                 }
 
                 // Remove opener from consideration when searching for closer
-                if first {
+                if first
+                {
                     let opener = style.opener().trim_end();
                     trimmed_line = &trimmed_line[opener.len()..];
                     first = false;
                 }
-                if trimmed_line.ends_with(closer) {
+                if trimmed_line.ends_with(closer)
+                {
                     count -= 1;
-                    if count == 0 {
+                    if count == 0
+                    {
                         break;
                     }
                 }
@@ -382,14 +459,18 @@ fn identify_comment(
 
     let (first_group, rest) = orig.split_at(first_group_ending);
     let rewritten_first_group =
-        if !config.normalize_comments() && has_bare_lines && style.is_block_comment() {
+        if !config.normalize_comments() && has_bare_lines && style.is_block_comment()
+        {
             trim_left_preserve_layout(first_group, shape.indent, config)?
-        } else if !config.normalize_comments()
+        }
+        else if !config.normalize_comments()
             && !config.wrap_comments()
             && !config.format_code_in_doc_comments()
         {
             light_rewrite_comment(first_group, shape.indent, config, is_doc_comment)
-        } else {
+        }
+        else
+        {
             rewrite_comment_inner(
                 first_group,
                 block_style,
@@ -399,9 +480,12 @@ fn identify_comment(
                 is_doc_comment || style.is_doc_comment(),
             )?
         };
-    if rest.is_empty() {
+    if rest.is_empty()
+    {
         Some(rewritten_first_group)
-    } else {
+    }
+    else
+    {
         identify_comment(
             rest.trim_start(),
             block_style,
@@ -414,9 +498,12 @@ fn identify_comment(
                 "{}\n{}{}{}",
                 rewritten_first_group,
                 // insert back the blank line
-                if has_bare_lines && style.is_line_comment() {
+                if has_bare_lines && style.is_line_comment()
+                {
                     "\n"
-                } else {
+                }
+                else
+                {
                     ""
                 },
                 shape.indent.to_string(config),
@@ -440,8 +527,10 @@ impl CodeBlockAttribute
     /// See <https://doc.rust-lang.org/rustdoc/print.html#attributes>
     fn new(attributes: &str) -> CodeBlockAttribute
     {
-        for attribute in attributes.split(',') {
-            match attribute.trim() {
+        for attribute in attributes.split(',')
+        {
+            match attribute.trim()
+            {
                 "" | "rust" | "should_panic" | "no_run" | "edition2015" | "edition2018"
                 | "edition2021" => (),
                 "ignore" | "compile_fail" | "text" => return CodeBlockAttribute::NotRust,
@@ -489,7 +578,8 @@ impl ItemizedBlock
         let mut line_start = " ".repeat(indent);
 
         // Markdown blockquote start with a "> "
-        if line.trim_start().starts_with(">") {
+        if line.trim_start().starts_with(">")
+        {
             // remove the original +2 indent because there might be multiple nested block quotes
             // and it's easier to reason about the final indent by just taking the length
             // of th new line_start. We update the indent because it effects the max width
@@ -556,13 +646,24 @@ fn itemized_block_quote_start(line: &str, mut line_start: String, remove_indent:
     let quote_level = line
         .chars()
         .take_while(|c| !c.is_alphanumeric())
-        .fold(0, |acc, c| if c == '>' { acc + 1 } else { acc });
+        .fold(0, |acc, c| {
+            if c == '>'
+            {
+                acc + 1
+            }
+            else
+            {
+                acc
+            }
+        });
 
-    for _ in 0..remove_indent {
+    for _ in 0..remove_indent
+    {
         line_start.pop();
     }
 
-    for _ in 0..quote_level {
+    for _ in 0..quote_level
+    {
         line_start.push_str("> ")
     }
     line_start
@@ -592,12 +693,15 @@ impl<'a> CommentRewrite<'a>
     fn new(orig: &'a str, block_style: bool, shape: Shape, config: &'a Config)
         -> CommentRewrite<'a>
     {
-        let ((opener, closer, line_start), style) = if block_style {
+        let ((opener, closer, line_start), style) = if block_style
+        {
             (
                 CommentStyle::SingleBullet.to_str_tuplet(),
                 CommentStyle::SingleBullet,
             )
-        } else {
+        }
+        else
+        {
             let style = comment_style(orig, config.normalize_comments());
             (style.to_str_tuplet(), style)
         };
@@ -642,9 +746,11 @@ impl<'a> CommentRewrite<'a>
     {
         let mut result = String::with_capacity(s.len() + 128);
         let mut iter = s.lines().peekable();
-        while let Some(line) = iter.next() {
+        while let Some(line) = iter.next()
+        {
             result.push_str(line);
-            result.push_str(match iter.peek() {
+            result.push_str(match iter.peek()
+            {
                 Some(next_line) if next_line.is_empty() => sep.trim_end(),
                 Some(..) => sep,
                 None => "",
@@ -665,7 +771,8 @@ impl<'a> CommentRewrite<'a>
 
     fn finish(mut self) -> String
     {
-        if !self.code_block_buffer.is_empty() {
+        if !self.code_block_buffer.is_empty()
+        {
             // There is a code block that is not properly enclosed by backticks.
             // We will leave them untouched.
             self.result.push_str(&self.comment_line_separator);
@@ -675,13 +782,15 @@ impl<'a> CommentRewrite<'a>
             ));
         }
 
-        if let Some(ref ib) = self.item_block {
+        if let Some(ref ib) = self.item_block
+        {
             // the last few lines are part of an itemized block
             self.fmt.shape = Shape::legacy(self.max_width, self.fmt_indent);
             let item_fmt = ib.create_string_format(&self.fmt);
 
             // only push a comment_line_separator for ItemizedBlocks if the comment is not empty
-            if self.buffer_contains_comment() {
+            if self.buffer_contains_comment()
+            {
                 self.result.push_str(&self.comment_line_separator);
             }
 
@@ -690,7 +799,8 @@ impl<'a> CommentRewrite<'a>
                 &ib.trimmed_block_as_string(),
                 &item_fmt,
                 self.max_width.saturating_sub(ib.indent),
-            ) {
+            )
+            {
                 Some(s) => self.result.push_str(&Self::join_block(
                     &s,
                     &format!("{}{}", self.comment_line_separator, ib.line_start),
@@ -703,7 +813,8 @@ impl<'a> CommentRewrite<'a>
         }
 
         self.result.push_str(&self.closer);
-        if self.result.ends_with(&self.opener) && self.opener.ends_with(' ') {
+        if self.result.ends_with(&self.opener) && self.opener.ends_with(' ')
+        {
             // Trailing space.
             self.result.pop();
         }
@@ -722,14 +833,19 @@ impl<'a> CommentRewrite<'a>
     {
         let num_newlines = count_newlines(orig);
         let is_last = i == num_newlines;
-        let needs_new_comment_line = if self.style.is_block_comment() {
+        let needs_new_comment_line = if self.style.is_block_comment()
+        {
             num_newlines > 0 || self.buffer_contains_comment()
-        } else {
+        }
+        else
+        {
             self.buffer_contains_comment()
         };
 
-        if let Some(ref mut ib) = self.item_block {
-            if ib.add_line(line) {
+        if let Some(ref mut ib) = self.item_block
+        {
+            if ib.add_line(line)
+            {
                 return false;
             }
             self.is_prev_line_multi_line = false;
@@ -737,7 +853,8 @@ impl<'a> CommentRewrite<'a>
             let item_fmt = ib.create_string_format(&self.fmt);
 
             // only push a comment_line_separator if we need to start a new comment line
-            if needs_new_comment_line {
+            if needs_new_comment_line
+            {
                 self.result.push_str(&self.comment_line_separator);
             }
 
@@ -746,7 +863,8 @@ impl<'a> CommentRewrite<'a>
                 &ib.trimmed_block_as_string(),
                 &item_fmt,
                 self.max_width.saturating_sub(ib.indent),
-            ) {
+            )
+            {
                 Some(s) => self.result.push_str(&Self::join_block(
                     &s,
                     &format!("{}{}", self.comment_line_separator, ib.line_start),
@@ -756,9 +874,13 @@ impl<'a> CommentRewrite<'a>
                     &self.comment_line_separator,
                 )),
             };
-        } else if self.code_block_attr.is_some() {
-            if line.starts_with("```") {
-                let code_block = match self.code_block_attr.as_ref().unwrap() {
+        }
+        else if self.code_block_attr.is_some()
+        {
+            if line.starts_with("```")
+            {
+                let code_block = match self.code_block_attr.as_ref().unwrap()
+                {
                     CodeBlockAttribute::Rust
                         if self.fmt.config.format_code_in_doc_comments()
                             && !self.code_block_buffer.trim().is_empty() =>
@@ -773,13 +895,16 @@ impl<'a> CommentRewrite<'a>
                             crate::format_code_block(&self.code_block_buffer, &config, false)
                         {
                             trim_custom_comment_prefix(&s.snippet)
-                        } else {
+                        }
+                        else
+                        {
                             trim_custom_comment_prefix(&self.code_block_buffer)
                         }
                     }
                     _ => trim_custom_comment_prefix(&self.code_block_buffer),
                 };
-                if !code_block.is_empty() {
+                if !code_block.is_empty()
+                {
                     self.result.push_str(&self.comment_line_separator);
                     self.result
                         .push_str(&Self::join_block(&code_block, &self.comment_line_separator));
@@ -788,7 +913,9 @@ impl<'a> CommentRewrite<'a>
                 self.result.push_str(&self.comment_line_separator);
                 self.result.push_str(line);
                 self.code_block_attr = None;
-            } else {
+            }
+            else
+            {
                 self.code_block_buffer
                     .push_str(&hide_sharp_behind_comment(line));
                 self.code_block_buffer.push('\n');
@@ -798,33 +925,47 @@ impl<'a> CommentRewrite<'a>
 
         self.code_block_attr = None;
         self.item_block = None;
-        if let Some(stripped) = line.strip_prefix("```") {
+        if let Some(stripped) = line.strip_prefix("```")
+        {
             self.code_block_attr = Some(CodeBlockAttribute::new(stripped))
-        } else if self.fmt.config.wrap_comments() && ItemizedBlock::is_itemized_line(line) {
+        }
+        else if self.fmt.config.wrap_comments() && ItemizedBlock::is_itemized_line(line)
+        {
             let ib = ItemizedBlock::new(line);
             self.item_block = Some(ib);
             return false;
         }
 
-        if self.result == self.opener {
+        if self.result == self.opener
+        {
             let force_leading_whitespace = &self.opener == "/* " && count_newlines(orig) == 0;
-            if !has_leading_whitespace && !force_leading_whitespace && self.result.ends_with(' ') {
+            if !has_leading_whitespace && !force_leading_whitespace && self.result.ends_with(' ')
+            {
                 self.result.pop();
             }
-            if line.is_empty() {
+            if line.is_empty()
+            {
                 return false;
             }
-        } else if self.is_prev_line_multi_line && !line.is_empty() {
+        }
+        else if self.is_prev_line_multi_line && !line.is_empty()
+        {
             self.result.push(' ')
-        } else if is_last && line.is_empty() {
+        }
+        else if is_last && line.is_empty()
+        {
             // trailing blank lines are unwanted
-            if !self.closer.is_empty() {
+            if !self.closer.is_empty()
+            {
                 self.result.push_str(&self.indent_str);
             }
             return true;
-        } else {
+        }
+        else
+        {
             self.result.push_str(&self.comment_line_separator);
-            if !has_leading_whitespace && self.result.ends_with(' ') {
+            if !has_leading_whitespace && self.result.ends_with(' ')
+            {
                 self.result.pop();
             }
         }
@@ -844,36 +985,45 @@ impl<'a> CommentRewrite<'a>
             && !has_url(line)
             && !is_table_item(line);
 
-        if should_wrap_comment {
-            match rewrite_string(line, &self.fmt, self.max_width) {
-                Some(ref s) => {
+        if should_wrap_comment
+        {
+            match rewrite_string(line, &self.fmt, self.max_width)
+            {
+                Some(ref s) =>
+                {
                     self.is_prev_line_multi_line = s.contains('\n');
                     self.result.push_str(s);
                 }
-                None if self.is_prev_line_multi_line => {
+                None if self.is_prev_line_multi_line =>
+                {
                     // We failed to put the current `line` next to the previous `line`.
                     // Remove the trailing space, then start rewrite on the next line.
                     self.result.pop();
                     self.result.push_str(&self.comment_line_separator);
                     self.fmt.shape = Shape::legacy(self.max_width, self.fmt_indent);
-                    match rewrite_string(line, &self.fmt, self.max_width) {
-                        Some(ref s) => {
+                    match rewrite_string(line, &self.fmt, self.max_width)
+                    {
+                        Some(ref s) =>
+                        {
                             self.is_prev_line_multi_line = s.contains('\n');
                             self.result.push_str(s);
                         }
-                        None => {
+                        None =>
+                        {
                             self.is_prev_line_multi_line = false;
                             self.result.push_str(line);
                         }
                     }
                 }
-                None => {
+                None =>
+                {
                     self.is_prev_line_multi_line = false;
                     self.result.push_str(line);
                 }
             }
 
-            self.fmt.shape = if self.is_prev_line_multi_line {
+            self.fmt.shape = if self.is_prev_line_multi_line
+            {
                 // 1 = " "
                 let offset = 1 + last_line_width(&self.result) - self.line_start.len();
                 Shape {
@@ -881,11 +1031,16 @@ impl<'a> CommentRewrite<'a>
                     indent: self.fmt_indent,
                     offset: self.fmt.shape.offset + offset,
                 }
-            } else {
+            }
+            else
+            {
                 Shape::legacy(self.max_width, self.fmt_indent)
             };
-        } else {
-            if line.is_empty() && self.result.ends_with(' ') && !is_last {
+        }
+        else
+        {
+            if line.is_empty() && self.result.ends_with(' ') && !is_last
+            {
                 // Remove space if this is an empty comment or a doc comment.
                 self.result.pop();
             }
@@ -916,7 +1071,8 @@ fn rewrite_comment_inner(
         .map(|(i, mut line)| {
             line = trim_end_unless_two_whitespaces(line.trim_start(), is_doc_comment);
             // Drop old closer.
-            if i == line_breaks && line.ends_with("*/") && !line.starts_with("//") {
+            if i == line_breaks && line.ends_with("*/") && !line.starts_with("//")
+            {
                 line = line[..(line.len() - 2)].trim_end();
             }
 
@@ -924,18 +1080,23 @@ fn rewrite_comment_inner(
         })
         .map(|s| left_trim_comment_line(s, &style))
         .map(|(line, has_leading_whitespace)| {
-            if orig.starts_with("/*") && line_breaks == 0 {
+            if orig.starts_with("/*") && line_breaks == 0
+            {
                 (
                     line.trim_start(),
                     has_leading_whitespace || config.normalize_comments(),
                 )
-            } else {
+            }
+            else
+            {
                 (line, has_leading_whitespace || config.normalize_comments())
             }
         });
 
-    for (i, (line, has_leading_whitespace)) in lines.enumerate() {
-        if rewriter.handle_line(orig, i, line, has_leading_whitespace, is_doc_comment) {
+    for (i, (line, has_leading_whitespace)) in lines.enumerate()
+    {
+        if rewriter.handle_line(orig, i, line, has_leading_whitespace, is_doc_comment)
+        {
             break;
         }
     }
@@ -948,9 +1109,12 @@ const RUSTFMT_CUSTOM_COMMENT_PREFIX: &str = "//#### ";
 fn hide_sharp_behind_comment(s: &str) -> Cow<'_, str>
 {
     let s_trimmed = s.trim();
-    if s_trimmed.starts_with("# ") || s_trimmed == "#" {
+    if s_trimmed.starts_with("# ") || s_trimmed == "#"
+    {
         Cow::from(format!("{}{}", RUSTFMT_CUSTOM_COMMENT_PREFIX, s))
-    } else {
+    }
+    else
+    {
         Cow::from(s)
     }
 }
@@ -960,9 +1124,12 @@ fn trim_custom_comment_prefix(s: &str) -> String
     s.lines()
         .map(|line| {
             let left_trimmed = line.trim_start();
-            if left_trimmed.starts_with(RUSTFMT_CUSTOM_COMMENT_PREFIX) {
+            if left_trimmed.starts_with(RUSTFMT_CUSTOM_COMMENT_PREFIX)
+            {
                 left_trimmed.trim_start_matches(RUSTFMT_CUSTOM_COMMENT_PREFIX)
-            } else {
+            }
+            else
+            {
                 line
             }
         })
@@ -988,7 +1155,8 @@ fn is_table_item(mut s: &str) -> bool
     // markdown tables with two column delimiters).
     s = s.trim_start();
     return s.starts_with('|')
-        && match s.rfind('|') {
+        && match s.rfind('|')
+        {
             Some(0) | None => false,
             _ => true,
         };
@@ -1006,9 +1174,12 @@ pub(crate) fn rewrite_missing_comment(
     let trimmed_snippet = missing_snippet.trim();
     // check the span starts with a comment
     let pos = trimmed_snippet.find('/');
-    if !trimmed_snippet.is_empty() && pos.is_some() {
+    if !trimmed_snippet.is_empty() && pos.is_some()
+    {
         rewrite_comment(trimmed_snippet, false, shape, context.config)
-    } else {
+    }
+    else
+    {
         Some(String::new())
     }
 }
@@ -1024,18 +1195,24 @@ pub(crate) fn recover_missing_comment_in_span(
 ) -> Option<String>
 {
     let missing_comment = rewrite_missing_comment(span, shape, context)?;
-    if missing_comment.is_empty() {
+    if missing_comment.is_empty()
+    {
         Some(String::new())
-    } else {
+    }
+    else
+    {
         let missing_snippet = context.snippet(span);
         let pos = missing_snippet.find('/')?;
         // 1 = ` `
         let total_width = missing_comment.len() + used_width + 1;
         let force_new_line_before_comment =
             missing_snippet[..pos].contains('\n') || total_width > context.config.max_width();
-        let sep = if force_new_line_before_comment {
+        let sep = if force_new_line_before_comment
+        {
             shape.indent.to_string_with_newline(context.config)
-        } else {
+        }
+        else
+        {
             Cow::from(" ")
         };
         Some(format!("{}{}", sep, missing_comment))
@@ -1045,9 +1222,12 @@ pub(crate) fn recover_missing_comment_in_span(
 /// Trim trailing whitespaces unless they consist of two or more whitespaces.
 fn trim_end_unless_two_whitespaces(s: &str, is_doc_comment: bool) -> &str
 {
-    if is_doc_comment && s.ends_with("  ") {
+    if is_doc_comment && s.ends_with("  ")
+    {
         s
-    } else {
+    }
+    else
+    {
         s.trim_end()
     }
 }
@@ -1067,13 +1247,19 @@ fn light_rewrite_comment(
             // with `*` we want to leave one space before it, so it aligns with the
             // `*` in `/*`.
             let first_non_whitespace = l.find(|c| !char::is_whitespace(c));
-            let left_trimmed = if let Some(fnw) = first_non_whitespace {
-                if l.as_bytes()[fnw] == b'*' && fnw > 0 {
+            let left_trimmed = if let Some(fnw) = first_non_whitespace
+            {
+                if l.as_bytes()[fnw] == b'*' && fnw > 0
+                {
                     &l[fnw - 1..]
-                } else {
+                }
+                else
+                {
                     &l[fnw..]
                 }
-            } else {
+            }
+            else
+            {
                 ""
             };
             // Preserve markdown's double-space line break syntax in doc comment.
@@ -1094,13 +1280,19 @@ fn left_trim_comment_line<'a>(line: &'a str, style: &CommentStyle<'_>) -> (&'a s
         || line.starts_with("/** ")
     {
         (&line[4..], true)
-    } else if let CommentStyle::Custom(opener) = *style {
-        if let Some(stripped) = line.strip_prefix(opener) {
+    }
+    else if let CommentStyle::Custom(opener) = *style
+    {
+        if let Some(stripped) = line.strip_prefix(opener)
+        {
             (stripped, true)
-        } else {
+        }
+        else
+        {
             (&line[opener.trim_end().len()..], false)
         }
-    } else if line.starts_with("/* ")
+    }
+    else if line.starts_with("/* ")
         || line.starts_with("// ")
         || line.starts_with("//!")
         || line.starts_with("///")
@@ -1109,15 +1301,20 @@ fn left_trim_comment_line<'a>(line: &'a str, style: &CommentStyle<'_>) -> (&'a s
         || (line.starts_with("/**") && !line.starts_with("/**/"))
     {
         (&line[3..], line.chars().nth(2).unwrap() == ' ')
-    } else if line.starts_with("/*")
+    }
+    else if line.starts_with("/*")
         || line.starts_with("* ")
         || line.starts_with("//")
         || line.starts_with("**")
     {
         (&line[2..], line.chars().nth(1).unwrap() == ' ')
-    } else if let Some(stripped) = line.strip_prefix('*') {
+    }
+    else if let Some(stripped) = line.strip_prefix('*')
+    {
         (stripped, false)
-    } else {
+    }
+    else
+    {
         (line, line.starts_with(' '))
     }
 }
@@ -1133,14 +1330,20 @@ impl FindUncommented for str
     fn find_uncommented(&self, pat: &str) -> Option<usize>
     {
         let mut needle_iter = pat.chars();
-        for (kind, (i, b)) in CharClasses::new(self.char_indices()) {
-            match needle_iter.next() {
-                None => {
+        for (kind, (i, b)) in CharClasses::new(self.char_indices())
+        {
+            match needle_iter.next()
+            {
+                None =>
+                {
                     return Some(i - pat.len());
                 }
-                Some(c) => match kind {
-                    FullCodeCharKind::Normal | FullCodeCharKind::InString if b == c => {}
-                    _ => {
+                Some(c) => match kind
+                {
+                    FullCodeCharKind::Normal | FullCodeCharKind::InString if b == c =>
+                    {}
+                    _ =>
+                    {
                         needle_iter = pat.chars();
                     }
                 },
@@ -1148,7 +1351,8 @@ impl FindUncommented for str
         }
 
         // Handle case where the pattern is a suffix of the search string
-        match needle_iter.next() {
+        match needle_iter.next()
+        {
             Some(_) => None,
             None => Some(self.len() - pat.len()),
         }
@@ -1156,14 +1360,18 @@ impl FindUncommented for str
 
     fn find_last_uncommented(&self, pat: &str) -> Option<usize>
     {
-        if let Some(left) = self.find_uncommented(pat) {
+        if let Some(left) = self.find_uncommented(pat)
+        {
             let mut result = left;
             // add 1 to use find_last_uncommented for &str after pat
-            while let Some(next) = self[(result + 1)..].find_last_uncommented(pat) {
+            while let Some(next) = self[(result + 1)..].find_last_uncommented(pat)
+            {
                 result += next + 1;
             }
             Some(result)
-        } else {
+        }
+        else
+        {
             None
         }
     }
@@ -1176,16 +1384,21 @@ impl FindUncommented for str
 pub(crate) fn find_comment_end(s: &str) -> Option<usize>
 {
     let mut iter = CharClasses::new(s.char_indices());
-    for (kind, (i, _c)) in &mut iter {
-        if kind == FullCodeCharKind::Normal || kind == FullCodeCharKind::InString {
+    for (kind, (i, _c)) in &mut iter
+    {
+        if kind == FullCodeCharKind::Normal || kind == FullCodeCharKind::InString
+        {
             return Some(i);
         }
     }
 
     // Handle case where the comment ends at the end of `s`.
-    if iter.status == CharClassesStatus::Normal {
+    if iter.status == CharClassesStatus::Normal
+    {
         Some(s.len())
-    } else {
+    }
+    else
+    {
         None
     }
 }
@@ -1295,7 +1508,8 @@ impl FullCodeCharKind
 {
     pub(crate) fn is_comment(self) -> bool
     {
-        match self {
+        match self
+        {
             FullCodeCharKind::StartComment
             | FullCodeCharKind::InComment
             | FullCodeCharKind::EndComment
@@ -1309,7 +1523,8 @@ impl FullCodeCharKind
     /// Returns true if the character is inside a comment
     pub(crate) fn inside_comment(self) -> bool
     {
-        match self {
+        match self
+        {
             FullCodeCharKind::InComment
             | FullCodeCharKind::StartStringCommented
             | FullCodeCharKind::InStringCommented
@@ -1332,9 +1547,12 @@ impl FullCodeCharKind
 
     fn to_codecharkind(self) -> CodeCharKind
     {
-        if self.is_comment() {
+        if self.is_comment()
+        {
             CodeCharKind::Comment
-        } else {
+        }
+        else
+        {
             CodeCharKind::Normal
         }
     }
@@ -1359,8 +1577,10 @@ where
     T: Iterator,
     T::Item: RichChar,
 {
-    for _ in 0..count {
-        match iter.peek() {
+    for _ in 0..count
+    {
+        match iter.peek()
+        {
             Some(c) if c.get_char() == '#' => continue,
             _ => return false,
         }
@@ -1380,37 +1600,54 @@ where
         let item = self.base.next()?;
         let chr = item.get_char();
         let mut char_kind = FullCodeCharKind::Normal;
-        self.status = match self.status {
-            CharClassesStatus::LitRawString(sharps) => {
+        self.status = match self.status
+        {
+            CharClassesStatus::LitRawString(sharps) =>
+            {
                 char_kind = FullCodeCharKind::InString;
-                match chr {
-                    '"' => {
-                        if sharps == 0 {
+                match chr
+                {
+                    '"' =>
+                    {
+                        if sharps == 0
+                        {
                             char_kind = FullCodeCharKind::Normal;
                             CharClassesStatus::Normal
-                        } else if is_raw_string_suffix(&mut self.base, sharps) {
+                        }
+                        else if is_raw_string_suffix(&mut self.base, sharps)
+                        {
                             CharClassesStatus::RawStringSuffix(sharps)
-                        } else {
+                        }
+                        else
+                        {
                             CharClassesStatus::LitRawString(sharps)
                         }
                     }
                     _ => CharClassesStatus::LitRawString(sharps),
                 }
             }
-            CharClassesStatus::RawStringPrefix(sharps) => {
+            CharClassesStatus::RawStringPrefix(sharps) =>
+            {
                 char_kind = FullCodeCharKind::InString;
-                match chr {
+                match chr
+                {
                     '#' => CharClassesStatus::RawStringPrefix(sharps + 1),
                     '"' => CharClassesStatus::LitRawString(sharps),
                     _ => CharClassesStatus::Normal, // Unreachable.
                 }
             }
-            CharClassesStatus::RawStringSuffix(sharps) => {
-                match chr {
-                    '#' => {
-                        if sharps == 1 {
+            CharClassesStatus::RawStringSuffix(sharps) =>
+            {
+                match chr
+                {
+                    '#' =>
+                    {
+                        if sharps == 1
+                        {
                             CharClassesStatus::Normal
-                        } else {
+                        }
+                        else
+                        {
                             char_kind = FullCodeCharKind::InString;
                             CharClassesStatus::RawStringSuffix(sharps - 1)
                         }
@@ -1418,57 +1655,72 @@ where
                     _ => CharClassesStatus::Normal, // Unreachable
                 }
             }
-            CharClassesStatus::LitString => {
+            CharClassesStatus::LitString =>
+            {
                 char_kind = FullCodeCharKind::InString;
-                match chr {
+                match chr
+                {
                     '"' => CharClassesStatus::Normal,
                     '\\' => CharClassesStatus::LitStringEscape,
                     _ => CharClassesStatus::LitString,
                 }
             }
-            CharClassesStatus::LitStringEscape => {
+            CharClassesStatus::LitStringEscape =>
+            {
                 char_kind = FullCodeCharKind::InString;
                 CharClassesStatus::LitString
             }
-            CharClassesStatus::LitChar => match chr {
+            CharClassesStatus::LitChar => match chr
+            {
                 '\\' => CharClassesStatus::LitCharEscape,
                 '\'' => CharClassesStatus::Normal,
                 _ => CharClassesStatus::LitChar,
             },
             CharClassesStatus::LitCharEscape => CharClassesStatus::LitChar,
-            CharClassesStatus::Normal => match chr {
-                'r' => match self.base.peek().map(RichChar::get_char) {
-                    Some('#') | Some('"') => {
+            CharClassesStatus::Normal => match chr
+            {
+                'r' => match self.base.peek().map(RichChar::get_char)
+                {
+                    Some('#') | Some('"') =>
+                    {
                         char_kind = FullCodeCharKind::InString;
                         CharClassesStatus::RawStringPrefix(0)
                     }
                     _ => CharClassesStatus::Normal,
                 },
-                '"' => {
+                '"' =>
+                {
                     char_kind = FullCodeCharKind::InString;
                     CharClassesStatus::LitString
                 }
-                '\'' => {
+                '\'' =>
+                {
                     // HACK: Work around mut borrow.
-                    match self.base.peek() {
-                        Some(next) if next.get_char() == '\\' => {
+                    match self.base.peek()
+                    {
+                        Some(next) if next.get_char() == '\\' =>
+                        {
                             self.status = CharClassesStatus::LitChar;
                             return Some((char_kind, item));
                         }
                         _ => (),
                     }
 
-                    match self.base.peek() {
+                    match self.base.peek()
+                    {
                         Some(next) if next.get_char() == '\'' => CharClassesStatus::LitChar,
                         _ => CharClassesStatus::Normal,
                     }
                 }
-                '/' => match self.base.peek() {
-                    Some(next) if next.get_char() == '*' => {
+                '/' => match self.base.peek()
+                {
+                    Some(next) if next.get_char() == '*' =>
+                    {
                         self.status = CharClassesStatus::BlockCommentOpening(1);
                         return Some((FullCodeCharKind::StartComment, item));
                     }
-                    Some(next) if next.get_char() == '/' => {
+                    Some(next) if next.get_char() == '/' =>
+                    {
                         self.status = CharClassesStatus::LineComment;
                         return Some((FullCodeCharKind::StartComment, item));
                     }
@@ -1476,52 +1728,70 @@ where
                 },
                 _ => CharClassesStatus::Normal,
             },
-            CharClassesStatus::StringInBlockComment(deepness) => {
+            CharClassesStatus::StringInBlockComment(deepness) =>
+            {
                 char_kind = FullCodeCharKind::InStringCommented;
-                if chr == '"' {
+                if chr == '"'
+                {
                     CharClassesStatus::BlockComment(deepness)
-                } else if chr == '*' && self.base.peek().map(RichChar::get_char) == Some('/') {
+                }
+                else if chr == '*' && self.base.peek().map(RichChar::get_char) == Some('/')
+                {
                     char_kind = FullCodeCharKind::InComment;
                     CharClassesStatus::BlockCommentClosing(deepness - 1)
-                } else {
+                }
+                else
+                {
                     CharClassesStatus::StringInBlockComment(deepness)
                 }
             }
-            CharClassesStatus::BlockComment(deepness) => {
+            CharClassesStatus::BlockComment(deepness) =>
+            {
                 assert_ne!(deepness, 0);
                 char_kind = FullCodeCharKind::InComment;
-                match self.base.peek() {
-                    Some(next) if next.get_char() == '/' && chr == '*' => {
+                match self.base.peek()
+                {
+                    Some(next) if next.get_char() == '/' && chr == '*' =>
+                    {
                         CharClassesStatus::BlockCommentClosing(deepness - 1)
                     }
-                    Some(next) if next.get_char() == '*' && chr == '/' => {
+                    Some(next) if next.get_char() == '*' && chr == '/' =>
+                    {
                         CharClassesStatus::BlockCommentOpening(deepness + 1)
                     }
                     _ if chr == '"' => CharClassesStatus::StringInBlockComment(deepness),
                     _ => self.status,
                 }
             }
-            CharClassesStatus::BlockCommentOpening(deepness) => {
+            CharClassesStatus::BlockCommentOpening(deepness) =>
+            {
                 assert_eq!(chr, '*');
                 self.status = CharClassesStatus::BlockComment(deepness);
                 return Some((FullCodeCharKind::InComment, item));
             }
-            CharClassesStatus::BlockCommentClosing(deepness) => {
+            CharClassesStatus::BlockCommentClosing(deepness) =>
+            {
                 assert_eq!(chr, '/');
-                if deepness == 0 {
+                if deepness == 0
+                {
                     self.status = CharClassesStatus::Normal;
                     return Some((FullCodeCharKind::EndComment, item));
-                } else {
+                }
+                else
+                {
                     self.status = CharClassesStatus::BlockComment(deepness);
                     return Some((FullCodeCharKind::InComment, item));
                 }
             }
-            CharClassesStatus::LineComment => match chr {
-                '\n' => {
+            CharClassesStatus::LineComment => match chr
+            {
+                '\n' =>
+                {
                     self.status = CharClassesStatus::Normal;
                     return Some((FullCodeCharKind::EndComment, item));
                 }
-                _ => {
+                _ =>
+                {
                     self.status = CharClassesStatus::LineComment;
                     return Some((FullCodeCharKind::InComment, item));
                 }
@@ -1560,26 +1830,34 @@ impl<'a> Iterator for LineClasses<'a>
 
         let mut line = String::new();
 
-        let start_kind = match self.base.peek() {
+        let start_kind = match self.base.peek()
+        {
             Some((kind, _)) => *kind,
             None => unreachable!(),
         };
 
-        for (kind, c) in self.base.by_ref() {
+        for (kind, c) in self.base.by_ref()
+        {
             // needed to set the kind of the ending character on the last line
             self.kind = kind;
-            if c == '\n' {
-                self.kind = match (start_kind, kind) {
-                    (FullCodeCharKind::Normal, FullCodeCharKind::InString) => {
+            if c == '\n'
+            {
+                self.kind = match (start_kind, kind)
+                {
+                    (FullCodeCharKind::Normal, FullCodeCharKind::InString) =>
+                    {
                         FullCodeCharKind::StartString
                     }
-                    (FullCodeCharKind::InString, FullCodeCharKind::Normal) => {
+                    (FullCodeCharKind::InString, FullCodeCharKind::Normal) =>
+                    {
                         FullCodeCharKind::EndString
                     }
-                    (FullCodeCharKind::InComment, FullCodeCharKind::InStringCommented) => {
+                    (FullCodeCharKind::InComment, FullCodeCharKind::InStringCommented) =>
+                    {
                         FullCodeCharKind::StartStringCommented
                     }
-                    (FullCodeCharKind::InStringCommented, FullCodeCharKind::InComment) => {
+                    (FullCodeCharKind::InStringCommented, FullCodeCharKind::InComment) =>
+                    {
                         FullCodeCharKind::EndStringCommented
                     }
                     _ => kind,
@@ -1590,7 +1868,8 @@ impl<'a> Iterator for LineClasses<'a>
         }
 
         // Workaround for CRLF newline.
-        if line.ends_with('\r') {
+        if line.ends_with('\r')
+        {
             line.pop();
         }
 
@@ -1625,20 +1904,27 @@ impl<'a> Iterator for UngroupedCommentCodeSlices<'a>
     fn next(&mut self) -> Option<Self::Item>
     {
         let (kind, (start_idx, _)) = self.iter.next()?;
-        match kind {
-            FullCodeCharKind::Normal | FullCodeCharKind::InString => {
+        match kind
+        {
+            FullCodeCharKind::Normal | FullCodeCharKind::InString =>
+            {
                 // Consume all the Normal code
-                while let Some(&(char_kind, _)) = self.iter.peek() {
-                    if char_kind.is_comment() {
+                while let Some(&(char_kind, _)) = self.iter.peek()
+                {
+                    if char_kind.is_comment()
+                    {
                         break;
                     }
                     let _ = self.iter.next();
                 }
             }
-            FullCodeCharKind::StartComment => {
+            FullCodeCharKind::StartComment =>
+            {
                 // Consume the whole comment
-                loop {
-                    match self.iter.next() {
+                loop
+                {
+                    match self.iter.next()
+                    {
                         Some((kind, ..)) if kind.inside_comment() => continue,
                         _ => break,
                     }
@@ -1646,14 +1932,18 @@ impl<'a> Iterator for UngroupedCommentCodeSlices<'a>
             }
             _ => panic!(),
         }
-        let slice = match self.iter.peek() {
+        let slice = match self.iter.peek()
+        {
             Some(&(_, (end_idx, _))) => &self.slice[start_idx..end_idx],
             None => &self.slice[start_idx..],
         };
         Some((
-            if kind.is_comment() {
+            if kind.is_comment()
+            {
                 CodeCharKind::Comment
-            } else {
+            }
+            else
+            {
                 CodeCharKind::Normal
             },
             start_idx,
@@ -1690,7 +1980,8 @@ impl<'a> Iterator for CommentCodeSlices<'a>
 
     fn next(&mut self) -> Option<Self::Item>
     {
-        if self.last_slice_end == self.slice.len() {
+        if self.last_slice_end == self.slice.len()
+        {
             return None;
         }
 
@@ -1699,17 +1990,21 @@ impl<'a> Iterator for CommentCodeSlices<'a>
         let subslice = &self.slice[self.last_slice_end..];
         let mut iter = CharClasses::new(subslice.char_indices());
 
-        for (kind, (i, c)) in &mut iter {
+        for (kind, (i, c)) in &mut iter
+        {
             let is_comment_connector = self.last_slice_kind == CodeCharKind::Normal
                 && &subslice[..2] == "//"
                 && [' ', '\t'].contains(&c);
 
-            if is_comment_connector && first_whitespace.is_none() {
+            if is_comment_connector && first_whitespace.is_none()
+            {
                 first_whitespace = Some(i);
             }
 
-            if kind.to_codecharkind() == self.last_slice_kind && !is_comment_connector {
-                let last_index = match first_whitespace {
+            if kind.to_codecharkind() == self.last_slice_kind && !is_comment_connector
+            {
+                let last_index = match first_whitespace
+                {
                     Some(j) => j,
                     None => i,
                 };
@@ -1717,20 +2012,24 @@ impl<'a> Iterator for CommentCodeSlices<'a>
                 break;
             }
 
-            if !is_comment_connector {
+            if !is_comment_connector
+            {
                 first_whitespace = None;
             }
         }
 
-        if let (None, true) = (iter.next(), sub_slice_end == self.last_slice_end) {
+        if let (None, true) = (iter.next(), sub_slice_end == self.last_slice_end)
+        {
             // This was the last subslice.
-            sub_slice_end = match first_whitespace {
+            sub_slice_end = match first_whitespace
+            {
                 Some(i) => self.last_slice_end + i,
                 None => self.slice.len(),
             };
         }
 
-        let kind = match self.last_slice_kind {
+        let kind = match self.last_slice_kind
+        {
             CodeCharKind::Comment => CodeCharKind::Normal,
             CodeCharKind::Normal => CodeCharKind::Comment,
         };
@@ -1755,9 +2054,11 @@ pub(crate) fn recover_comment_removed(
 ) -> Option<String>
 {
     let snippet = context.snippet(span);
-    if snippet != new && changed_comment_content(snippet, &new) {
+    if snippet != new && changed_comment_content(snippet, &new)
+    {
         // We missed some comments. Warn and keep the original text.
-        if context.config.error_on_unformatted() {
+        if context.config.error_on_unformatted()
+        {
             context.report.append(
                 context.parse_sess.span_to_filename(span),
                 vec![FormattingError::from_span(
@@ -1768,7 +2069,9 @@ pub(crate) fn recover_comment_removed(
             );
         }
         Some(snippet.to_owned())
-    } else {
+    }
+    else
+    {
         Some(new)
     }
 }
@@ -1776,17 +2079,20 @@ pub(crate) fn recover_comment_removed(
 pub(crate) fn filter_normal_code(code: &str) -> String
 {
     let mut buffer = String::with_capacity(code.len());
-    LineClasses::new(code).for_each(|(kind, line)| match kind {
+    LineClasses::new(code).for_each(|(kind, line)| match kind
+    {
         FullCodeCharKind::Normal
         | FullCodeCharKind::StartString
         | FullCodeCharKind::InString
-        | FullCodeCharKind::EndString => {
+        | FullCodeCharKind::EndString =>
+        {
             buffer.push_str(&line);
             buffer.push('\n');
         }
         _ => (),
     });
-    if !code.ends_with('\n') && buffer.ends_with('\n') {
+    if !code.ends_with('\n') && buffer.ends_with('\n')
+    {
         buffer.pop();
     }
     buffer
@@ -1851,20 +2157,27 @@ impl<'a> Iterator for CommentReducer<'a>
 
     fn next(&mut self) -> Option<Self::Item>
     {
-        loop {
+        loop
+        {
             let mut c = self.iter.next()?;
-            if self.is_block && self.at_start_line {
-                while c.is_whitespace() {
+            if self.is_block && self.at_start_line
+            {
+                while c.is_whitespace()
+                {
                     c = self.iter.next()?;
                 }
                 // Ignore leading '*'.
-                if c == '*' {
+                if c == '*'
+                {
                     c = self.iter.next()?;
                 }
-            } else if c == '\n' {
+            }
+            else if c == '\n'
+            {
                 self.at_start_line = true;
             }
-            if !c.is_whitespace() {
+            if !c.is_whitespace()
+            {
                 return Some(c);
             }
         }
@@ -1873,15 +2186,21 @@ impl<'a> Iterator for CommentReducer<'a>
 
 fn remove_comment_header(comment: &str) -> &str
 {
-    if comment.starts_with("///") || comment.starts_with("//!") {
+    if comment.starts_with("///") || comment.starts_with("//!")
+    {
         &comment[3..]
-    } else if let Some(stripped) = comment.strip_prefix("//") {
+    }
+    else if let Some(stripped) = comment.strip_prefix("//")
+    {
         stripped
-    } else if (comment.starts_with("/**") && !comment.starts_with("/**/"))
+    }
+    else if (comment.starts_with("/**") && !comment.starts_with("/**/"))
         || comment.starts_with("/*!")
     {
         &comment[3..comment.len() - 2]
-    } else {
+    }
+    else
+    {
         assert!(
             comment.starts_with("/*"),
             "string '{}' is not a comment",
@@ -2047,7 +2366,8 @@ mod test
     fn uncommented(text: &str) -> String
     {
         CharClasses::new(text.chars())
-            .filter_map(|(s, c)| match s {
+            .filter_map(|(s, c)| match s
+            {
                 FullCodeCharKind::Normal | FullCodeCharKind::InString => Some(c),
                 _ => None,
             })

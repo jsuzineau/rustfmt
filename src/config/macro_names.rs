@@ -47,7 +47,8 @@ impl fmt::Display for MacroSelector
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
     {
-        match self {
+        match self
+        {
             Self::Name(name) => name.fmt(f),
             Self::All => write!(f, "*"),
         }
@@ -60,7 +61,8 @@ impl str::FromStr for MacroSelector
 
     fn from_str(s: &str) -> Result<Self, Self::Err>
     {
-        Ok(match s {
+        Ok(match s
+        {
             "*" => MacroSelector::All,
             name => MacroSelector::Name(MacroName(name.to_owned())),
         })

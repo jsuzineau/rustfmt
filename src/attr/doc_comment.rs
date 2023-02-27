@@ -17,15 +17,20 @@ impl Display for DocCommentFormatter<'_>
         let mut lines = self.literal.lines().peekable();
 
         // Handle `#[doc = ""]`.
-        if lines.peek().is_none() {
+        if lines.peek().is_none()
+        {
             return write!(formatter, "{}", opener);
         }
 
-        while let Some(line) = lines.next() {
+        while let Some(line) = lines.next()
+        {
             let is_last_line = lines.peek().is_none();
-            if is_last_line {
+            if is_last_line
+            {
                 write!(formatter, "{}{}", opener, line)?;
-            } else {
+            }
+            else
+            {
                 writeln!(formatter, "{}{}", opener, line)?;
             }
         }

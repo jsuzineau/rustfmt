@@ -49,10 +49,13 @@ impl<'a> Spanned for ArmWrapper<'a>
 {
     fn span(&self) -> Span
     {
-        if let Some(lo) = self.beginning_vert {
+        if let Some(lo) = self.beginning_vert
+        {
             let lo = std::cmp::min(lo, self.arm.span().lo());
             mk_sp(lo, self.arm.span().hi())
-        } else {
+        }
+        else
+        {
             self.arm.span()
         }
     }
@@ -88,13 +91,15 @@ pub(crate) fn rewrite_match(
         ..shape
     };
     // 6 = `match `
-    let cond_shape = match context.config.indent_style() {
+    let cond_shape = match context.config.indent_style()
+    {
         IndentStyle::Visual => cond_shape.shrink_left(6)?,
         IndentStyle::Block => cond_shape.offset_left(6)?,
     };
     let cond_str = cond.rewrite(context, cond_shape)?;
     let alt_block_sep = &shape.indent.to_string_with_newline(context.config);
-    let block_sep = match context.config.control_brace_style() {
+    let block_sep = match context.config.control_brace_style()
+    {
         ControlBraceStyle::AlwaysNextLine => alt_block_sep,
         _ if last_line_extendable(&cond_str) => " ",
         // 2 = ` {`
@@ -108,36 +113,51 @@ pub(crate) fn rewrite_match(
         .to_string(context.config);
     // Inner attributes.
     let inner_attrs = &inner_attributes(attrs);
-    let inner_attrs_str = if inner_attrs.is_empty() {
+    let inner_attrs_str = if inner_attrs.is_empty()
+    {
         String::new()
-    } else {
+    }
+    else
+    {
         inner_attrs
             .rewrite(context, shape)
             .map(|s| format!("{}{}\n", nested_indent_str, s))?
     };
 
-    let open_brace_pos = if inner_attrs.is_empty() {
-        let hi = if arms.is_empty() {
+    let open_brace_pos = if inner_attrs.is_empty()
+    {
+        let hi = if arms.is_empty()
+        {
             span.hi()
-        } else {
+        }
+        else
+        {
             arms[0].span().lo()
         };
         context
             .snippet_provider
             .span_after(mk_sp(cond.span.hi(), hi), "{")
-    } else {
+    }
+    else
+    {
         inner_attrs[inner_attrs.len() - 1].span.hi()
     };
 
-    if arms.is_empty() {
+    if arms.is_empty()
+    {
         let snippet = context.snippet(mk_sp(open_brace_pos, span.hi() - BytePos(1)));
-        if snippet.trim().is_empty() {
+        if snippet.trim().is_empty()
+        {
             Some(format!("match {} {{}}", cond_str))
-        } else {
+        }
+        else
+        {
             // Empty match with comments or inner attributes? We are not going to bother, sorry ;)
             Some(context.snippet(span).to_owned())
         }
-    } else {
+    }
+    else
+    {
         let span_after_cond = mk_sp(cond.span.hi(), span.hi());
         Some(format!(
             "match {}{}{{\n{}{}{}\n{}}}",
@@ -153,17 +173,27 @@ pub(crate) fn rewrite_match(
 
 fn arm_comma(config: &Config, body: &ast::Expr, is_last: bool) -> &'static str
 {
-    if is_last && config.trailing_comma() == SeparatorTactic::Never {
+    if is_last && config.trailing_comma() == SeparatorTactic::Never
+    {
         ""
-    } else if config.match_block_trailing_comma() {
+    }
+    else if config.match_block_trailing_comma()
+    {
         ","
-    } else if let ast::ExprKind::Block(ref block, _) = body.kind {
-        if let ast::BlockCheckMode::Default = block.rules {
+    }
+    else if let ast::ExprKind::Block(ref block, _) = body.kind
+    {
+        if let ast::BlockCheckMode::Default = block.rules
+        {
             ""
-        } else {
+        }
+        else
+        {
             ","
         }
-    } else {
+    }
+    else
+    {
         ","
     }
 }
@@ -231,8 +261,10 @@ fn rewrite_match_arm(
     has_leading_pipe: bool,
 ) -> Option<String>
 {
-    let (missing_span, attrs_str) = if !arm.attrs.is_empty() {
-        if contains_skip(&arm.attrs) {
+    let (missing_span, attrs_str) = if !arm.attrs.is_empty()
+    {
+        if contains_skip(&arm.attrs)
+        {
             let (_, body) = flatten_arm_body(context, &arm.body, None);
             // `arm.span()` does not include trailing comma, add it manually.
             return Some(format!(
@@ -243,13 +275,16 @@ fn rewrite_match_arm(
         }
         let missing_span = mk_sp(arm.attrs[arm.attrs.len() - 1].span.hi(), arm.pat.span.lo());
         (missing_span, arm.attrs.rewrite(context, shape)?)
-    } else {
+    }
+    else
+    {
         (mk_sp(arm.span().lo(), arm.span().lo()), String::new())
     };
 
     // Leading pipe offset
     // 2 = `| `
-    let (pipe_offset, pipe_str) = match context.config.match_arm_leading_pipes() {
+    let (pipe_offset, pipe_str) = match context.config.match_arm_leading_pipes()
+    {
         MatchArmLeadingPipe::Never => (0, ""),
         MatchArmLeadingPipe::Preserve if !has_leading_pipe => (0, ""),
         MatchArmLeadingPipe::Preserve | MatchArmLeadingPipe::Always => (2, "| "),
@@ -294,8 +329,10 @@ fn rewrite_match_arm(
 
 fn stmt_is_expr_mac(stmt: &ast::Stmt) -> bool
 {
-    if let ast::StmtKind::Expr(expr) = &stmt.kind {
-        if let ast::ExprKind::MacCall(_) = &expr.kind {
+    if let ast::StmtKind::Expr(expr) = &stmt.kind
+    {
+        if let ast::ExprKind::MacCall(_) = &expr.kind
+        {
             return true;
         }
     }
@@ -307,7 +344,8 @@ fn block_can_be_flattened<'a>(
     expr: &'a ast::Expr,
 ) -> Option<&'a ast::Block>
 {
-    match expr.kind {
+    match expr.kind
+    {
         ast::ExprKind::Block(ref block, _)
             if !is_unsafe_block(block)
                 && !context.inside_macro()
@@ -332,28 +370,43 @@ fn flatten_arm_body<'a>(
     let can_extend =
         |expr| !context.config.force_multiline_blocks() && can_flatten_block_around_this(expr);
 
-    if let Some(block) = block_can_be_flattened(context, body) {
-        if let ast::StmtKind::Expr(ref expr) = block.stmts[0].kind {
-            if let ast::ExprKind::Block(..) = expr.kind {
-                if expr.attrs.is_empty() {
+    if let Some(block) = block_can_be_flattened(context, body)
+    {
+        if let ast::StmtKind::Expr(ref expr) = block.stmts[0].kind
+        {
+            if let ast::ExprKind::Block(..) = expr.kind
+            {
+                if expr.attrs.is_empty()
+                {
                     flatten_arm_body(context, expr, None)
-                } else {
+                }
+                else
+                {
                     (true, body)
                 }
-            } else {
+            }
+            else
+            {
                 let cond_becomes_muti_line = opt_shape
                     .and_then(|shape| rewrite_cond(context, expr, shape))
                     .map_or(false, |cond| cond.contains('\n'));
-                if cond_becomes_muti_line {
+                if cond_becomes_muti_line
+                {
                     (false, &*body)
-                } else {
+                }
+                else
+                {
                     (can_extend(expr), &*expr)
                 }
             }
-        } else {
+        }
+        else
+        {
             (false, &*body)
         }
-    } else {
+    }
+    else
+    {
         (can_extend(body), &*body)
     }
 }
@@ -373,9 +426,12 @@ fn rewrite_match_body(
         body,
         shape.offset_left(extra_offset(pats_str, shape) + 4),
     );
-    let (is_block, is_empty_block) = if let ast::ExprKind::Block(ref block, _) = body.kind {
+    let (is_block, is_empty_block) = if let ast::ExprKind::Block(ref block, _) = body.kind
+    {
         (true, is_empty_block(context, block, Some(&body.attrs)))
-    } else {
+    }
+    else
+    {
         (false, false)
     };
 
@@ -383,7 +439,8 @@ fn rewrite_match_body(
     let alt_block_sep = &shape.indent.to_string_with_newline(context.config);
 
     let combine_orig_body = |body_str: &str| {
-        let block_sep = match context.config.control_brace_style() {
+        let block_sep = match context.config.control_brace_style()
+        {
             ControlBraceStyle::AlwaysNextLine if is_block => alt_block_sep,
             _ => " ",
         };
@@ -391,9 +448,12 @@ fn rewrite_match_body(
         Some(format!("{} =>{}{}{}", pats_str, block_sep, body_str, comma))
     };
 
-    let next_line_indent = if !is_block || is_empty_block {
+    let next_line_indent = if !is_block || is_empty_block
+    {
         shape.indent.block_indent(context.config)
-    } else {
+    }
+    else
+    {
         shape.indent
     };
 
@@ -408,9 +468,12 @@ fn rewrite_match_body(
         let arrow_index = arrow_snippet.rfind("=>").unwrap();
         // 2 = `=>`
         let comment_str = arrow_snippet[arrow_index + 2..].trim();
-        if comment_str.is_empty() {
+        if comment_str.is_empty()
+        {
             String::new()
-        } else {
+        }
+        else
+        {
             rewrite_comment(comment_str, false, shape, context.config)?
         }
     };
@@ -418,10 +481,12 @@ fn rewrite_match_body(
     let combine_next_line_body = |body_str: &str| {
         let nested_indent_str = next_line_indent.to_string_with_newline(context.config);
 
-        if is_block {
+        if is_block
+        {
             let mut result = pats_str.to_owned();
             result.push_str(" =>");
-            if !arrow_comment.is_empty() {
+            if !arrow_comment.is_empty()
+            {
                 result.push_str(&nested_indent_str);
                 result.push_str(&arrow_comment);
             }
@@ -432,31 +497,45 @@ fn rewrite_match_body(
         }
 
         let indent_str = shape.indent.to_string_with_newline(context.config);
-        let (body_prefix, body_suffix) =
-            if context.config.match_arm_blocks() && !context.inside_macro() {
-                let comma = if context.config.match_block_trailing_comma() {
-                    ","
-                } else {
-                    ""
-                };
-                let semicolon = if context.config.version() == Version::One {
-                    ""
-                } else {
-                    if semicolon_for_expr(context, body) {
-                        ";"
-                    } else {
-                        ""
-                    }
-                };
-                ("{", format!("{}{}}}{}", semicolon, indent_str, comma))
-            } else {
-                ("", String::from(","))
+        let (body_prefix, body_suffix) = if context.config.match_arm_blocks()
+            && !context.inside_macro()
+        {
+            let comma = if context.config.match_block_trailing_comma()
+            {
+                ","
+            }
+            else
+            {
+                ""
             };
+            let semicolon = if context.config.version() == Version::One
+            {
+                ""
+            }
+            else
+            {
+                if semicolon_for_expr(context, body)
+                {
+                    ";"
+                }
+                else
+                {
+                    ""
+                }
+            };
+            ("{", format!("{}{}}}{}", semicolon, indent_str, comma))
+        }
+        else
+        {
+            ("", String::from(","))
+        };
 
-        let block_sep = match context.config.control_brace_style() {
+        let block_sep = match context.config.control_brace_style()
+        {
             ControlBraceStyle::AlwaysNextLine => format!("{}{}", alt_block_sep, body_prefix),
             _ if body_prefix.is_empty() => "".to_owned(),
-            _ if forbid_same_line || !arrow_comment.is_empty() => {
+            _ if forbid_same_line || !arrow_comment.is_empty() =>
+            {
                 format!("{}{}", alt_block_sep, body_prefix)
             }
             _ => format!(" {}", body_prefix),
@@ -464,7 +543,8 @@ fn rewrite_match_body(
 
         let mut result = pats_str.to_owned();
         result.push_str(" =>");
-        if !arrow_comment.is_empty() {
+        if !arrow_comment.is_empty()
+        {
             result.push_str(&indent_str);
             result.push_str(&arrow_comment);
         }
@@ -479,15 +559,19 @@ fn rewrite_match_body(
     let orig_body_shape = shape
         .offset_left(extra_offset(pats_str, shape) + 4)
         .and_then(|shape| shape.sub_width(comma.len()));
-    let orig_body = if forbid_same_line || !arrow_comment.is_empty() {
+    let orig_body = if forbid_same_line || !arrow_comment.is_empty()
+    {
         None
-    } else if let Some(body_shape) = orig_body_shape {
+    }
+    else if let Some(body_shape) = orig_body_shape
+    {
         let rewrite = nop_block_collapse(
             format_expr(body, ExprType::Statement, context, body_shape),
             body_shape.width,
         );
 
-        match rewrite {
+        match rewrite
+        {
             Some(ref body_str)
                 if is_block
                     || (!body_str.contains('\n')
@@ -497,7 +581,9 @@ fn rewrite_match_body(
             }
             _ => rewrite,
         }
-    } else {
+    }
+    else
+    {
         None
     };
     let orig_budget = orig_body_shape.map_or(0, |shape| shape.width);
@@ -508,16 +594,19 @@ fn rewrite_match_body(
         format_expr(body, ExprType::Statement, context, next_line_body_shape),
         next_line_body_shape.width,
     );
-    match (orig_body, next_line_body) {
+    match (orig_body, next_line_body)
+    {
         (Some(ref orig_str), Some(ref next_line_str))
             if prefer_next_line(orig_str, next_line_str, RhsTactics::Default) =>
         {
             combine_next_line_body(next_line_str)
         }
-        (Some(ref orig_str), _) if extend && first_line_width(orig_str) <= orig_budget => {
+        (Some(ref orig_str), _) if extend && first_line_width(orig_str) <= orig_budget =>
+        {
             combine_orig_body(orig_str)
         }
-        (Some(ref orig_str), Some(ref next_line_str)) if orig_str.contains('\n') => {
+        (Some(ref orig_str), Some(ref next_line_str)) if orig_str.contains('\n') =>
+        {
             combine_next_line_body(next_line_str)
         }
         (None, Some(ref next_line_str)) => combine_next_line_body(next_line_str),
@@ -537,16 +626,21 @@ fn rewrite_guard(
     multiline_pattern: bool,
 ) -> Option<String>
 {
-    if let Some(ref guard) = *guard {
+    if let Some(ref guard) = *guard
+    {
         // First try to fit the guard string on the same line as the pattern.
         // 4 = ` if `, 5 = ` => {`
         let cond_shape = shape
             .offset_left(pattern_width + 4)
             .and_then(|s| s.sub_width(5));
-        if !multiline_pattern {
-            if let Some(cond_shape) = cond_shape {
-                if let Some(cond_str) = guard.rewrite(context, cond_shape) {
-                    if !cond_str.contains('\n') || pattern_width <= context.config.tab_spaces() {
+        if !multiline_pattern
+        {
+            if let Some(cond_shape) = cond_shape
+            {
+                if let Some(cond_str) = guard.rewrite(context, cond_shape)
+                {
+                    if !cond_str.contains('\n') || pattern_width <= context.config.tab_spaces()
+                    {
                         return Some(format!(" if {}", cond_str));
                     }
                 }
@@ -558,8 +652,10 @@ fn rewrite_guard(
         let cond_shape = Shape::indented(shape.indent.block_indent(context.config), context.config)
             .offset_left(3)
             .and_then(|s| s.sub_width(5));
-        if let Some(cond_shape) = cond_shape {
-            if let Some(cond_str) = guard.rewrite(context, cond_shape) {
+        if let Some(cond_shape) = cond_shape
+        {
+            if let Some(cond_str) = guard.rewrite(context, cond_shape)
+            {
                 return Some(format!(
                     "{}if {}",
                     cond_shape.indent.to_string_with_newline(context.config),
@@ -569,7 +665,9 @@ fn rewrite_guard(
         }
 
         None
-    } else {
+    }
+    else
+    {
         Some(String::new())
     }
 }
@@ -583,7 +681,9 @@ fn nop_block_collapse(block_str: Option<String>, budget: usize) -> Option<String
             && (block_str[1..].find(|c: char| !c.is_whitespace()).unwrap() == block_str.len() - 2)
         {
             String::from("{}")
-        } else {
+        }
+        else
+        {
             block_str
         }
     })
@@ -591,7 +691,8 @@ fn nop_block_collapse(block_str: Option<String>, budget: usize) -> Option<String
 
 fn can_flatten_block_around_this(body: &ast::Expr) -> bool
 {
-    match body.kind {
+    match body.kind
+    {
         // We do not allow `if` to stay on the same line, since we could easily mistake
         // `pat => if cond { ... }` and `pat if cond => { ... }`.
         ast::ExprKind::If(..) => false,

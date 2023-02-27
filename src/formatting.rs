@@ -33,14 +33,17 @@ impl<'b, T: Write + 'b> Session<'b, T>
         is_macro_def: bool,
     ) -> Result<FormatReport, ErrorKind>
     {
-        if !self.config.version_meets_requirement() {
+        if !self.config.version_meets_requirement()
+        {
             return Err(ErrorKind::VersionMismatch);
         }
 
         rustc_span::create_session_if_not_set_then(self.config.edition().into(), |_| {
-            if self.config.disable_all_formatting() {
+            if self.config.disable_all_formatting()
+            {
                 // When the input is from stdin, echo back the input.
-                return match input {
+                return match input
+                {
                     Input::Text(ref buf) => echo_back_stdin(buf),
                     _ => Ok(FormatReport::new()),
                 };
@@ -67,25 +70,30 @@ fn should_skip_module<T: FormatHandler>(
     module: &Module<'_>,
 ) -> bool
 {
-    if contains_skip(module.attrs()) {
+    if contains_skip(module.attrs())
+    {
         return true;
     }
 
-    if config.skip_children() && path != main_file {
+    if config.skip_children() && path != main_file
+    {
         return true;
     }
 
-    if !input_is_stdin && context.ignore_file(path) {
+    if !input_is_stdin && context.ignore_file(path)
+    {
         return true;
     }
 
     // FIXME(calebcartwright) - we need to determine how we'll handle the
     // `format_generated_files` option with stdin based input.
-    if !input_is_stdin && !config.format_generated_files() {
+    if !input_is_stdin && !config.format_generated_files()
+    {
         let source_file = context.parse_session.span_to_file_contents(module.span);
         let src = source_file.src.as_ref().expect("SourceFile without src");
 
-        if is_generated_file(src) {
+        if is_generated_file(src)
+        {
             return true;
         }
     }
@@ -95,7 +103,8 @@ fn should_skip_module<T: FormatHandler>(
 
 fn echo_back_stdin(input: &str) -> Result<FormatReport, ErrorKind>
 {
-    if let Err(e) = io::stdout().write_all(input.as_bytes()) {
+    if let Err(e) = io::stdout().write_all(input.as_bytes())
+    {
         return Err(From::from(e));
     }
     Ok(FormatReport::new())
@@ -115,17 +124,20 @@ fn format_project<T: FormatHandler>(
     let input_is_stdin = main_file == FileName::Stdin;
 
     let parse_session = ParseSess::new(config)?;
-    if config.skip_children() && parse_session.ignore_file(&main_file) {
+    if config.skip_children() && parse_session.ignore_file(&main_file)
+    {
         return Ok(FormatReport::new());
     }
 
     // Parse the crate.
     let mut report = FormatReport::new();
     let directory_ownership = input.to_directory_ownership();
-    let krate = match Parser::parse_crate(input, &parse_session) {
+    let krate = match Parser::parse_crate(input, &parse_session)
+    {
         Ok(krate) => krate,
         // Surface parse error via Session (errors are merged there from report)
-        Err(e) => {
+        Err(e) =>
+        {
             let forbid_verbose = input_is_stdin || e != ParserError::ParsePanicError;
             should_emit_verbose(forbid_verbose, config, || {
                 eprintln!("The Rust parser panicked");
@@ -154,8 +166,10 @@ fn format_project<T: FormatHandler>(
     // Suppress error output if we have to do any further parsing.
     context.parse_session.set_silent_emitter();
 
-    for (path, module) in files {
-        if input_is_stdin && contains_skip(module.attrs()) {
+    for (path, module) in files
+    {
+        if input_is_stdin && contains_skip(module.attrs())
+        {
             return echo_back_stdin(
                 context
                     .parse_session
@@ -243,7 +257,8 @@ impl<'a, T: FormatHandler + 'a> FormatContext<'a, T>
             snippet_provider.entire_snippet(),
         );
 
-        if visitor.macro_rewrite_failure {
+        if visitor.macro_rewrite_failure
+        {
             self.report.add_macro_format_failure();
         }
         self.report
@@ -281,7 +296,8 @@ impl<'b, T: Write + 'b> FormatHandler for Session<'b, T>
         report: &mut FormatReport,
     ) -> Result<(), ErrorKind>
     {
-        if let Some(ref mut out) = self.out {
+        if let Some(ref mut out) = self.out
+        {
             match source_file::write_file(
                 Some(parse_session),
                 &path,
@@ -289,14 +305,17 @@ impl<'b, T: Write + 'b> FormatHandler for Session<'b, T>
                 out,
                 &mut *self.emitter,
                 self.config.newline_style(),
-            ) {
+            )
+            {
                 Ok(ref result) if result.has_diff => report.add_diff(),
-                Err(e) => {
+                Err(e) =>
+                {
                     // Create a new error with path_str to help users see which files failed
                     let err_msg = format!("{}: {}", path, e);
                     return Err(io::Error::new(e.kind(), err_msg).into());
                 }
-                _ => {}
+                _ =>
+                {}
             }
         }
 
@@ -330,7 +349,8 @@ impl FormattingError
 
     pub(crate) fn is_internal(&self) -> bool
     {
-        match self.kind {
+        match self.kind
+        {
             ErrorKind::LineOverflow(..)
             | ErrorKind::TrailingWhitespace
             | ErrorKind::IoError(_)
@@ -342,10 +362,13 @@ impl FormattingError
 
     pub(crate) fn msg_suffix(&self) -> &str
     {
-        if self.is_comment || self.is_string {
+        if self.is_comment || self.is_string
+        {
             "set `error_on_unformatted = false` to suppress \
              the warning against comments or string literals\n"
-        } else {
+        }
+        else
+        {
             ""
         }
     }
@@ -353,12 +376,14 @@ impl FormattingError
     // (space, target)
     pub(crate) fn format_len(&self) -> (usize, usize)
     {
-        match self.kind {
+        match self.kind
+        {
             ErrorKind::LineOverflow(found, max) => (max, found - max),
             ErrorKind::TrailingWhitespace
             | ErrorKind::DeprecatedAttr
             | ErrorKind::BadAttr
-            | ErrorKind::LostComment => {
+            | ErrorKind::LostComment =>
+            {
                 let trailing_ws_start = self
                     .line_buffer
                     .rfind(|c: char| !c.is_whitespace())
@@ -429,15 +454,19 @@ impl Timer
 {
     fn start() -> Timer
     {
-        if cfg!(target_arch = "wasm32") {
+        if cfg!(target_arch = "wasm32")
+        {
             Timer::Disabled
-        } else {
+        }
+        else
+        {
             Timer::Initialized(Instant::now())
         }
     }
     fn done_parsing(self) -> Self
     {
-        match self {
+        match self
+        {
             Timer::Disabled => Timer::Disabled,
             Timer::Initialized(init_time) => Timer::DoneParsing(init_time, Instant::now()),
             _ => panic!("Timer can only transition to DoneParsing from Initialized state"),
@@ -446,9 +475,11 @@ impl Timer
 
     fn done_formatting(self) -> Self
     {
-        match self {
+        match self
+        {
             Timer::Disabled => Timer::Disabled,
-            Timer::DoneParsing(init_time, parse_time) => {
+            Timer::DoneParsing(init_time, parse_time) =>
+            {
                 Timer::DoneFormatting(init_time, parse_time, Instant::now())
             }
             _ => panic!("Timer can only transition to DoneFormatting from DoneParsing state"),
@@ -458,9 +489,11 @@ impl Timer
     /// Returns the time it took to parse the source files in seconds.
     fn get_parse_time(&self) -> f32
     {
-        match *self {
+        match *self
+        {
             Timer::Disabled => panic!("this platform cannot time execution"),
-            Timer::DoneParsing(init, parse_time) | Timer::DoneFormatting(init, parse_time, _) => {
+            Timer::DoneParsing(init, parse_time) | Timer::DoneFormatting(init, parse_time, _) =>
+            {
                 // This should never underflow since `Instant::now()` guarantees monotonicity.
                 Self::duration_to_f32(parse_time.duration_since(init))
             }
@@ -472,9 +505,11 @@ impl Timer
     /// not included.
     fn get_format_time(&self) -> f32
     {
-        match *self {
+        match *self
+        {
             Timer::Disabled => panic!("this platform cannot time execution"),
-            Timer::DoneFormatting(_init, parse_time, format_time) => {
+            Timer::DoneFormatting(_init, parse_time, format_time) =>
+            {
                 Self::duration_to_f32(format_time.duration_since(parse_time))
             }
             Timer::DoneParsing(..) | Timer::Initialized(..) => unreachable!(),
@@ -500,7 +535,8 @@ fn format_lines(
     let mut formatter = FormatLines::new(name, skipped_range, config);
     formatter.iterate(text);
 
-    if formatter.newline_count > 1 {
+    if formatter.newline_count > 1
+    {
         debug!("track truncate: {} {}", text.len(), formatter.newline_count);
         let line = text.len() - formatter.newline_count + 1;
         text.truncate(line);
@@ -550,14 +586,19 @@ impl<'a> FormatLines<'a>
     // Iterate over the chars in the file map.
     fn iterate(&mut self, text: &mut String)
     {
-        for (kind, c) in CharClasses::new(text.chars()) {
-            if c == '\r' {
+        for (kind, c) in CharClasses::new(text.chars())
+        {
+            if c == '\r'
+            {
                 continue;
             }
 
-            if c == '\n' {
+            if c == '\n'
+            {
                 self.new_line(kind);
-            } else {
+            }
+            else
+            {
                 self.char(c, kind);
             }
         }
@@ -565,9 +606,11 @@ impl<'a> FormatLines<'a>
 
     fn new_line(&mut self, kind: FullCodeCharKind)
     {
-        if self.format_line {
+        if self.format_line
+        {
             // Check for (and record) trailing whitespace.
-            if self.last_was_space {
+            if self.last_was_space
+            {
                 if self.should_report_error(kind, &ErrorKind::TrailingWhitespace)
                     && !self.is_skipped_line()
                 {
@@ -606,14 +649,18 @@ impl<'a> FormatLines<'a>
     fn char(&mut self, c: char, kind: FullCodeCharKind)
     {
         self.newline_count = 0;
-        self.line_len += if c == '\t' {
+        self.line_len += if c == '\t'
+        {
             self.config.tab_spaces()
-        } else {
+        }
+        else
+        {
             1
         };
         self.last_was_space = c.is_whitespace();
         self.line_buffer.push(c);
-        if kind.is_string() {
+        if kind.is_string()
+        {
             self.current_line_contains_string_literal = true;
         }
     }
@@ -636,12 +683,16 @@ impl<'a> FormatLines<'a>
             || error_kind.is_comment()
         {
             self.config.error_on_unformatted()
-        } else {
+        }
+        else
+        {
             true
         };
 
-        match error_kind {
-            ErrorKind::LineOverflow(..) => {
+        match error_kind
+        {
+            ErrorKind::LineOverflow(..) =>
+            {
                 self.config.error_on_line_overflow() && allow_error_report
             }
             ErrorKind::TrailingWhitespace | ErrorKind::LostComment => allow_error_report,
@@ -662,7 +713,8 @@ fn should_emit_verbose<F>(forbid_verbose_output: bool, config: &Config, f: F)
 where
     F: Fn(),
 {
-    if config.verbose() == Verbosity::Verbose && !forbid_verbose_output {
+    if config.verbose() == Verbosity::Verbose && !forbid_verbose_output
+    {
         f();
     }
 }

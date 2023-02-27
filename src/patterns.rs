@@ -41,7 +41,8 @@ pub(crate) fn is_short_pattern(pat: &ast::Pat, pat_str: &str) -> bool
 
 fn is_short_pattern_inner(pat: &ast::Pat) -> bool
 {
-    match pat.kind {
+    match pat.kind
+    {
         ast::PatKind::Rest | ast::PatKind::Wild | ast::PatKind::Lit(_) => true,
         ast::PatKind::Ident(_, _, ref pat) => pat.is_none(),
         ast::PatKind::Struct(..)
@@ -50,10 +51,12 @@ fn is_short_pattern_inner(pat: &ast::Pat) -> bool
         | ast::PatKind::Path(..)
         | ast::PatKind::Range(..) => false,
         ast::PatKind::Tuple(ref subpats) => subpats.len() <= 1,
-        ast::PatKind::TupleStruct(_, ref path, ref subpats) => {
+        ast::PatKind::TupleStruct(_, ref path, ref subpats) =>
+        {
             path.segments.len() <= 1 && subpats.len() <= 1
         }
-        ast::PatKind::Box(ref p) | ast::PatKind::Ref(ref p, _) | ast::PatKind::Paren(ref p) => {
+        ast::PatKind::Box(ref p) | ast::PatKind::Ref(ref p, _) | ast::PatKind::Paren(ref p) =>
+        {
             is_short_pattern_inner(&*p)
         }
         PatKind::Or(ref pats) => pats.iter().all(|p| is_short_pattern_inner(p)),
@@ -66,7 +69,8 @@ impl<'a> Rewrite for RangeOperand<'a>
 {
     fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
     {
-        match &self.0 {
+        match &self.0
+        {
             None => Some("".to_owned()),
             Some(ref exp) => exp.rewrite(context, shape),
         }
@@ -77,8 +81,10 @@ impl Rewrite for Pat
 {
     fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
     {
-        match self.kind {
-            PatKind::Or(ref pats) => {
+        match self.kind
+        {
+            PatKind::Or(ref pats) =>
+            {
                 let pat_strs = pats
                     .iter()
                     .map(|p| p.rewrite(context, shape))
@@ -89,9 +95,12 @@ impl Rewrite for Pat
                     .zip(pat_strs.iter())
                     .all(|(pat, pat_str)| is_short_pattern(pat, pat_str));
                 let items: Vec<_> = pat_strs.into_iter().map(ListItem::from_str).collect();
-                let tactic = if use_mixed_layout {
+                let tactic = if use_mixed_layout
+                {
                     DefinitiveListTactic::Mixed
-                } else {
+                }
+                else
+                {
                     definitive_tactic(
                         &items,
                         ListTactic::HorizontalVertical,
@@ -107,15 +116,19 @@ impl Rewrite for Pat
                 write_list(&items, &fmt)
             }
             PatKind::Box(ref pat) => rewrite_unary_prefix(context, "box ", &**pat, shape),
-            PatKind::Ident(BindingAnnotation(by_ref, mutability), ident, ref sub_pat) => {
-                let prefix = match by_ref {
+            PatKind::Ident(BindingAnnotation(by_ref, mutability), ident, ref sub_pat) =>
+            {
+                let prefix = match by_ref
+                {
                     ByRef::Yes => "ref",
                     ByRef::No => "",
                 };
                 let mut_infix = format_mutability(mutability).trim();
                 let id_str = rewrite_ident(context, ident);
-                let sub_pat = match *sub_pat {
-                    Some(ref p) => {
+                let sub_pat = match *sub_pat
+                {
+                    Some(ref p) =>
+                    {
                         // 2 - `@ `.
                         let width = shape
                             .width
@@ -134,7 +147,8 @@ impl Rewrite for Pat
                 };
 
                 // combine prefix and mut
-                let (first_lo, first) = if !prefix.is_empty() && !mut_infix.is_empty() {
+                let (first_lo, first) = if !prefix.is_empty() && !mut_infix.is_empty()
+                {
                     let hi = context.snippet_provider.span_before(self.span, "mut");
                     let lo = context.snippet_provider.span_after(self.span, "ref");
                     (
@@ -148,21 +162,28 @@ impl Rewrite for Pat
                             true,
                         )?,
                     )
-                } else if !prefix.is_empty() {
+                }
+                else if !prefix.is_empty()
+                {
                     (
                         context.snippet_provider.span_after(self.span, "ref"),
                         prefix.to_owned(),
                     )
-                } else if !mut_infix.is_empty() {
+                }
+                else if !mut_infix.is_empty()
+                {
                     (
                         context.snippet_provider.span_after(self.span, "mut"),
                         mut_infix.to_owned(),
                     )
-                } else {
+                }
+                else
+                {
                     (self.span.lo(), "".to_owned())
                 };
 
-                let next = if !sub_pat.is_empty() {
+                let next = if !sub_pat.is_empty()
+                {
                     let hi = context.snippet_provider.span_before(self.span, "@");
                     combine_strs_with_missing_comments(
                         context,
@@ -172,7 +193,9 @@ impl Rewrite for Pat
                         shape,
                         true,
                     )?
-                } else {
+                }
+                else
+                {
                     id_str.to_owned()
                 };
 
@@ -185,37 +208,52 @@ impl Rewrite for Pat
                     true,
                 )
             }
-            PatKind::Wild => {
-                if 1 <= shape.width {
+            PatKind::Wild =>
+            {
+                if 1 <= shape.width
+                {
                     Some("_".to_owned())
-                } else {
+                }
+                else
+                {
                     None
                 }
             }
-            PatKind::Rest => {
-                if 1 <= shape.width {
+            PatKind::Rest =>
+            {
+                if 1 <= shape.width
+                {
                     Some("..".to_owned())
-                } else {
+                }
+                else
+                {
                     None
                 }
             }
-            PatKind::Range(ref lhs, ref rhs, ref end_kind) => {
-                let infix = match end_kind.node {
+            PatKind::Range(ref lhs, ref rhs, ref end_kind) =>
+            {
+                let infix = match end_kind.node
+                {
                     RangeEnd::Included(RangeSyntax::DotDotDot) => "...",
                     RangeEnd::Included(RangeSyntax::DotDotEq) => "..=",
                     RangeEnd::Excluded => "..",
                 };
-                let infix = if context.config.spaces_around_ranges() {
-                    let lhs_spacing = match lhs {
+                let infix = if context.config.spaces_around_ranges()
+                {
+                    let lhs_spacing = match lhs
+                    {
                         None => "",
                         Some(_) => " ",
                     };
-                    let rhs_spacing = match rhs {
+                    let rhs_spacing = match rhs
+                    {
                         None => "",
                         Some(_) => " ",
                     };
                     format!("{}{}{}", lhs_spacing, infix, rhs_spacing)
-                } else {
+                }
+                else
+                {
                     infix.to_owned()
                 };
                 rewrite_pair(
@@ -227,26 +265,33 @@ impl Rewrite for Pat
                     SeparatorPlace::Front,
                 )
             }
-            PatKind::Ref(ref pat, mutability) => {
+            PatKind::Ref(ref pat, mutability) =>
+            {
                 let prefix = format!("&{}", format_mutability(mutability));
                 rewrite_unary_prefix(context, &prefix, &**pat, shape)
             }
             PatKind::Tuple(ref items) => rewrite_tuple_pat(items, None, self.span, context, shape),
-            PatKind::Path(ref q_self, ref path) => {
+            PatKind::Path(ref q_self, ref path) =>
+            {
                 rewrite_path(context, PathContext::Expr, q_self, path, shape)
             }
-            PatKind::TupleStruct(ref q_self, ref path, ref pat_vec) => {
+            PatKind::TupleStruct(ref q_self, ref path, ref pat_vec) =>
+            {
                 let path_str = rewrite_path(context, PathContext::Expr, q_self, path, shape)?;
                 rewrite_tuple_pat(pat_vec, Some(path_str), self.span, context, shape)
             }
             PatKind::Lit(ref expr) => expr.rewrite(context, shape),
-            PatKind::Slice(ref slice_pat) if context.config.version() == Version::One => {
+            PatKind::Slice(ref slice_pat) if context.config.version() == Version::One =>
+            {
                 let rw: Vec<String> = slice_pat
                     .iter()
                     .map(|p| {
-                        if let Some(rw) = p.rewrite(context, shape) {
+                        if let Some(rw) = p.rewrite(context, shape)
+                        {
                             rw
-                        } else {
+                        }
+                        else
+                        {
                             context.snippet(p.span).to_string()
                         }
                     })
@@ -262,10 +307,12 @@ impl Rewrite for Pat
                 None,
                 None,
             ),
-            PatKind::Struct(ref qself, ref path, ref fields, ellipsis) => {
+            PatKind::Struct(ref qself, ref path, ref fields, ellipsis) =>
+            {
                 rewrite_struct_pat(qself, path, fields, ellipsis, self.span, context, shape)
             }
-            PatKind::MacCall(ref mac) => {
+            PatKind::MacCall(ref mac) =>
+            {
                 rewrite_macro(mac, None, context, shape, MacroPosition::Pat)
             }
             PatKind::Paren(ref pat) => pat
@@ -289,7 +336,8 @@ fn rewrite_struct_pat(
     let path_shape = shape.sub_width(2)?;
     let path_str = rewrite_path(context, PathContext::Expr, qself, path, path_shape)?;
 
-    if fields.is_empty() && !ellipsis {
+    if fields.is_empty() && !ellipsis
+    {
         return Some(format!("{} {{}}", path_str));
     }
 
@@ -305,9 +353,12 @@ fn rewrite_struct_pat(
         terminator,
         ",",
         |f| {
-            if f.attrs.is_empty() {
+            if f.attrs.is_empty()
+            {
                 f.span.lo()
-            } else {
+            }
+            else
+            {
                 f.attrs.first().unwrap().span.lo()
             }
         },
@@ -328,20 +379,29 @@ fn rewrite_struct_pat(
 
     let has_trailing_comma = fmt.needs_trailing_separator();
 
-    if ellipsis {
-        if fields_str.contains('\n') || fields_str.len() > one_line_width {
+    if ellipsis
+    {
+        if fields_str.contains('\n') || fields_str.len() > one_line_width
+        {
             // Add a missing trailing comma.
-            if !has_trailing_comma {
+            if !has_trailing_comma
+            {
                 fields_str.push(',');
             }
             fields_str.push('\n');
             fields_str.push_str(&nested_shape.indent.to_string(context.config));
-        } else {
-            if !fields_str.is_empty() {
+        }
+        else
+        {
+            if !fields_str.is_empty()
+            {
                 // there are preceding struct fields being matched on
-                if has_trailing_comma {
+                if has_trailing_comma
+                {
                     fields_str.push(' ');
-                } else {
+                }
+                else
+                {
                     fields_str.push_str(", ");
                 }
             }
@@ -358,20 +418,27 @@ impl Rewrite for PatField
 {
     fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
     {
-        let hi_pos = if let Some(last) = self.attrs.last() {
+        let hi_pos = if let Some(last) = self.attrs.last()
+        {
             last.span.hi()
-        } else {
+        }
+        else
+        {
             self.pat.span.lo()
         };
 
-        let attrs_str = if self.attrs.is_empty() {
+        let attrs_str = if self.attrs.is_empty()
+        {
             String::from("")
-        } else {
+        }
+        else
+        {
             self.attrs.rewrite(context, shape)?
         };
 
         let pat_str = self.pat.rewrite(context, shape)?;
-        if self.is_shorthand {
+        if self.is_shorthand
+        {
             combine_strs_with_missing_comments(
                 context,
                 &attrs_str,
@@ -380,13 +447,18 @@ impl Rewrite for PatField
                 shape,
                 false,
             )
-        } else {
+        }
+        else
+        {
             let nested_shape = shape.block_indent(context.config.tab_spaces());
             let id_str = rewrite_ident(context, self.ident);
             let one_line_width = id_str.len() + 2 + pat_str.len();
-            let pat_and_id_str = if one_line_width <= shape.width {
+            let pat_and_id_str = if one_line_width <= shape.width
+            {
                 format!("{}: {}", id_str, pat_str)
-            } else {
+            }
+            else
+            {
                 format!(
                     "{}:\n{}{}",
                     id_str,
@@ -417,7 +489,8 @@ impl<'a> Rewrite for TuplePatField<'a>
 {
     fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
     {
-        match *self {
+        match *self
+        {
             TuplePatField::Pat(p) => p.rewrite(context, shape),
             TuplePatField::Dotdot(_) => Some("..".to_string()),
         }
@@ -428,7 +501,8 @@ impl<'a> Spanned for TuplePatField<'a>
 {
     fn span(&self) -> Span
     {
-        match *self {
+        match *self
+        {
             TuplePatField::Pat(p) => p.span(),
             TuplePatField::Dotdot(span) => span,
         }
@@ -439,7 +513,8 @@ impl<'a> TuplePatField<'a>
 {
     fn is_dotdot(&self) -> bool
     {
-        match self {
+        match self
+        {
             TuplePatField::Pat(pat) => matches!(pat.kind, ast::PatKind::Rest),
             TuplePatField::Dotdot(_) => true,
         }
@@ -452,13 +527,16 @@ pub(crate) fn can_be_overflowed_pat(
     len: usize,
 ) -> bool
 {
-    match *pat {
-        TuplePatField::Pat(pat) => match pat.kind {
+    match *pat
+    {
+        TuplePatField::Pat(pat) => match pat.kind
+        {
             ast::PatKind::Path(..)
             | ast::PatKind::Tuple(..)
             | ast::PatKind::Struct(..)
             | ast::PatKind::TupleStruct(..) => context.use_block_indent() && len == 1,
-            ast::PatKind::Ref(ref p, _) | ast::PatKind::Box(ref p) => {
+            ast::PatKind::Ref(ref p, _) | ast::PatKind::Box(ref p) =>
+            {
                 can_be_overflowed_pat(context, &TuplePatField::Pat(p), len)
             }
             ast::PatKind::Lit(ref expr) => can_be_overflowed_expr(context, expr, len),
@@ -476,7 +554,8 @@ fn rewrite_tuple_pat(
     shape: Shape,
 ) -> Option<String>
 {
-    if pats.is_empty() {
+    if pats.is_empty()
+    {
         return Some(format!("{}()", path_str.unwrap_or_default()));
     }
     let mut pat_vec: Vec<_> = pats.iter().map(TuplePatField::Pat).collect();
@@ -493,7 +572,9 @@ fn rewrite_tuple_pat(
             &pat_vec[..new_item_count],
             mk_sp(span.lo(), lo + BytePos(1)),
         )
-    } else {
+    }
+    else
+    {
         (&pat_vec[..], span)
     };
 
@@ -508,9 +589,12 @@ fn rewrite_tuple_pat(
         shape,
         span,
         context.config.max_width(),
-        if add_comma {
+        if add_comma
+        {
             Some(SeparatorTactic::Always)
-        } else {
+        }
+        else
+        {
             None
         },
     )
@@ -546,7 +630,8 @@ fn count_wildcard_suffix_len(
     {
         suffix_len += 1;
 
-        if item.has_comment() {
+        if item.has_comment()
+        {
             break;
         }
     }

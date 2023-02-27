@@ -34,7 +34,8 @@ pub(crate) fn rewrite_ident<'a>(context: &'a RewriteContext<'_>, ident: symbol::
 // Computes the length of a string's last line, minus offset.
 pub(crate) fn extra_offset(text: &str, shape: Shape) -> usize
 {
-    match text.rfind('\n') {
+    match text.rfind('\n')
+    {
         // 1 for newline character
         Some(idx) => text.len().saturating_sub(idx + 1 + shape.used_width()),
         None => text.len(),
@@ -43,7 +44,8 @@ pub(crate) fn extra_offset(text: &str, shape: Shape) -> usize
 
 pub(crate) fn is_same_visibility(a: &Visibility, b: &Visibility) -> bool
 {
-    match (&a.kind, &b.kind) {
+    match (&a.kind, &b.kind)
+    {
         (
             VisibilityKind::Restricted { path: p, .. },
             VisibilityKind::Restricted { path: q, .. },
@@ -58,13 +60,16 @@ pub(crate) fn is_same_visibility(a: &Visibility, b: &Visibility) -> bool
 pub(crate) fn format_visibility(context: &RewriteContext<'_>, vis: &Visibility)
     -> Cow<'static, str>
 {
-    match vis.kind {
+    match vis.kind
+    {
         VisibilityKind::Public => Cow::from("pub "),
         VisibilityKind::Inherited => Cow::from(""),
-        VisibilityKind::Restricted { ref path, .. } => {
+        VisibilityKind::Restricted { ref path, .. } =>
+        {
             let Path { ref segments, .. } = **path;
             let mut segments_iter = segments.iter().map(|seg| rewrite_ident(context, seg.ident));
-            if path.is_global() {
+            if path.is_global()
+            {
                 segments_iter
                     .next()
                     .expect("Non-global path in pub(restricted)?");
@@ -81,7 +86,8 @@ pub(crate) fn format_visibility(context: &RewriteContext<'_>, vis: &Visibility)
 #[inline]
 pub(crate) fn format_async(is_async: &ast::Async) -> &'static str
 {
-    match is_async {
+    match is_async
+    {
         ast::Async::Yes { .. } => "async ",
         ast::Async::No => "",
     }
@@ -90,7 +96,8 @@ pub(crate) fn format_async(is_async: &ast::Async) -> &'static str
 #[inline]
 pub(crate) fn format_constness(constness: ast::Const) -> &'static str
 {
-    match constness {
+    match constness
+    {
         ast::Const::Yes(..) => "const ",
         ast::Const::No => "",
     }
@@ -99,7 +106,8 @@ pub(crate) fn format_constness(constness: ast::Const) -> &'static str
 #[inline]
 pub(crate) fn format_constness_right(constness: ast::Const) -> &'static str
 {
-    match constness {
+    match constness
+    {
         ast::Const::Yes(..) => " const",
         ast::Const::No => "",
     }
@@ -108,7 +116,8 @@ pub(crate) fn format_constness_right(constness: ast::Const) -> &'static str
 #[inline]
 pub(crate) fn format_defaultness(defaultness: ast::Defaultness) -> &'static str
 {
-    match defaultness {
+    match defaultness
+    {
         ast::Defaultness::Default(..) => "default ",
         ast::Defaultness::Final => "",
     }
@@ -117,7 +126,8 @@ pub(crate) fn format_defaultness(defaultness: ast::Defaultness) -> &'static str
 #[inline]
 pub(crate) fn format_unsafety(unsafety: ast::Unsafe) -> &'static str
 {
-    match unsafety {
+    match unsafety
+    {
         ast::Unsafe::Yes(..) => "unsafe ",
         ast::Unsafe::No => "",
     }
@@ -126,7 +136,8 @@ pub(crate) fn format_unsafety(unsafety: ast::Unsafe) -> &'static str
 #[inline]
 pub(crate) fn format_auto(is_auto: ast::IsAuto) -> &'static str
 {
-    match is_auto {
+    match is_auto
+    {
         ast::IsAuto::Yes => "auto ",
         ast::IsAuto::No => "",
     }
@@ -135,7 +146,8 @@ pub(crate) fn format_auto(is_auto: ast::IsAuto) -> &'static str
 #[inline]
 pub(crate) fn format_mutability(mutability: ast::Mutability) -> &'static str
 {
-    match mutability {
+    match mutability
+    {
         ast::Mutability::Mut => "mut ",
         ast::Mutability::Not => "",
     }
@@ -145,17 +157,23 @@ pub(crate) fn format_mutability(mutability: ast::Mutability) -> &'static str
 pub(crate) fn format_extern(ext: ast::Extern, explicit_abi: bool, is_mod: bool)
     -> Cow<'static, str>
 {
-    let abi = match ext {
+    let abi = match ext
+    {
         ast::Extern::None => "Rust".to_owned(),
         ast::Extern::Implicit(_) => "C".to_owned(),
         ast::Extern::Explicit(abi, _) => abi.symbol_unescaped.to_string(),
     };
 
-    if abi == "Rust" && !is_mod {
+    if abi == "Rust" && !is_mod
+    {
         Cow::from("")
-    } else if abi == "C" && !explicit_abi {
+    }
+    else if abi == "C" && !explicit_abi
+    {
         Cow::from("extern ")
-    } else {
+    }
+    else
+    {
         Cow::from(format!(r#"extern "{}" "#, abi))
     }
 }
@@ -234,9 +252,12 @@ pub(crate) fn last_line_width(s: &str) -> usize
 #[inline]
 pub(crate) fn last_line_used_width(s: &str, offset: usize) -> usize
 {
-    if s.contains('\n') {
+    if s.contains('\n')
+    {
         last_line_width(s)
-    } else {
+    }
+    else
+    {
         offset + unicode_str_width(s)
     }
 }
@@ -244,7 +265,8 @@ pub(crate) fn last_line_used_width(s: &str, offset: usize) -> usize
 #[inline]
 pub(crate) fn trimmed_last_line_width(s: &str) -> usize
 {
-    unicode_str_width(match s.rfind('\n') {
+    unicode_str_width(match s.rfind('\n')
+    {
         Some(n) => s[(n + 1)..].trim(),
         None => s.trim(),
     })
@@ -253,11 +275,14 @@ pub(crate) fn trimmed_last_line_width(s: &str) -> usize
 #[inline]
 pub(crate) fn last_line_extendable(s: &str) -> bool
 {
-    if s.ends_with("\"#") {
+    if s.ends_with("\"#")
+    {
         return true;
     }
-    for c in s.chars().rev() {
-        match c {
+    for c in s.chars().rev()
+    {
+        match c
+        {
             '(' | ')' | ']' | '}' | '?' | '>' => continue,
             '\n' => break,
             _ if c.is_whitespace() => continue,
@@ -270,12 +295,15 @@ pub(crate) fn last_line_extendable(s: &str) -> bool
 #[inline]
 fn is_skip(meta_item: &MetaItem) -> bool
 {
-    match meta_item.kind {
-        MetaItemKind::Word => {
+    match meta_item.kind
+    {
+        MetaItemKind::Word =>
+        {
             let path_str = pprust::path_to_string(&meta_item.path);
             path_str == skip_annotation().as_str() || path_str == depr_skip_annotation().as_str()
         }
-        MetaItemKind::List(ref l) => {
+        MetaItemKind::List(ref l) =>
+        {
             meta_item.has_name(sym::cfg_attr) && l.len() == 2 && is_skip_nested(&l[1])
         }
         _ => false,
@@ -285,7 +313,8 @@ fn is_skip(meta_item: &MetaItem) -> bool
 #[inline]
 fn is_skip_nested(meta_item: &NestedMetaItem) -> bool
 {
-    match meta_item {
+    match meta_item
+    {
         NestedMetaItem::MetaItem(ref mi) => is_skip(mi),
         NestedMetaItem::Lit(_) => false,
     }
@@ -305,12 +334,15 @@ pub(crate) fn semicolon_for_expr(context: &RewriteContext<'_>, expr: &ast::Expr)
     // Never try to insert semicolons on expressions when we're inside
     // a macro definition - this can prevent the macro from compiling
     // when used in expression position
-    if context.is_macro_def {
+    if context.is_macro_def
+    {
         return false;
     }
 
-    match expr.kind {
-        ast::ExprKind::Ret(..) | ast::ExprKind::Continue(..) | ast::ExprKind::Break(..) => {
+    match expr.kind
+    {
+        ast::ExprKind::Ret(..) | ast::ExprKind::Continue(..) | ast::ExprKind::Break(..) =>
+        {
             context.config.trailing_semicolon()
         }
         _ => false,
@@ -320,12 +352,16 @@ pub(crate) fn semicolon_for_expr(context: &RewriteContext<'_>, expr: &ast::Expr)
 #[inline]
 pub(crate) fn semicolon_for_stmt(context: &RewriteContext<'_>, stmt: &ast::Stmt) -> bool
 {
-    match stmt.kind {
-        ast::StmtKind::Semi(ref expr) => match expr.kind {
-            ast::ExprKind::While(..) | ast::ExprKind::Loop(..) | ast::ExprKind::ForLoop(..) => {
+    match stmt.kind
+    {
+        ast::StmtKind::Semi(ref expr) => match expr.kind
+        {
+            ast::ExprKind::While(..) | ast::ExprKind::Loop(..) | ast::ExprKind::ForLoop(..) =>
+            {
                 false
             }
-            ast::ExprKind::Break(..) | ast::ExprKind::Continue(..) | ast::ExprKind::Ret(..) => {
+            ast::ExprKind::Break(..) | ast::ExprKind::Continue(..) | ast::ExprKind::Ret(..) =>
+            {
                 context.config.trailing_semicolon()
             }
             _ => true,
@@ -338,7 +374,8 @@ pub(crate) fn semicolon_for_stmt(context: &RewriteContext<'_>, stmt: &ast::Stmt)
 #[inline]
 pub(crate) fn stmt_expr(stmt: &ast::Stmt) -> Option<&ast::Expr>
 {
-    match stmt.kind {
+    match stmt.kind
+    {
         ast::StmtKind::Expr(ref expr) => Some(expr),
         _ => None,
     }
@@ -350,8 +387,10 @@ pub(crate) fn count_lf_crlf(input: &str) -> (usize, usize)
     let mut lf = 0;
     let mut crlf = 0;
     let mut is_crlf = false;
-    for c in input.as_bytes() {
-        match c {
+    for c in input.as_bytes()
+    {
+        match c
+        {
             b'\r' => is_crlf = true,
             b'\n' if is_crlf => crlf += 1,
             b'\n' => lf += 1,
@@ -398,7 +437,8 @@ macro_rules! out_of_file_lines_range {
 
 macro_rules! skip_out_of_file_lines_range {
     ($self:ident, $span:expr) => {
-        if out_of_file_lines_range!($self, $span) {
+        if out_of_file_lines_range!($self, $span)
+        {
             return None;
         }
     };
@@ -406,7 +446,8 @@ macro_rules! skip_out_of_file_lines_range {
 
 macro_rules! skip_out_of_file_lines_range_visitor {
     ($self:ident, $span:expr) => {
-        if out_of_file_lines_range!($self, $span) {
+        if out_of_file_lines_range!($self, $span)
+        {
             $self.push_rewrite($span, None);
             return;
         }
@@ -417,9 +458,12 @@ macro_rules! skip_out_of_file_lines_range_visitor {
 // Rewrite constraints defined for the Rewrite trait and None otherwise.
 pub(crate) fn wrap_str(s: String, max_width: usize, shape: Shape) -> Option<String>
 {
-    if filtered_str_fits(&s, max_width, shape) {
+    if filtered_str_fits(&s, max_width, shape)
+    {
         Some(s)
-    } else {
+    }
+    else
+    {
         None
     }
 }
@@ -427,13 +471,16 @@ pub(crate) fn wrap_str(s: String, max_width: usize, shape: Shape) -> Option<Stri
 pub(crate) fn filtered_str_fits(snippet: &str, max_width: usize, shape: Shape) -> bool
 {
     let snippet = &filter_normal_code(snippet);
-    if !snippet.is_empty() {
+    if !snippet.is_empty()
+    {
         // First line must fits with `shape.width`.
-        if first_line_width(snippet) > shape.width {
+        if first_line_width(snippet) > shape.width
+        {
             return false;
         }
         // If the snippet does not include newline, we are done.
-        if is_single_line(snippet) {
+        if is_single_line(snippet)
+        {
             return true;
         }
         // The other lines must fit within the maximum width.
@@ -446,7 +493,8 @@ pub(crate) fn filtered_str_fits(snippet: &str, max_width: usize, shape: Shape) -
         }
         // A special check for the last line, since the caller may
         // place trailing characters on this line.
-        if last_line_width(snippet) > shape.used_width() + shape.width {
+        if last_line_width(snippet) > shape.used_width() + shape.width
+        {
             return false;
         }
     }
@@ -458,7 +506,8 @@ pub(crate) fn colon_spaces(config: &Config) -> &'static str
 {
     let before = config.space_before_colon();
     let after = config.space_after_colon();
-    match (before, after) {
+    match (before, after)
+    {
         (true, true) => " : ",
         (true, false) => " :",
         (false, true) => ": ",
@@ -469,7 +518,8 @@ pub(crate) fn colon_spaces(config: &Config) -> &'static str
 #[inline]
 pub(crate) fn left_most_sub_expr(e: &ast::Expr) -> &ast::Expr
 {
-    match e.kind {
+    match e.kind
+    {
         ast::ExprKind::Call(ref e, _)
         | ast::ExprKind::Binary(_, ref e, _)
         | ast::ExprKind::Cast(ref e, _)
@@ -500,7 +550,8 @@ pub(crate) fn first_line_ends_with(s: &str, c: char) -> bool
 // parens, braces, and brackets in its idiomatic formatting.
 pub(crate) fn is_block_expr(context: &RewriteContext<'_>, expr: &ast::Expr, repr: &str) -> bool
 {
-    match expr.kind {
+    match expr.kind
+    {
         ast::ExprKind::MacCall(..)
         | ast::ExprKind::Call(..)
         | ast::ExprKind::MethodCall(..)
@@ -523,7 +574,8 @@ pub(crate) fn is_block_expr(context: &RewriteContext<'_>, expr: &ast::Expr, repr
         | ast::ExprKind::Yield(Some(ref expr)) => is_block_expr(context, expr, repr),
         ast::ExprKind::Closure(ref closure) => is_block_expr(context, &closure.body, repr),
         // This can only be a string lit
-        ast::ExprKind::Lit(_) => {
+        ast::ExprKind::Lit(_) =>
+        {
             repr.contains('\n') && trimmed_last_line_width(repr) <= context.config.tab_spaces()
         }
         ast::ExprKind::AddrOf(..)
@@ -557,20 +609,27 @@ pub(crate) fn remove_trailing_white_spaces(text: &str) -> String
 {
     let mut buffer = String::with_capacity(text.len());
     let mut space_buffer = String::with_capacity(128);
-    for (char_kind, c) in CharClasses::new(text.chars()) {
-        match c {
-            '\n' => {
-                if char_kind == FullCodeCharKind::InString {
+    for (char_kind, c) in CharClasses::new(text.chars())
+    {
+        match c
+        {
+            '\n' =>
+            {
+                if char_kind == FullCodeCharKind::InString
+                {
                     buffer.push_str(&space_buffer);
                 }
                 space_buffer.clear();
                 buffer.push('\n');
             }
-            _ if c.is_whitespace() => {
+            _ if c.is_whitespace() =>
+            {
                 space_buffer.push(c);
             }
-            _ => {
-                if !space_buffer.is_empty() {
+            _ =>
+            {
+                if !space_buffer.is_empty()
+                {
                     buffer.push_str(&space_buffer);
                     space_buffer.clear();
                 }
@@ -623,9 +682,12 @@ pub(crate) fn trim_left_preserve_layout(
     let min_prefix_space_width = lines
         .filter_map(|(kind, line)| {
             let mut trimmed = true;
-            let prefix_space_width = if is_empty_line(&line) {
+            let prefix_space_width = if is_empty_line(&line)
+            {
                 None
-            } else {
+            }
+            else
+            {
                 Some(get_prefix_space_width(config, &line))
             };
 
@@ -634,18 +696,22 @@ pub(crate) fn trim_left_preserve_layout(
                 || (config.version() == Version::Two
                     && kind == FullCodeCharKind::InStringCommented))
                 && !line.ends_with('\\');
-            let line = if veto_trim || new_veto_trim_value {
+            let line = if veto_trim || new_veto_trim_value
+            {
                 veto_trim = new_veto_trim_value;
                 trimmed = false;
                 line
-            } else {
+            }
+            else
+            {
                 line.trim().to_owned()
             };
             trimmed_lines.push((trimmed, line, prefix_space_width));
 
             // Because there is a veto against trimming and indenting lines within a string,
             // such lines should not be taken into account when computing the minimum.
-            match kind {
+            match kind
+            {
                 FullCodeCharKind::InStringCommented | FullCodeCharKind::EndStringCommented
                     if config.version() == Version::Two =>
                 {
@@ -663,9 +729,11 @@ pub(crate) fn trim_left_preserve_layout(
             + &trimmed_lines
                 .iter()
                 .map(
-                    |&(trimmed, ref line, prefix_space_width)| match prefix_space_width {
+                    |&(trimmed, ref line, prefix_space_width)| match prefix_space_width
+                    {
                         _ if !trimmed => line.to_owned(),
-                        Some(original_indent_width) => {
+                        Some(original_indent_width) =>
+                        {
                             let new_indent_width = indent.width()
                                 + original_indent_width.saturating_sub(min_prefix_space_width);
                             let new_indent = Indent::from_width(config, new_indent_width);
@@ -685,16 +753,21 @@ pub(crate) fn trim_left_preserve_layout(
 /// of the code, such as code in macro defs or code blocks doc comments.
 pub(crate) fn indent_next_line(kind: FullCodeCharKind, line: &str, config: &Config) -> bool
 {
-    if kind.is_string() {
+    if kind.is_string()
+    {
         // If the string ends with '\', the string has been wrapped over
         // multiple lines. If `format_strings = true`, then the indentation of
         // strings wrapped over multiple lines will have been adjusted while
         // formatting the code block, therefore the string's indentation needs
         // to be adjusted for the code surrounding the code block.
         config.format_strings() && line.ends_with('\\')
-    } else if config.version() == Version::Two {
+    }
+    else if config.version() == Version::Two
+    {
         !kind.is_commented_string()
-    } else {
+    }
+    else
+    {
         true
     }
 }
@@ -707,8 +780,10 @@ pub(crate) fn is_empty_line(s: &str) -> bool
 fn get_prefix_space_width(config: &Config, s: &str) -> usize
 {
     let mut width = 0;
-    for c in s.chars() {
-        match c {
+    for c in s.chars()
+    {
+        match c
+        {
             ' ' => width += 1,
             '\t' => width += config.tab_spaces(),
             _ => return width,

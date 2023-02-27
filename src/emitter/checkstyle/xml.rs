@@ -8,8 +8,10 @@ impl<'a> Display for XmlEscaped<'a>
 {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result
     {
-        for char in self.0.chars() {
-            match char {
+        for char in self.0.chars()
+        {
+            match char
+            {
                 '<' => write!(formatter, "&lt;"),
                 '>' => write!(formatter, "&gt;"),
                 '"' => write!(formatter, "&quot;"),

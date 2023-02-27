@@ -33,7 +33,8 @@ impl<'a> Stmt<'a>
 
     pub(crate) fn to_item(&self) -> Option<&ast::Item>
     {
-        match self.inner.kind {
+        match self.inner.kind
+        {
             ast::StmtKind::Item(ref item) => Some(&**item),
             _ => None,
         }
@@ -50,7 +51,8 @@ impl<'a> Stmt<'a>
     {
         let mut result = vec![];
         let mut iter = iter.peekable();
-        while iter.peek().is_some() {
+        while iter.peek().is_some()
+        {
             result.push(Stmt {
                 inner: iter.next().unwrap(),
                 is_last: iter.peek().is_none(),
@@ -66,13 +68,17 @@ impl<'a> Stmt<'a>
 
     fn is_last_expr(&self) -> bool
     {
-        if !self.is_last {
+        if !self.is_last
+        {
             return false;
         }
 
-        match self.as_ast_node().kind {
-            ast::StmtKind::Expr(ref expr) => match expr.kind {
-                ast::ExprKind::Ret(..) | ast::ExprKind::Continue(..) | ast::ExprKind::Break(..) => {
+        match self.as_ast_node().kind
+        {
+            ast::StmtKind::Expr(ref expr) => match expr.kind
+            {
+                ast::ExprKind::Ret(..) | ast::ExprKind::Continue(..) | ast::ExprKind::Break(..) =>
+                {
                     false
                 }
                 _ => true,
@@ -86,9 +92,12 @@ impl<'a> Rewrite for Stmt<'a>
 {
     fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
     {
-        let expr_type = if context.config.version() == Version::Two && self.is_last_expr() {
+        let expr_type = if context.config.version() == Version::Two && self.is_last_expr()
+        {
             ExprType::SubExpression
-        } else {
+        }
+        else
+        {
             ExprType::Statement
         };
         format_stmt(context, shape, self.as_ast_node(), expr_type)
@@ -112,12 +121,17 @@ fn format_stmt(
 {
     skip_out_of_file_lines_range!(context, stmt.span());
 
-    let result = match stmt.kind {
+    let result = match stmt.kind
+    {
         ast::StmtKind::Local(ref local) => local.rewrite(context, shape),
-        ast::StmtKind::Expr(ref ex) | ast::StmtKind::Semi(ref ex) => {
-            let suffix = if semicolon_for_stmt(context, stmt) {
+        ast::StmtKind::Expr(ref ex) | ast::StmtKind::Semi(ref ex) =>
+        {
+            let suffix = if semicolon_for_stmt(context, stmt)
+            {
                 ";"
-            } else {
+            }
+            else
+            {
                 ""
             };
 

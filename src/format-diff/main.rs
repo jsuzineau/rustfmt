@@ -68,7 +68,8 @@ fn main()
 {
     env_logger::Builder::from_env("RUSTFMT_LOG").init();
     let opts = Opts::parse();
-    if let Err(e) = run(opts) {
+    if let Err(e) = run(opts)
+    {
         println!("{}", e);
         Opts::command()
             .print_help()
@@ -92,7 +93,8 @@ fn run(opts: Opts) -> Result<(), FormatDiffError>
 
 fn run_rustfmt(files: &HashSet<String>, ranges: &[Range]) -> Result<(), FormatDiffError>
 {
-    if files.is_empty() || ranges.is_empty() {
+    if files.is_empty() || ranges.is_empty()
+    {
         debug!("No files to format found");
         return Ok(());
     }
@@ -103,7 +105,8 @@ fn run_rustfmt(files: &HashSet<String>, ranges: &[Range]) -> Result<(), FormatDi
     debug!("Ranges: {:?}", ranges);
 
     let rustfmt_var = env::var_os("RUSTFMT");
-    let rustfmt = match &rustfmt_var {
+    let rustfmt = match &rustfmt_var
+    {
         Some(rustfmt) => rustfmt,
         None => OsStr::new("rustfmt"),
     };
@@ -113,7 +116,8 @@ fn run_rustfmt(files: &HashSet<String>, ranges: &[Range]) -> Result<(), FormatDi
         .arg(ranges_as_json)
         .status()?;
 
-    if !exit_status.success() {
+    if !exit_status.success()
+    {
         return Err(FormatDiffError::IoError(io::Error::new(
             io::ErrorKind::Other,
             format!("rustfmt failed with {}", exit_status),
@@ -143,25 +147,30 @@ where
 
     let mut files = HashSet::new();
     let mut ranges = vec![];
-    for line in io::BufReader::new(from).lines() {
+    for line in io::BufReader::new(from).lines()
+    {
         let line = line.unwrap();
 
-        if let Some(captures) = diff_pattern.captures(&line) {
+        if let Some(captures) = diff_pattern.captures(&line)
+        {
             current_file = Some(captures.get(1).unwrap().as_str().to_owned());
         }
 
-        let file = match current_file {
+        let file = match current_file
+        {
             Some(ref f) => &**f,
             None => continue,
         };
 
         // FIXME(emilio): We could avoid this most of the time if needed, but
         // it's not clear it's worth it.
-        if !file_filter.is_match(file) {
+        if !file_filter.is_match(file)
+        {
             continue;
         }
 
-        let lines_captures = match lines_pattern.captures(&line) {
+        let lines_captures = match lines_pattern.captures(&line)
+        {
             Some(captures) => captures,
             None => continue,
         };
@@ -172,12 +181,14 @@ where
             .as_str()
             .parse::<u32>()
             .unwrap();
-        let line_count = match lines_captures.get(3) {
+        let line_count = match lines_captures.get(3)
+        {
             Some(line_count) => line_count.as_str().parse::<u32>().unwrap(),
             None => 1,
         };
 
-        if line_count == 0 {
+        if line_count == 0
+        {
             continue;
         }
 

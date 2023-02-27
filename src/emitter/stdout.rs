@@ -28,7 +28,8 @@ impl Emitter for StdoutEmitter
         }: FormattedFile<'_>,
     ) -> Result<EmitterResult, io::Error>
     {
-        if self.verbosity != Verbosity::Quiet {
+        if self.verbosity != Verbosity::Quiet
+        {
             writeln!(output, "{}:\n", filename)?;
         }
         write!(output, "{}", formatted_text)?;

@@ -45,7 +45,8 @@ impl SpanUtils for SnippetProvider
         let snippet = self.span_to_snippet(original).unwrap();
         let mut offset = 0;
 
-        while let Some(additional_offset) = snippet[offset..].find_uncommented(needle) {
+        while let Some(additional_offset) = snippet[offset..].find_uncommented(needle)
+        {
             offset += additional_offset + needle.len();
         }
 
@@ -68,7 +69,8 @@ impl SpanUtils for SnippetProvider
         let snippet = self.span_to_snippet(original).unwrap();
         let mut offset = 0;
 
-        while let Some(additional_offset) = snippet[offset..].find_uncommented(needle) {
+        while let Some(additional_offset) = snippet[offset..].find_uncommented(needle)
+        {
             offset += additional_offset + needle.len();
         }
 

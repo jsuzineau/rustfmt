@@ -31,9 +31,12 @@ impl<T> Spanned for source_map::Spanned<T>
 macro_rules! span_with_attrs_lo_hi {
     ($this:ident, $lo:expr, $hi:expr) => {{
         let attrs = outer_attributes(&$this.attrs);
-        if attrs.is_empty() {
+        if attrs.is_empty()
+        {
             mk_sp($lo, $hi)
-        } else {
+        }
+        else
+        {
             mk_sp(attrs[0].span.lo(), $hi)
         }
     }};
@@ -69,16 +72,22 @@ impl Spanned for ast::Stmt
 {
     fn span(&self) -> Span
     {
-        match self.kind {
+        match self.kind
+        {
             ast::StmtKind::Local(ref local) => mk_sp(local.span().lo(), self.span.hi()),
             ast::StmtKind::Item(ref item) => mk_sp(item.span().lo(), self.span.hi()),
-            ast::StmtKind::Expr(ref expr) | ast::StmtKind::Semi(ref expr) => {
+            ast::StmtKind::Expr(ref expr) | ast::StmtKind::Semi(ref expr) =>
+            {
                 mk_sp(expr.span().lo(), self.span.hi())
             }
-            ast::StmtKind::MacCall(ref mac_stmt) => {
-                if mac_stmt.attrs.is_empty() {
+            ast::StmtKind::MacCall(ref mac_stmt) =>
+            {
+                if mac_stmt.attrs.is_empty()
+                {
                     self.span
-                } else {
+                }
+                else
+                {
                     mk_sp(mac_stmt.attrs[0].span.lo(), self.span.hi())
                 }
             }
@@ -107,9 +116,12 @@ impl Spanned for ast::Arm
 {
     fn span(&self) -> Span
     {
-        let lo = if self.attrs.is_empty() {
+        let lo = if self.attrs.is_empty()
+        {
             self.pat.span.lo()
-        } else {
+        }
+        else
+        {
             self.attrs[0].span.lo()
         };
         span_with_attrs_lo_hi!(self, lo, self.body.span.hi())
@@ -120,9 +132,12 @@ impl Spanned for ast::Param
 {
     fn span(&self) -> Span
     {
-        if crate::items::is_named_param(self) {
+        if crate::items::is_named_param(self)
+        {
             mk_sp(crate::items::span_lo_for_param(self), self.ty.span.hi())
-        } else {
+        }
+        else
+        {
             self.ty.span
         }
     }
@@ -132,14 +147,18 @@ impl Spanned for ast::GenericParam
 {
     fn span(&self) -> Span
     {
-        let lo = match self.kind {
+        let lo = match self.kind
+        {
             _ if !self.attrs.is_empty() => self.attrs[0].span.lo(),
             ast::GenericParamKind::Const { kw_span, .. } => kw_span.lo(),
             _ => self.ident.span.lo(),
         };
-        let hi = if self.bounds.is_empty() {
+        let hi = if self.bounds.is_empty()
+        {
             self.ident.span.hi()
-        } else {
+        }
+        else
+        {
             self.bounds.last().unwrap().span().hi()
         };
         let ty_hi = if let ast::GenericParamKind::Type {
@@ -148,7 +167,9 @@ impl Spanned for ast::GenericParam
         | ast::GenericParamKind::Const { ref ty, .. } = self.kind
         {
             ty.span().hi()
-        } else {
+        }
+        else
+        {
             hi
         };
         mk_sp(lo, max(hi, ty_hi))
@@ -167,7 +188,8 @@ impl Spanned for ast::WherePredicate
 {
     fn span(&self) -> Span
     {
-        match *self {
+        match *self
+        {
             ast::WherePredicate::BoundPredicate(ref p) => p.span,
             ast::WherePredicate::RegionPredicate(ref p) => p.span,
             ast::WherePredicate::EqPredicate(ref p) => p.span,
@@ -179,7 +201,8 @@ impl Spanned for ast::FnRetTy
 {
     fn span(&self) -> Span
     {
-        match *self {
+        match *self
+        {
             ast::FnRetTy::Default(span) => span,
             ast::FnRetTy::Ty(ref ty) => ty.span,
         }
@@ -190,7 +213,8 @@ impl Spanned for ast::GenericArg
 {
     fn span(&self) -> Span
     {
-        match *self {
+        match *self
+        {
             ast::GenericArg::Lifetime(ref lt) => lt.ident.span,
             ast::GenericArg::Type(ref ty) => ty.span(),
             ast::GenericArg::Const(ref _const) => _const.value.span(),
@@ -202,7 +226,8 @@ impl Spanned for ast::GenericBound
 {
     fn span(&self) -> Span
     {
-        match *self {
+        match *self
+        {
             ast::GenericBound::Trait(ref ptr, _) => ptr.span,
             ast::GenericBound::Outlives(ref l) => l.ident.span,
         }
@@ -213,7 +238,8 @@ impl Spanned for MacroArg
 {
     fn span(&self) -> Span
     {
-        match *self {
+        match *self
+        {
             MacroArg::Expr(ref expr) => expr.span(),
             MacroArg::Ty(ref ty) => ty.span(),
             MacroArg::Pat(ref pat) => pat.span(),

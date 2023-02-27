@@ -98,19 +98,26 @@ pub(crate) fn rewrite_string<'a>(
     // onto result.
     let mut cur_max_width = max_width_with_indent;
     let is_bareline_ok = fmt.line_start.is_empty() || is_whitespace(fmt.line_start);
-    loop {
+    loop
+    {
         // All the input starting at cur_start fits on the current line
-        if graphemes_width(&graphemes[cur_start..]) <= cur_max_width {
-            for (i, grapheme) in graphemes[cur_start..].iter().enumerate() {
-                if is_new_line(grapheme) {
+        if graphemes_width(&graphemes[cur_start..]) <= cur_max_width
+        {
+            for (i, grapheme) in graphemes[cur_start..].iter().enumerate()
+            {
+                if is_new_line(grapheme)
+                {
                     // take care of blank lines
                     result = trim_end_but_line_feed(fmt.trim_end, result);
                     result.push('\n');
-                    if !is_bareline_ok && cur_start + i + 1 < graphemes.len() {
+                    if !is_bareline_ok && cur_start + i + 1 < graphemes.len()
+                    {
                         result.push_str(&indent_without_newline);
                         result.push_str(fmt.line_start);
                     }
-                } else {
+                }
+                else
+                {
                     result.push_str(grapheme);
                 }
             }
@@ -124,8 +131,10 @@ pub(crate) fn rewrite_string<'a>(
             fmt.trim_end,
             fmt.line_end,
             &graphemes[cur_start..],
-        ) {
-            SnippetState::LineEnd(line, len) => {
+        )
+        {
+            SnippetState::LineEnd(line, len) =>
+            {
                 result.push_str(&line);
                 result.push_str(fmt.line_end);
                 result.push_str(&indent_with_newline);
@@ -133,22 +142,28 @@ pub(crate) fn rewrite_string<'a>(
                 cur_max_width = newline_max_chars;
                 cur_start += len;
             }
-            SnippetState::EndWithLineFeed(line, len) => {
-                if line == "\n" && fmt.trim_end {
+            SnippetState::EndWithLineFeed(line, len) =>
+            {
+                if line == "\n" && fmt.trim_end
+                {
                     result = result.trim_end().to_string();
                 }
                 result.push_str(&line);
-                if is_bareline_ok {
+                if is_bareline_ok
+                {
                     // the next line can benefit from the full width
                     cur_max_width = max_width_without_indent;
-                } else {
+                }
+                else
+                {
                     result.push_str(&indent_without_newline);
                     result.push_str(fmt.line_start);
                     cur_max_width = max_width_with_indent;
                 }
                 cur_start += len;
             }
-            SnippetState::EndOfInput(line) => {
+            SnippetState::EndOfInput(line) =>
+            {
                 result.push_str(&line);
                 break;
             }
@@ -163,12 +178,14 @@ pub(crate) fn rewrite_string<'a>(
 /// URL or alike. Otherwise, returns `None`.
 fn detect_url(s: &[&str], index: usize) -> Option<usize>
 {
-    let start = match s[..=index].iter().rposition(|g| is_whitespace(g)) {
+    let start = match s[..=index].iter().rposition(|g| is_whitespace(g))
+    {
         Some(pos) => pos + 1,
         None => 0,
     };
     // 8 = minimum length for a string to contain a URL
-    if s.len() < start + 8 {
+    if s.len() < start + 8
+    {
         return None;
     }
     let split = s[start..].concat();
@@ -177,11 +194,14 @@ fn detect_url(s: &[&str], index: usize) -> Option<usize>
         || split.contains("ftp://")
         || split.contains("file://")
     {
-        match s[index..].iter().position(|g| is_whitespace(g)) {
+        match s[index..].iter().position(|g| is_whitespace(g))
+        {
             Some(pos) => Some(index + pos - 1),
             None => Some(s.len() - 1),
         }
-    } else {
+    }
+    else
+    {
         None
     }
 }
@@ -190,11 +210,14 @@ fn detect_url(s: &[&str], index: usize) -> Option<usize>
 fn trim_end_but_line_feed(trim_end: bool, result: String) -> String
 {
     let whitespace_except_line_feed = |c: char| c.is_whitespace() && c != '\n';
-    if trim_end && result.ends_with(whitespace_except_line_feed) {
+    if trim_end && result.ends_with(whitespace_except_line_feed)
+    {
         result
             .trim_end_matches(whitespace_except_line_feed)
             .to_string()
-    } else {
+    }
+    else
+    {
         result
     }
 }
@@ -243,11 +266,15 @@ fn break_string(max_width: usize, trim_end: bool, line_end: &str, input: &[&str]
         // Take into account newlines occurring in input[0..=index], i.e., the possible next new
         // line. If there is one, then text after it could be rewritten in a way that the available
         // space is fully used.
-        for (i, grapheme) in input[0..=index].iter().enumerate() {
-            if is_new_line(grapheme) {
-                if i <= index_minus_ws {
+        for (i, grapheme) in input[0..=index].iter().enumerate()
+        {
+            if is_new_line(grapheme)
+            {
+                if i <= index_minus_ws
+                {
                     let mut line = &input[0..i].concat()[..];
-                    if trim_end {
+                    if trim_end
+                    {
                         line = line.trim_end();
                     }
                     return SnippetState::EndWithLineFeed(format!("{}\n", line), i + 1);
@@ -257,21 +284,28 @@ fn break_string(max_width: usize, trim_end: bool, line_end: &str, input: &[&str]
         }
 
         let mut index_plus_ws = index;
-        for (i, grapheme) in input[index + 1..].iter().enumerate() {
-            if !trim_end && is_new_line(grapheme) {
+        for (i, grapheme) in input[index + 1..].iter().enumerate()
+        {
+            if !trim_end && is_new_line(grapheme)
+            {
                 return SnippetState::EndWithLineFeed(
                     input[0..=index + 1 + i].concat(),
                     index + 2 + i,
                 );
-            } else if not_whitespace_except_line_feed(grapheme) {
+            }
+            else if not_whitespace_except_line_feed(grapheme)
+            {
                 index_plus_ws = index + i;
                 break;
             }
         }
 
-        if trim_end {
+        if trim_end
+        {
             SnippetState::LineEnd(input[0..=index_minus_ws].concat(), index_plus_ws + 1)
-        } else {
+        }
+        else
+        {
             SnippetState::LineEnd(input[0..=index_plus_ws].concat(), index_plus_ws + 1)
         }
     };
@@ -280,16 +314,19 @@ fn break_string(max_width: usize, trim_end: bool, line_end: &str, input: &[&str]
     let max_width_index_in_input = {
         let mut cur_width = 0;
         let mut cur_index = 0;
-        for (i, grapheme) in input.iter().enumerate() {
+        for (i, grapheme) in input.iter().enumerate()
+        {
             cur_width += unicode_str_width(grapheme);
             cur_index = i;
-            if cur_width > max_width {
+            if cur_width > max_width
+            {
                 break;
             }
         }
         cur_index
     };
-    if max_width_index_in_input == 0 {
+    if max_width_index_in_input == 0
+    {
         return SnippetState::EndOfInput(input.concat());
     }
 
@@ -305,16 +342,20 @@ fn break_string(max_width: usize, trim_end: bool, line_end: &str, input: &[&str]
         // - extra whitespaces to the right can be trimmed
         return break_at(max_width_index_in_input - 1);
     }
-    if let Some(url_index_end) = detect_url(input, max_width_index_in_input) {
+    if let Some(url_index_end) = detect_url(input, max_width_index_in_input)
+    {
         let index_plus_ws = url_index_end
             + input[url_index_end..]
                 .iter()
                 .skip(1)
                 .position(|grapheme| not_whitespace_except_line_feed(grapheme))
                 .unwrap_or(0);
-        return if trim_end {
+        return if trim_end
+        {
             SnippetState::LineEnd(input[..=url_index_end].concat(), index_plus_ws + 1)
-        } else {
+        }
+        else
+        {
             SnippetState::LineEnd(input[..=index_plus_ws].concat(), index_plus_ws + 1)
         };
     }
@@ -351,11 +392,13 @@ fn break_string(max_width: usize, trim_end: bool, line_end: &str, input: &[&str]
 fn is_valid_linebreak(input: &[&str], pos: usize) -> bool
 {
     let is_whitespace = is_whitespace(input[pos]);
-    if is_whitespace {
+    if is_whitespace
+    {
         return true;
     }
     let is_punctuation = is_punctuation(input[pos]);
-    if is_punctuation && !is_part_of_type(input, pos) {
+    if is_punctuation && !is_part_of_type(input, pos)
+    {
         return true;
     }
     false

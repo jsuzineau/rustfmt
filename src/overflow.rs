@@ -99,7 +99,8 @@ impl<'a> OverflowableItem<'a>
 {
     fn has_attrs(&self) -> bool
     {
-        match self {
+        match self
+        {
             OverflowableItem::Expr(ast::Expr { attrs, .. })
             | OverflowableItem::GenericParam(ast::GenericParam { attrs, .. }) => !attrs.is_empty(),
             OverflowableItem::FieldDef(ast::FieldDef { attrs, .. }) => !attrs.is_empty(),
@@ -113,7 +114,8 @@ impl<'a> OverflowableItem<'a>
     where
         F: Fn(&dyn IntoOverflowableItem<'a>) -> T,
     {
-        match self {
+        match self
+        {
             OverflowableItem::Expr(expr) => f(*expr),
             OverflowableItem::GenericParam(gp) => f(*gp),
             OverflowableItem::MacroArg(macro_arg) => f(*macro_arg),
@@ -128,13 +130,16 @@ impl<'a> OverflowableItem<'a>
 
     pub(crate) fn is_simple(&self) -> bool
     {
-        match self {
+        match self
+        {
             OverflowableItem::Expr(expr) => is_simple_expr(expr),
             OverflowableItem::MacroArg(MacroArg::Keyword(..)) => true,
             OverflowableItem::MacroArg(MacroArg::Expr(expr)) => is_simple_expr(expr),
-            OverflowableItem::NestedMetaItem(nested_meta_item) => match nested_meta_item {
+            OverflowableItem::NestedMetaItem(nested_meta_item) => match nested_meta_item
+            {
                 ast::NestedMetaItem::Lit(..) => true,
-                ast::NestedMetaItem::MetaItem(ref meta_item) => {
+                ast::NestedMetaItem::MetaItem(ref meta_item) =>
+                {
                     matches!(meta_item.kind, ast::MetaItemKind::Word)
                 }
             },
@@ -152,7 +157,8 @@ impl<'a> OverflowableItem<'a>
 
     pub(crate) fn is_nested_call(&self) -> bool
     {
-        match self {
+        match self
+        {
             OverflowableItem::Expr(expr) => is_nested_call(expr),
             OverflowableItem::MacroArg(MacroArg::Expr(expr)) => is_nested_call(expr),
             _ => false,
@@ -161,7 +167,8 @@ impl<'a> OverflowableItem<'a>
 
     pub(crate) fn to_expr(&self) -> Option<&'a ast::Expr>
     {
-        match self {
+        match self
+        {
             OverflowableItem::Expr(expr) => Some(expr),
             OverflowableItem::MacroArg(MacroArg::Expr(ref expr)) => Some(expr),
             _ => None,
@@ -170,22 +177,27 @@ impl<'a> OverflowableItem<'a>
 
     pub(crate) fn can_be_overflowed(&self, context: &RewriteContext<'_>, len: usize) -> bool
     {
-        match self {
+        match self
+        {
             OverflowableItem::Expr(expr) => can_be_overflowed_expr(context, expr, len),
-            OverflowableItem::MacroArg(macro_arg) => match macro_arg {
+            OverflowableItem::MacroArg(macro_arg) => match macro_arg
+            {
                 MacroArg::Expr(ref expr) => can_be_overflowed_expr(context, expr, len),
                 MacroArg::Ty(ref ty) => can_be_overflowed_type(context, ty, len),
                 MacroArg::Pat(..) => false,
                 MacroArg::Item(..) => len == 1,
                 MacroArg::Keyword(..) => false,
             },
-            OverflowableItem::NestedMetaItem(nested_meta_item) if len == 1 => {
-                match nested_meta_item {
+            OverflowableItem::NestedMetaItem(nested_meta_item) if len == 1 =>
+            {
+                match nested_meta_item
+                {
                     ast::NestedMetaItem::Lit(..) => false,
                     ast::NestedMetaItem::MetaItem(..) => true,
                 }
             }
-            OverflowableItem::SegmentParam(SegmentParam::Type(ty)) => {
+            OverflowableItem::SegmentParam(SegmentParam::Type(ty)) =>
+            {
                 can_be_overflowed_type(context, ty, len)
             }
             OverflowableItem::TuplePatField(pat) => can_be_overflowed_pat(context, pat, len),
@@ -196,7 +208,8 @@ impl<'a> OverflowableItem<'a>
 
     fn special_cases(&self) -> &'static [(&'static str, usize)]
     {
-        match self {
+        match self
+        {
             OverflowableItem::MacroArg(..) => SPECIAL_CASE_MACROS,
             OverflowableItem::NestedMetaItem(..) => SPECIAL_CASE_ATTR,
             _ => &[],
@@ -318,7 +331,8 @@ pub(crate) fn rewrite_with_square_brackets<'a, T: 'a + IntoOverflowableItem<'a>>
     delim_token: Option<Delimiter>,
 ) -> Option<String>
 {
-    let (lhs, rhs) = match delim_token {
+    let (lhs, rhs) = match delim_token
+    {
         Some(Delimiter::Parenthesis) => ("(", ")"),
         Some(Delimiter::Brace) => ("{", "}"),
         _ => ("[", "]"),
@@ -416,17 +430,24 @@ impl<'a> Context<'a>
     ) -> Option<String>
     {
         let last_item = self.last_item()?;
-        let rewrite = match last_item {
-            OverflowableItem::Expr(expr) => {
-                match expr.kind {
+        let rewrite = match last_item
+        {
+            OverflowableItem::Expr(expr) =>
+            {
+                match expr.kind
+                {
                     // When overflowing the closure which consists of a single control flow
                     // expression, force to use block if its condition uses multi line.
-                    ast::ExprKind::Closure(..) => {
+                    ast::ExprKind::Closure(..) =>
+                    {
                         // If the argument consists of multiple closures, we do not overflow
                         // the last closure.
-                        if closures::args_have_many_closure(&self.items) {
+                        if closures::args_have_many_closure(&self.items)
+                        {
                             None
-                        } else {
+                        }
+                        else
+                        {
                             closures::rewrite_last_closure(self.context, expr, shape)
                         }
                     }
@@ -437,13 +458,17 @@ impl<'a> Context<'a>
                     | ast::ExprKind::ForLoop(..)
                     | ast::ExprKind::Loop(..)
                     | ast::ExprKind::While(..)
-                    | ast::ExprKind::Match(..) => {
+                    | ast::ExprKind::Match(..) =>
+                    {
                         let multi_line = rewrite_cond(self.context, expr, shape)
                             .map_or(false, |cond| cond.contains('\n'));
 
-                        if multi_line {
+                        if multi_line
+                        {
                             None
-                        } else {
+                        }
+                        else
+                        {
                             expr.rewrite(self.context, shape)
                         }
                     }
@@ -454,12 +479,15 @@ impl<'a> Context<'a>
             item => item.rewrite(self.context, shape),
         };
 
-        if let Some(rewrite) = rewrite {
+        if let Some(rewrite) = rewrite
+        {
             // splitn(2, *).next().unwrap() is always safe.
             let rewrite_first_line = Some(rewrite.splitn(2, '\n').next().unwrap().to_owned());
             last_list_item.item = rewrite_first_line;
             Some(rewrite)
-        } else {
+        }
+        else
+        {
             None
         }
     }
@@ -485,9 +513,11 @@ impl<'a> Context<'a>
 
         // Replace the last item with its first line to see if it fits with
         // first arguments.
-        let placeholder = if overflow_last {
+        let placeholder = if overflow_last
+        {
             let old_value = self.context.force_one_line_chain.get();
-            match self.last_item() {
+            match self.last_item()
+            {
                 Some(OverflowableItem::Expr(expr))
                     if !combine_arg_with_callee && is_method_call(expr) =>
                 {
@@ -516,7 +546,9 @@ impl<'a> Context<'a>
             });
             self.context.force_one_line_chain.replace(old_value);
             result
-        } else {
+        }
+        else
+        {
             None
         };
 
@@ -529,7 +561,8 @@ impl<'a> Context<'a>
 
         // Replace the stub with the full overflowing last argument if the rewrite
         // succeeded and its first line fits with the other arguments.
-        match (overflow_last, tactic, placeholder) {
+        match (overflow_last, tactic, placeholder)
+        {
             (true, DefinitiveListTactic::Horizontal, Some(ref overflowed))
                 if self.items.len() == 1 =>
             {
@@ -539,25 +572,33 @@ impl<'a> Context<'a>
                 // (e.g., `foo() as u32`), this budget reduction may produce poorly
                 // formatted code, where a prefix or a suffix being left on its own
                 // line. Here we explicitlly check those cases.
-                if count_newlines(overflowed) == 1 {
+                if count_newlines(overflowed) == 1
+                {
                     let rw = self
                         .items
                         .last()
                         .and_then(|last_item| last_item.rewrite(self.context, self.nested_shape));
                     let no_newline = rw.as_ref().map_or(false, |s| !s.contains('\n'));
-                    if no_newline {
+                    if no_newline
+                    {
                         list_items[self.items.len() - 1].item = rw;
-                    } else {
+                    }
+                    else
+                    {
                         list_items[self.items.len() - 1].item = Some(overflowed.to_owned());
                     }
-                } else {
+                }
+                else
+                {
                     list_items[self.items.len() - 1].item = Some(overflowed.to_owned());
                 }
             }
-            (true, DefinitiveListTactic::Horizontal, placeholder @ Some(..)) => {
+            (true, DefinitiveListTactic::Horizontal, placeholder @ Some(..)) =>
+            {
                 list_items[self.items.len() - 1].item = placeholder;
             }
-            _ if !self.items.is_empty() => {
+            _ if !self.items.is_empty() =>
+            {
                 list_items[self.items.len() - 1].item = self
                     .items
                     .last()
@@ -573,10 +614,13 @@ impl<'a> Context<'a>
                     && crate::lists::total_item_width(&list_items[0]) <= self.one_line_width
                 {
                     tactic = DefinitiveListTactic::Horizontal;
-                } else {
+                }
+                else
+                {
                     tactic = self.default_tactic(list_items);
 
-                    if tactic == DefinitiveListTactic::Vertical {
+                    if tactic == DefinitiveListTactic::Vertical
+                    {
                         if let Some((all_simple, num_args_before)) =
                             maybe_get_args_offset(self.ident, &self.items)
                         {
@@ -594,10 +638,12 @@ impl<'a> Context<'a>
                                     self.nested_shape.width,
                                 ) == DefinitiveListTactic::Horizontal;
 
-                            if one_line {
+                            if one_line
+                            {
                                 tactic = DefinitiveListTactic::SpecialMacro(num_args_before);
                             };
-                        } else if is_every_expr_simple(&self.items)
+                        }
+                        else if is_every_expr_simple(&self.items)
                             && no_long_items(
                                 list_items,
                                 self.context.config.short_array_element_width_threshold(),
@@ -635,15 +681,22 @@ impl<'a> Context<'a>
         // indentation. If its first line fits on one line with the other arguments,
         // we format the function arguments horizontally.
         let tactic = self.try_overflow_last_item(&mut list_items);
-        let trailing_separator = if let Some(tactic) = self.force_separator_tactic {
+        let trailing_separator = if let Some(tactic) = self.force_separator_tactic
+        {
             tactic
-        } else if !self.context.use_block_indent() {
+        }
+        else if !self.context.use_block_indent()
+        {
             SeparatorTactic::Never
-        } else {
+        }
+        else
+        {
             self.context.config.trailing_comma()
         };
-        let ends_with_newline = match tactic {
-            DefinitiveListTactic::Vertical | DefinitiveListTactic::Mixed => {
+        let ends_with_newline = match tactic
+        {
+            DefinitiveListTactic::Vertical | DefinitiveListTactic::Mixed =>
+            {
                 self.context.use_block_indent()
             }
             _ => false,
@@ -665,14 +718,18 @@ impl<'a> Context<'a>
             ..shape
         };
 
-        let (prefix, suffix) = match self.custom_delims {
+        let (prefix, suffix) = match self.custom_delims
+        {
             Some((lhs, rhs)) => (lhs, rhs),
             _ => (self.prefix, self.suffix),
         };
 
-        let extend_width = if items_str.is_empty() {
+        let extend_width = if items_str.is_empty()
+        {
             2
-        } else {
+        }
+        else
+        {
             first_line_width(items_str) + 1
         };
         let nested_indent_str = self
@@ -688,19 +745,26 @@ impl<'a> Context<'a>
         );
         result.push_str(self.ident);
         result.push_str(prefix);
-        let force_single_line = if self.context.config.version() == Version::Two {
+        let force_single_line = if self.context.config.version() == Version::Two
+        {
             !self.context.use_block_indent() || (is_extendable && extend_width <= shape.width)
-        } else {
+        }
+        else
+        {
             // 2 = `()`
             let fits_one_line = items_str.len() + 2 <= shape.width;
             !self.context.use_block_indent()
                 || (self.context.inside_macro() && !items_str.contains('\n') && fits_one_line)
                 || (is_extendable && extend_width <= shape.width)
         };
-        if force_single_line {
+        if force_single_line
+        {
             result.push_str(items_str);
-        } else {
-            if !items_str.is_empty() {
+        }
+        else
+        {
+            if !items_str.is_empty()
+            {
                 result.push_str(&nested_indent_str);
                 result.push_str(items_str);
             }
@@ -752,7 +816,8 @@ fn last_item_shape(
     args_max_width: usize,
 ) -> Option<Shape>
 {
-    if items.len() == 1 && !lists.get(0)?.is_nested_call() {
+    if items.len() == 1 && !lists.get(0)?.is_nested_call()
+    {
         return Some(shape);
     }
     let offset = items
@@ -777,13 +842,16 @@ fn shape_from_indent_style(
     offset: usize,
 ) -> Shape
 {
-    let (shape, overhead) = if context.use_block_indent() {
+    let (shape, overhead) = if context.use_block_indent()
+    {
         let shape = shape
             .block()
             .block_indent(context.config.tab_spaces())
             .with_max_width(context.config);
         (shape, 1) // 1 = ","
-    } else {
+    }
+    else
+    {
         (shape.visual_indent(offset), overhead)
     };
     Shape {
@@ -815,7 +883,9 @@ pub(crate) fn maybe_get_args_offset(
             && is_every_expr_simple(&args[num_args_before + 1..]);
 
         Some((all_simple, num_args_before))
-    } else {
+    }
+    else
+    {
         None
     }
 }

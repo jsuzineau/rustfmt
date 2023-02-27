@@ -19,7 +19,8 @@ impl DefinitiveListTactic
 {
     pub fn ends_with_newline(&self, indent_style: IndentStyle) -> bool
     {
-        match indent_style {
+        match indent_style
+        {
             IndentStyle::Block => *self != DefinitiveListTactic::Horizontal,
             IndentStyle::Visual => false,
         }
@@ -56,9 +57,12 @@ impl SeparatorTactic
 {
     pub fn from_bool(b: bool) -> SeparatorTactic
     {
-        if b {
+        if b
+        {
             SeparatorTactic::Always
-        } else {
+        }
+        else
+        {
             SeparatorTactic::Never
         }
     }
@@ -90,12 +94,17 @@ impl SeparatorPlace
         sep: &str,
     ) -> SeparatorPlace
     {
-        match tactic {
+        match tactic
+        {
             DefinitiveListTactic::Vertical => default,
-            _ => {
-                if sep == "," {
+            _ =>
+            {
+                if sep == ","
+                {
                     SeparatorPlace::Back
-                } else {
+                }
+                else
+                {
                     default
                 }
             }
