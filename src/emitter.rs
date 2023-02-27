@@ -19,41 +19,41 @@ mod stdout;
 
 pub(crate) struct FormattedFile<'a>
 {
-    pub(crate) filename: &'a FileName,
-    pub(crate) original_text: &'a str,
-    pub(crate) formatted_text: &'a str,
+  pub(crate) filename: &'a FileName,
+  pub(crate) original_text: &'a str,
+  pub(crate) formatted_text: &'a str,
 }
 
 #[derive(Debug, Default, Clone)]
 pub(crate) struct EmitterResult
 {
-    pub(crate) has_diff: bool,
+  pub(crate) has_diff: bool,
 }
 
 pub(crate) trait Emitter
 {
-    fn emit_formatted_file(
-        &mut self,
-        output: &mut dyn Write,
-        formatted_file: FormattedFile<'_>,
-    ) -> Result<EmitterResult, io::Error>;
+  fn emit_formatted_file(
+    &mut self,
+    output: &mut dyn Write,
+    formatted_file: FormattedFile<'_>,
+  ) -> Result<EmitterResult, io::Error>;
 
-    fn emit_header(&self, _output: &mut dyn Write) -> Result<(), io::Error>
-    {
-        Ok(())
-    }
+  fn emit_header(&self, _output: &mut dyn Write) -> Result<(), io::Error>
+  {
+    Ok(())
+  }
 
-    fn emit_footer(&self, _output: &mut dyn Write) -> Result<(), io::Error>
-    {
-        Ok(())
-    }
+  fn emit_footer(&self, _output: &mut dyn Write) -> Result<(), io::Error>
+  {
+    Ok(())
+  }
 }
 
 fn ensure_real_path(filename: &FileName) -> &Path
 {
-    match *filename
-    {
-        FileName::Real(ref path) => path,
-        _ => panic!("cannot format `{}` and emit to files", filename),
-    }
+  match *filename
+  {
+    FileName::Real(ref path) => path,
+    _ => panic!("cannot format `{}` and emit to files", filename),
+  }
 }

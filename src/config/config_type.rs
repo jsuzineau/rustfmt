@@ -5,82 +5,82 @@ use crate::config::options::{IgnoreList, WidthHeuristics};
 /// Trait for types that can be used in `Config`.
 pub(crate) trait ConfigType: Sized
 {
-    /// Returns hint text for use in `Config::print_docs()`. For enum types, this is a
-    /// pipe-separated list of variants; for other types it returns `<type>`.
-    fn doc_hint() -> String;
+  /// Returns hint text for use in `Config::print_docs()`. For enum types, this is a
+  /// pipe-separated list of variants; for other types it returns `<type>`.
+  fn doc_hint() -> String;
 
-    /// Return `true` if the variant (i.e. value of this type) is stable.
-    ///
-    /// By default, return true for all values. Enums annotated with `#[config_type]`
-    /// are automatically implemented, based on the `#[unstable_variant]` annotation.
-    fn stable_variant(&self) -> bool
-    {
-        true
-    }
+  /// Return `true` if the variant (i.e. value of this type) is stable.
+  ///
+  /// By default, return true for all values. Enums annotated with `#[config_type]`
+  /// are automatically implemented, based on the `#[unstable_variant]` annotation.
+  fn stable_variant(&self) -> bool
+  {
+    true
+  }
 }
 
 impl ConfigType for bool
 {
-    fn doc_hint() -> String
-    {
-        String::from("<boolean>")
-    }
+  fn doc_hint() -> String
+  {
+    String::from("<boolean>")
+  }
 }
 
 impl ConfigType for usize
 {
-    fn doc_hint() -> String
-    {
-        String::from("<unsigned integer>")
-    }
+  fn doc_hint() -> String
+  {
+    String::from("<unsigned integer>")
+  }
 }
 
 impl ConfigType for isize
 {
-    fn doc_hint() -> String
-    {
-        String::from("<signed integer>")
-    }
+  fn doc_hint() -> String
+  {
+    String::from("<signed integer>")
+  }
 }
 
 impl ConfigType for String
 {
-    fn doc_hint() -> String
-    {
-        String::from("<string>")
-    }
+  fn doc_hint() -> String
+  {
+    String::from("<string>")
+  }
 }
 
 impl ConfigType for FileLines
 {
-    fn doc_hint() -> String
-    {
-        String::from("<json>")
-    }
+  fn doc_hint() -> String
+  {
+    String::from("<json>")
+  }
 }
 
 impl ConfigType for MacroSelectors
 {
-    fn doc_hint() -> String
-    {
-        String::from("[<string>, ...]")
-    }
+  fn doc_hint() -> String
+  {
+    String::from("[<string>, ...]")
+  }
 }
 
 impl ConfigType for WidthHeuristics
 {
-    fn doc_hint() -> String
-    {
-        String::new()
-    }
+  fn doc_hint() -> String
+  {
+    String::new()
+  }
 }
 
 impl ConfigType for IgnoreList
 {
-    fn doc_hint() -> String
-    {
-        String::from("[<string>,..]")
-    }
+  fn doc_hint() -> String
+  {
+    String::from("[<string>,..]")
+  }
 }
 
 macro_rules! create_config {
@@ -495,39 +495,39 @@ macro_rules! create_config {
 }
 
 pub(crate) fn is_stable_option_and_value<T>(
-    option_name: &str,
-    option_stable: bool,
-    option_value: &T,
+  option_name: &str,
+  option_stable: bool,
+  option_value: &T,
 ) -> bool
 where
-    T: PartialEq + std::fmt::Debug + ConfigType,
+  T: PartialEq + std::fmt::Debug + ConfigType,
 {
-    let nightly = crate::is_nightly_channel!();
-    let variant_stable = option_value.stable_variant();
-    match (nightly, option_stable, variant_stable)
+  let nightly = crate::is_nightly_channel!();
+  let variant_stable = option_value.stable_variant();
+  match (nightly, option_stable, variant_stable)
+  {
+    // Stable with an unstable option
+    (false, false, _) =>
     {
-        // Stable with an unstable option
-        (false, false, _) =>
-        {
-            eprintln!(
-                "Warning: can't set `{} = {:?}`, unstable features are only \
+      eprintln!(
+        "Warning: can't set `{} = {:?}`, unstable features are only \
                        available in nightly channel.",
-                option_name, option_value
-            );
-            false
-        }
-        // Stable with a stable option, but an unstable variant
-        (false, true, false) =>
-        {
-            eprintln!(
-                "Warning: can't set `{} = {:?}`, unstable variants are only \
-                       available in nightly channel.",
-                option_name, option_value
-            );
-            false
-        }
-        // Nightly: everything allowed
-        // Stable with stable option and variant: allowed
-        (true, _, _) | (false, true, true) => true,
+        option_name, option_value
+      );
+      false
     }
+    // Stable with a stable option, but an unstable variant
+    (false, true, false) =>
+    {
+      eprintln!(
+        "Warning: can't set `{} = {:?}`, unstable variants are only \
+                       available in nightly channel.",
+        option_name, option_value
+      );
+      false
+    }
+    // Nightly: everything allowed
+    // Stable with stable option and variant: allowed
+    (true, _, _) | (false, true, true) => true,
+  }
 }

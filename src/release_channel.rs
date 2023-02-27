@@ -10,7 +10,7 @@
 /// nightly compiler when installed from crates.io, default to nightly mode.
 #[macro_export]
 macro_rules! is_nightly_channel {
-    () => {
-        option_env!("CFG_RELEASE_CHANNEL").map_or(true, |c| c == "nightly" || c == "dev")
-    };
+  () => {
+    option_env!("CFG_RELEASE_CHANNEL").map_or(true, |c| c == "nightly" || c == "dev")
+  };
 }
