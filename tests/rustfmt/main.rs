@@ -8,7 +8,8 @@ use std::process::Command;
 use rustfmt_config_proc_macro::rustfmt_only_ci_test;
 
 /// Run the rustfmt executable and return its output.
-fn rustfmt(args: &[&str]) -> (String, String) {
+fn rustfmt(args: &[&str]) -> (String, String)
+{
     let mut bin_dir = env::current_exe().unwrap();
     bin_dir.pop(); // chop off test exe name
     if bin_dir.ends_with("deps") {
@@ -51,7 +52,8 @@ macro_rules! assert_that {
 
 #[rustfmt_only_ci_test]
 #[test]
-fn print_config() {
+fn print_config()
+{
     assert_that!(
         &["--print-config", "unknown"],
         starts_with("Unknown print-config option")
@@ -80,7 +82,8 @@ fn print_config() {
 
 #[rustfmt_only_ci_test]
 #[test]
-fn inline_config() {
+fn inline_config()
+{
     // single invocation
     assert_that!(
         &[
@@ -110,14 +113,16 @@ fn inline_config() {
 }
 
 #[test]
-fn rustfmt_usage_text() {
+fn rustfmt_usage_text()
+{
     let args = ["--help"];
     let (stdout, _) = rustfmt(&args);
     assert!(stdout.contains("Format Rust code\n\nusage: rustfmt [options] <file>..."));
 }
 
 #[test]
-fn mod_resolution_error_multiple_candidate_files() {
+fn mod_resolution_error_multiple_candidate_files()
+{
     // See also https://github.com/rust-lang/rustfmt/issues/5167
     let default_path = Path::new("tests/mod-resolver/issue-5167/src/a.rs");
     let secondary_path = Path::new("tests/mod-resolver/issue-5167/src/a/mod.rs");
@@ -133,7 +138,8 @@ fn mod_resolution_error_multiple_candidate_files() {
 }
 
 #[test]
-fn mod_resolution_error_sibling_module_not_found() {
+fn mod_resolution_error_sibling_module_not_found()
+{
     let args = ["tests/mod-resolver/module-not-found/sibling_module/lib.rs"];
     let (_stdout, stderr) = rustfmt(&args);
     // Module resolution fails because we're unable to find `a.rs` in the same directory as lib.rs
@@ -141,7 +147,8 @@ fn mod_resolution_error_sibling_module_not_found() {
 }
 
 #[test]
-fn mod_resolution_error_relative_module_not_found() {
+fn mod_resolution_error_relative_module_not_found()
+{
     let args = ["tests/mod-resolver/module-not-found/relative_module/lib.rs"];
     let (_stdout, stderr) = rustfmt(&args);
     // The file `./a.rs` and directory `./a` both exist.
@@ -153,7 +160,8 @@ fn mod_resolution_error_relative_module_not_found() {
 }
 
 #[test]
-fn mod_resolution_error_path_attribute_does_not_exist() {
+fn mod_resolution_error_path_attribute_does_not_exist()
+{
     let args = ["tests/mod-resolver/module-not-found/bad_path_attribute/lib.rs"];
     let (_stdout, stderr) = rustfmt(&args);
     // The path attribute points to a file that does not exist
@@ -161,7 +169,8 @@ fn mod_resolution_error_path_attribute_does_not_exist() {
 }
 
 #[test]
-fn rustfmt_emits_error_on_line_overflow_true() {
+fn rustfmt_emits_error_on_line_overflow_true()
+{
     // See also https://github.com/rust-lang/rustfmt/issues/3164
     let args = [
         "--config",

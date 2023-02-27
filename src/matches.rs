@@ -23,7 +23,8 @@ use crate::utils::{
 };
 
 /// A simple wrapper type against `ast::Arm`. Used inside `write_list()`.
-struct ArmWrapper<'a> {
+struct ArmWrapper<'a>
+{
     arm: &'a ast::Arm,
     /// `true` if the arm is the last one in match expression. Used to decide on whether we should
     /// add trailing comma to the match arm when `config.trailing_comma() == Never`.
@@ -32,8 +33,10 @@ struct ArmWrapper<'a> {
     beginning_vert: Option<BytePos>,
 }
 
-impl<'a> ArmWrapper<'a> {
-    fn new(arm: &'a ast::Arm, is_last: bool, beginning_vert: Option<BytePos>) -> ArmWrapper<'a> {
+impl<'a> ArmWrapper<'a>
+{
+    fn new(arm: &'a ast::Arm, is_last: bool, beginning_vert: Option<BytePos>) -> ArmWrapper<'a>
+    {
         ArmWrapper {
             arm,
             is_last,
@@ -42,8 +45,10 @@ impl<'a> ArmWrapper<'a> {
     }
 }
 
-impl<'a> Spanned for ArmWrapper<'a> {
-    fn span(&self) -> Span {
+impl<'a> Spanned for ArmWrapper<'a>
+{
+    fn span(&self) -> Span
+    {
         if let Some(lo) = self.beginning_vert {
             let lo = std::cmp::min(lo, self.arm.span().lo());
             mk_sp(lo, self.arm.span().hi())
@@ -53,8 +58,10 @@ impl<'a> Spanned for ArmWrapper<'a> {
     }
 }
 
-impl<'a> Rewrite for ArmWrapper<'a> {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl<'a> Rewrite for ArmWrapper<'a>
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         rewrite_match_arm(
             context,
             self.arm,
@@ -72,7 +79,8 @@ pub(crate) fn rewrite_match(
     shape: Shape,
     span: Span,
     attrs: &[ast::Attribute],
-) -> Option<String> {
+) -> Option<String>
+{
     // Do not take the rhs overhead from the upper expressions into account
     // when rewriting match condition.
     let cond_shape = Shape {
@@ -143,7 +151,8 @@ pub(crate) fn rewrite_match(
     }
 }
 
-fn arm_comma(config: &Config, body: &ast::Expr, is_last: bool) -> &'static str {
+fn arm_comma(config: &Config, body: &ast::Expr, is_last: bool) -> &'static str
+{
     if is_last && config.trailing_comma() == SeparatorTactic::Never {
         ""
     } else if config.match_block_trailing_comma() {
@@ -160,10 +169,9 @@ fn arm_comma(config: &Config, body: &ast::Expr, is_last: bool) -> &'static str {
 }
 
 /// Collect a byte position of the beginning `|` for each arm, if available.
-fn collect_beginning_verts(
-    context: &RewriteContext<'_>,
-    arms: &[ast::Arm],
-) -> Vec<Option<BytePos>> {
+fn collect_beginning_verts(context: &RewriteContext<'_>, arms: &[ast::Arm])
+    -> Vec<Option<BytePos>>
+{
     arms.iter()
         .map(|a| {
             context
@@ -180,7 +188,8 @@ fn rewrite_match_arms(
     shape: Shape,
     span: Span,
     open_brace_pos: BytePos,
-) -> Option<String> {
+) -> Option<String>
+{
     let arm_shape = shape
         .block_indent(context.config.tab_spaces())
         .with_max_width(context.config);
@@ -220,7 +229,8 @@ fn rewrite_match_arm(
     shape: Shape,
     is_last: bool,
     has_leading_pipe: bool,
-) -> Option<String> {
+) -> Option<String>
+{
     let (missing_span, attrs_str) = if !arm.attrs.is_empty() {
         if contains_skip(&arm.attrs) {
             let (_, body) = flatten_arm_body(context, &arm.body, None);
@@ -282,7 +292,8 @@ fn rewrite_match_arm(
     )
 }
 
-fn stmt_is_expr_mac(stmt: &ast::Stmt) -> bool {
+fn stmt_is_expr_mac(stmt: &ast::Stmt) -> bool
+{
     if let ast::StmtKind::Expr(expr) = &stmt.kind {
         if let ast::ExprKind::MacCall(_) = &expr.kind {
             return true;
@@ -294,7 +305,8 @@ fn stmt_is_expr_mac(stmt: &ast::Stmt) -> bool {
 fn block_can_be_flattened<'a>(
     context: &RewriteContext<'_>,
     expr: &'a ast::Expr,
-) -> Option<&'a ast::Block> {
+) -> Option<&'a ast::Block>
+{
     match expr.kind {
         ast::ExprKind::Block(ref block, _)
             if !is_unsafe_block(block)
@@ -315,7 +327,8 @@ fn flatten_arm_body<'a>(
     context: &'a RewriteContext<'_>,
     body: &'a ast::Expr,
     opt_shape: Option<Shape>,
-) -> (bool, &'a ast::Expr) {
+) -> (bool, &'a ast::Expr)
+{
     let can_extend =
         |expr| !context.config.force_multiline_blocks() && can_flatten_block_around_this(expr);
 
@@ -353,7 +366,8 @@ fn rewrite_match_body(
     has_guard: bool,
     arrow_span: Span,
     is_last: bool,
-) -> Option<String> {
+) -> Option<String>
+{
     let (extend, body) = flatten_arm_body(
         context,
         body,
@@ -521,7 +535,8 @@ fn rewrite_guard(
     // the arm (excludes offset).
     pattern_width: usize,
     multiline_pattern: bool,
-) -> Option<String> {
+) -> Option<String>
+{
     if let Some(ref guard) = *guard {
         // First try to fit the guard string on the same line as the pattern.
         // 4 = ` if `, 5 = ` => {`
@@ -559,7 +574,8 @@ fn rewrite_guard(
     }
 }
 
-fn nop_block_collapse(block_str: Option<String>, budget: usize) -> Option<String> {
+fn nop_block_collapse(block_str: Option<String>, budget: usize) -> Option<String>
+{
     debug!("nop_block_collapse {:?} {}", block_str, budget);
     block_str.map(|block_str| {
         if block_str.starts_with('{')
@@ -573,7 +589,8 @@ fn nop_block_collapse(block_str: Option<String>, budget: usize) -> Option<String
     })
 }
 
-fn can_flatten_block_around_this(body: &ast::Expr) -> bool {
+fn can_flatten_block_around_this(body: &ast::Expr) -> bool
+{
     match body.kind {
         // We do not allow `if` to stay on the same line, since we could easily mistake
         // `pat => if cond { ... }` and `pat if cond => { ... }`.

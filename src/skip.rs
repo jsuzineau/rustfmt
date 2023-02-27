@@ -13,18 +13,22 @@ use std::collections::HashSet;
 ///
 /// Query this context to know if you need to skip a block.
 #[derive(Default, Clone)]
-pub(crate) struct SkipContext {
+pub(crate) struct SkipContext
+{
     pub(crate) macros: SkipNameContext,
     pub(crate) attributes: SkipNameContext,
 }
 
-impl SkipContext {
-    pub(crate) fn update_with_attrs(&mut self, attrs: &[ast::Attribute]) {
+impl SkipContext
+{
+    pub(crate) fn update_with_attrs(&mut self, attrs: &[ast::Attribute])
+    {
         self.macros.extend(get_skip_names("macros", attrs));
         self.attributes.extend(get_skip_names("attributes", attrs));
     }
 
-    pub(crate) fn update(&mut self, other: SkipContext) {
+    pub(crate) fn update(&mut self, other: SkipContext)
+    {
         let SkipContext { macros, attributes } = other;
         self.macros.update(macros);
         self.attributes.update(attributes);
@@ -35,19 +39,24 @@ impl SkipContext {
 ///
 /// Query this context with a string to know whether to skip it.
 #[derive(Clone)]
-pub(crate) enum SkipNameContext {
+pub(crate) enum SkipNameContext
+{
     All,
     Values(HashSet<String>),
 }
 
-impl Default for SkipNameContext {
-    fn default() -> Self {
+impl Default for SkipNameContext
+{
+    fn default() -> Self
+    {
         Self::Values(Default::default())
     }
 }
 
-impl Extend<String> for SkipNameContext {
-    fn extend<T: IntoIterator<Item = String>>(&mut self, iter: T) {
+impl Extend<String> for SkipNameContext
+{
+    fn extend<T: IntoIterator<Item = String>>(&mut self, iter: T)
+    {
         match self {
             Self::All => {}
             Self::Values(values) => values.extend(iter),
@@ -55,8 +64,10 @@ impl Extend<String> for SkipNameContext {
     }
 }
 
-impl SkipNameContext {
-    pub(crate) fn update(&mut self, other: Self) {
+impl SkipNameContext
+{
+    pub(crate) fn update(&mut self, other: Self)
+    {
         match (self, other) {
             // If we're already skipping everything, nothing more can be added
             (Self::All, _) => {}
@@ -71,14 +82,16 @@ impl SkipNameContext {
         }
     }
 
-    pub(crate) fn skip(&self, name: &str) -> bool {
+    pub(crate) fn skip(&self, name: &str) -> bool
+    {
         match self {
             Self::All => true,
             Self::Values(values) => values.contains(name),
         }
     }
 
-    pub(crate) fn skip_all(&mut self) {
+    pub(crate) fn skip_all(&mut self)
+    {
         *self = Self::All;
     }
 }
@@ -87,7 +100,8 @@ static RUSTFMT: &str = "rustfmt";
 static SKIP: &str = "skip";
 
 /// Say if you're playing with `rustfmt`'s skip attribute
-pub(crate) fn is_skip_attr(segments: &[ast::PathSegment]) -> bool {
+pub(crate) fn is_skip_attr(segments: &[ast::PathSegment]) -> bool
+{
     if segments.len() < 2 || segments[0].ident.to_string() != RUSTFMT {
         return false;
     }
@@ -103,7 +117,8 @@ pub(crate) fn is_skip_attr(segments: &[ast::PathSegment]) -> bool {
     }
 }
 
-fn get_skip_names(kind: &str, attrs: &[ast::Attribute]) -> Vec<String> {
+fn get_skip_names(kind: &str, attrs: &[ast::Attribute]) -> Vec<String>
+{
     let mut skip_names = vec![];
     let path = format!("{}::{}::{}", RUSTFMT, SKIP, kind);
     for attr in attrs {

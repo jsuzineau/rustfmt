@@ -28,7 +28,8 @@ use crate::utils::{
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub(crate) enum PathContext {
+pub(crate) enum PathContext
+{
     Expr,
     Type,
     Import,
@@ -41,7 +42,8 @@ pub(crate) fn rewrite_path(
     qself: &Option<ptr::P<ast::QSelf>>,
     path: &ast::Path,
     shape: Shape,
-) -> Option<String> {
+) -> Option<String>
+{
     let skip_count = qself.as_ref().map_or(0, |x| x.position);
 
     let mut result = if path.is_global() && qself.is_none() && path_context != PathContext::Import {
@@ -137,15 +139,18 @@ where
 }
 
 #[derive(Debug)]
-pub(crate) enum SegmentParam<'a> {
+pub(crate) enum SegmentParam<'a>
+{
     Const(&'a ast::AnonConst),
     LifeTime(&'a ast::Lifetime),
     Type(&'a ast::Ty),
     Binding(&'a ast::AssocConstraint),
 }
 
-impl<'a> SegmentParam<'a> {
-    fn from_generic_arg(arg: &ast::GenericArg) -> SegmentParam<'_> {
+impl<'a> SegmentParam<'a>
+{
+    fn from_generic_arg(arg: &ast::GenericArg) -> SegmentParam<'_>
+    {
         match arg {
             ast::GenericArg::Lifetime(ref lt) => SegmentParam::LifeTime(lt),
             ast::GenericArg::Type(ref ty) => SegmentParam::Type(ty),
@@ -154,8 +159,10 @@ impl<'a> SegmentParam<'a> {
     }
 }
 
-impl<'a> Spanned for SegmentParam<'a> {
-    fn span(&self) -> Span {
+impl<'a> Spanned for SegmentParam<'a>
+{
+    fn span(&self) -> Span
+    {
         match *self {
             SegmentParam::Const(const_) => const_.value.span,
             SegmentParam::LifeTime(lt) => lt.ident.span,
@@ -165,8 +172,10 @@ impl<'a> Spanned for SegmentParam<'a> {
     }
 }
 
-impl<'a> Rewrite for SegmentParam<'a> {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl<'a> Rewrite for SegmentParam<'a>
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         match *self {
             SegmentParam::Const(const_) => const_.rewrite(context, shape),
             SegmentParam::LifeTime(lt) => lt.rewrite(context, shape),
@@ -176,8 +185,10 @@ impl<'a> Rewrite for SegmentParam<'a> {
     }
 }
 
-impl Rewrite for ast::AssocConstraint {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::AssocConstraint
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         use ast::AssocConstraintKind::{Bound, Equality};
 
         let mut result = String::with_capacity(128);
@@ -206,8 +217,10 @@ impl Rewrite for ast::AssocConstraint {
     }
 }
 
-impl Rewrite for ast::AssocConstraintKind {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::AssocConstraintKind
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         match self {
             ast::AssocConstraintKind::Equality { term } => match term {
                 Term::Ty(ty) => ty.rewrite(context, shape),
@@ -235,7 +248,8 @@ fn rewrite_segment(
     span_hi: BytePos,
     context: &RewriteContext<'_>,
     shape: Shape,
-) -> Option<String> {
+) -> Option<String>
+{
     let mut result = String::with_capacity(128);
     result.push_str(rewrite_ident(context, segment.ident));
 
@@ -394,13 +408,15 @@ where
     }
 }
 
-fn type_bound_colon(context: &RewriteContext<'_>) -> &'static str {
+fn type_bound_colon(context: &RewriteContext<'_>) -> &'static str
+{
     colon_spaces(context.config)
 }
 
 // If the return type is multi-lined, then force to use multiple lines for
 // arguments as well.
-fn get_tactics(item_vec: &[ListItem], output: &str, shape: Shape) -> DefinitiveListTactic {
+fn get_tactics(item_vec: &[ListItem], output: &str, shape: Shape) -> DefinitiveListTactic
+{
     if output.contains('\n') {
         DefinitiveListTactic::Vertical
     } else {
@@ -414,8 +430,10 @@ fn get_tactics(item_vec: &[ListItem], output: &str, shape: Shape) -> DefinitiveL
     }
 }
 
-impl Rewrite for ast::WherePredicate {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::WherePredicate
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         // FIXME: dead spans?
         let result = match *self {
             ast::WherePredicate::BoundPredicate(ast::WhereBoundPredicate {
@@ -455,8 +473,10 @@ impl Rewrite for ast::WherePredicate {
     }
 }
 
-impl Rewrite for ast::GenericArg {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::GenericArg
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         match *self {
             ast::GenericArg::Lifetime(ref lt) => lt.rewrite(context, shape),
             ast::GenericArg::Type(ref ty) => ty.rewrite(context, shape),
@@ -470,7 +490,8 @@ fn rewrite_generic_args(
     context: &RewriteContext<'_>,
     shape: Shape,
     span: Span,
-) -> Option<String> {
+) -> Option<String>
+{
     match gen_args {
         ast::GenericArgs::AngleBracketed(ref data) if !data.args.is_empty() => {
             let args = data
@@ -505,7 +526,8 @@ fn rewrite_bounded_lifetime(
     bounds: &[ast::GenericBound],
     context: &RewriteContext<'_>,
     shape: Shape,
-) -> Option<String> {
+) -> Option<String>
+{
     let result = lt.rewrite(context, shape)?;
 
     if bounds.is_empty() {
@@ -523,20 +545,26 @@ fn rewrite_bounded_lifetime(
     }
 }
 
-impl Rewrite for ast::AnonConst {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::AnonConst
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         format_expr(&self.value, ExprType::SubExpression, context, shape)
     }
 }
 
-impl Rewrite for ast::Lifetime {
-    fn rewrite(&self, context: &RewriteContext<'_>, _: Shape) -> Option<String> {
+impl Rewrite for ast::Lifetime
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, _: Shape) -> Option<String>
+    {
         Some(rewrite_ident(context, self.ident).to_owned())
     }
 }
 
-impl Rewrite for ast::GenericBound {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::GenericBound
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         match *self {
             ast::GenericBound::Trait(ref poly_trait_ref, trait_bound_modifier) => {
                 let snippet = context.snippet(self.span());
@@ -560,8 +588,10 @@ impl Rewrite for ast::GenericBound {
     }
 }
 
-impl Rewrite for ast::GenericBounds {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::GenericBounds
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         if self.is_empty() {
             return Some(String::new());
         }
@@ -570,8 +600,10 @@ impl Rewrite for ast::GenericBounds {
     }
 }
 
-impl Rewrite for ast::GenericParam {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::GenericParam
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         let mut result = String::with_capacity(128);
         // FIXME: If there are more than one attributes, this will force multiline.
         match self.attrs.rewrite(context, shape) {
@@ -635,8 +667,10 @@ impl Rewrite for ast::GenericParam {
     }
 }
 
-impl Rewrite for ast::PolyTraitRef {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::PolyTraitRef
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         if let Some(lifetime_str) =
             rewrite_lifetime_param(context, shape, &self.bound_generic_params)
         {
@@ -653,14 +687,18 @@ impl Rewrite for ast::PolyTraitRef {
     }
 }
 
-impl Rewrite for ast::TraitRef {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::TraitRef
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         rewrite_path(context, PathContext::Type, &None, &self.path, shape)
     }
 }
 
-impl Rewrite for ast::Ty {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::Ty
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         match self.kind {
             ast::TyKind::TraitObject(ref bounds, tobj_syntax) => {
                 // we have to consider 'dyn' keyword is used or not!!!
@@ -856,7 +894,8 @@ fn rewrite_bare_fn(
     span: Span,
     context: &RewriteContext<'_>,
     shape: Shape,
-) -> Option<String> {
+) -> Option<String>
+{
     debug!("rewrite_bare_fn {:#?}", shape);
 
     let mut result = String::with_capacity(128);
@@ -901,7 +940,8 @@ fn rewrite_bare_fn(
     Some(result)
 }
 
-fn is_generic_bounds_in_order(generic_bounds: &[ast::GenericBound]) -> bool {
+fn is_generic_bounds_in_order(generic_bounds: &[ast::GenericBound]) -> bool
+{
     let is_trait = |b: &ast::GenericBound| match b {
         ast::GenericBound::Outlives(..) => false,
         ast::GenericBound::Trait(..) => true,
@@ -922,7 +962,8 @@ fn join_bounds(
     shape: Shape,
     items: &[ast::GenericBound],
     need_indent: bool,
-) -> Option<String> {
+) -> Option<String>
+{
     join_bounds_inner(context, shape, items, need_indent, false)
 }
 
@@ -932,7 +973,8 @@ fn join_bounds_inner(
     items: &[ast::GenericBound],
     need_indent: bool,
     force_newline: bool,
-) -> Option<String> {
+) -> Option<String>
+{
     debug_assert!(!items.is_empty());
 
     let generic_bounds_in_order = is_generic_bounds_in_order(items);
@@ -1081,18 +1123,17 @@ fn join_bounds_inner(
     }
 }
 
-pub(crate) fn opaque_ty(ty: &Option<ptr::P<ast::Ty>>) -> Option<&ast::GenericBounds> {
+pub(crate) fn opaque_ty(ty: &Option<ptr::P<ast::Ty>>) -> Option<&ast::GenericBounds>
+{
     ty.as_ref().and_then(|t| match &t.kind {
         ast::TyKind::ImplTrait(_, bounds) => Some(bounds),
         _ => None,
     })
 }
 
-pub(crate) fn can_be_overflowed_type(
-    context: &RewriteContext<'_>,
-    ty: &ast::Ty,
-    len: usize,
-) -> bool {
+pub(crate) fn can_be_overflowed_type(context: &RewriteContext<'_>, ty: &ast::Ty, len: usize)
+    -> bool
+{
     match ty.kind {
         ast::TyKind::Tup(..) => context.use_block_indent() && len == 1,
         ast::TyKind::Ref(_, ref mutty) | ast::TyKind::Ptr(ref mutty) => {
@@ -1107,7 +1148,8 @@ pub(crate) fn rewrite_lifetime_param(
     context: &RewriteContext<'_>,
     shape: Shape,
     generic_params: &[ast::GenericParam],
-) -> Option<String> {
+) -> Option<String>
+{
     let result = generic_params
         .iter()
         .filter(|p| matches!(p.kind, ast::GenericParamKind::Lifetime))

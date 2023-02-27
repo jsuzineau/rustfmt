@@ -27,7 +27,8 @@ use clap::{CommandFactory, Parser};
 const DEFAULT_PATTERN: &str = r".*\.rs";
 
 #[derive(Error, Debug)]
-enum FormatDiffError {
+enum FormatDiffError
+{
     #[error("{0}")]
     IncorrectOptions(#[from] getopts::Fail),
     #[error("{0}")]
@@ -42,7 +43,8 @@ enum FormatDiffError {
     disable_version_flag = true,
     next_line_help = true
 )]
-pub struct Opts {
+pub struct Opts
+{
     /// Skip the smallest prefix containing NUMBER slashes
     #[clap(
         short = 'p',
@@ -62,7 +64,8 @@ pub struct Opts {
     filter: String,
 }
 
-fn main() {
+fn main()
+{
     env_logger::Builder::from_env("RUSTFMT_LOG").init();
     let opts = Opts::parse();
     if let Err(e) = run(opts) {
@@ -75,17 +78,20 @@ fn main() {
 }
 
 #[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
-struct Range {
+struct Range
+{
     file: String,
     range: [u32; 2],
 }
 
-fn run(opts: Opts) -> Result<(), FormatDiffError> {
+fn run(opts: Opts) -> Result<(), FormatDiffError>
+{
     let (files, ranges) = scan_diff(io::stdin(), opts.skip_prefix, &opts.filter)?;
     run_rustfmt(&files, &ranges)
 }
 
-fn run_rustfmt(files: &HashSet<String>, ranges: &[Range]) -> Result<(), FormatDiffError> {
+fn run_rustfmt(files: &HashSet<String>, ranges: &[Range]) -> Result<(), FormatDiffError>
+{
     if files.is_empty() || ranges.is_empty() {
         debug!("No files to format found");
         return Ok(());
@@ -187,7 +193,8 @@ where
 }
 
 #[test]
-fn scan_simple_git_diff() {
+fn scan_simple_git_diff()
+{
     const DIFF: &str = include_str!("test/bindgen.diff");
     let (files, ranges) = scan_diff(DIFF.as_bytes(), 1, r".*\.rs").expect("scan_diff failed?");
 
@@ -225,11 +232,13 @@ fn scan_simple_git_diff() {
 }
 
 #[cfg(test)]
-mod cmd_line_tests {
+mod cmd_line_tests
+{
     use super::*;
 
     #[test]
-    fn default_options() {
+    fn default_options()
+    {
         let empty: Vec<String> = vec![];
         let o = Opts::parse_from(&empty);
         assert_eq!(DEFAULT_PATTERN, o.filter);
@@ -237,35 +246,40 @@ mod cmd_line_tests {
     }
 
     #[test]
-    fn good_options() {
+    fn good_options()
+    {
         let o = Opts::parse_from(&["test", "-p", "10", "-f", r".*\.hs"]);
         assert_eq!(r".*\.hs", o.filter);
         assert_eq!(10, o.skip_prefix);
     }
 
     #[test]
-    fn unexpected_option() {
+    fn unexpected_option()
+    {
         assert!(Opts::command()
             .try_get_matches_from(&["test", "unexpected"])
             .is_err());
     }
 
     #[test]
-    fn unexpected_flag() {
+    fn unexpected_flag()
+    {
         assert!(Opts::command()
             .try_get_matches_from(&["test", "--flag"])
             .is_err());
     }
 
     #[test]
-    fn overridden_option() {
+    fn overridden_option()
+    {
         assert!(Opts::command()
             .try_get_matches_from(&["test", "-p", "10", "-p", "20"])
             .is_err());
     }
 
     #[test]
-    fn negative_filter() {
+    fn negative_filter()
+    {
         assert!(Opts::command()
             .try_get_matches_from(&["test", "-p", "-1"])
             .is_err());

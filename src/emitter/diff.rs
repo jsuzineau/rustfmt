@@ -2,17 +2,21 @@ use super::*;
 use crate::config::Config;
 use crate::rustfmt_diff::{make_diff, print_diff};
 
-pub(crate) struct DiffEmitter {
+pub(crate) struct DiffEmitter
+{
     config: Config,
 }
 
-impl DiffEmitter {
-    pub(crate) fn new(config: Config) -> Self {
+impl DiffEmitter
+{
+    pub(crate) fn new(config: Config) -> Self
+    {
         Self { config }
     }
 }
 
-impl Emitter for DiffEmitter {
+impl Emitter for DiffEmitter
+{
     fn emit_formatted_file(
         &mut self,
         output: &mut dyn Write,
@@ -21,7 +25,8 @@ impl Emitter for DiffEmitter {
             original_text,
             formatted_text,
         }: FormattedFile<'_>,
-    ) -> Result<EmitterResult, io::Error> {
+    ) -> Result<EmitterResult, io::Error>
+    {
         const CONTEXT_SIZE: usize = 3;
         let mismatch = make_diff(original_text, formatted_text, CONTEXT_SIZE);
         let has_diff = !mismatch.is_empty();
@@ -49,14 +54,16 @@ impl Emitter for DiffEmitter {
 }
 
 #[cfg(test)]
-mod tests {
+mod tests
+{
     use super::*;
     use crate::config::Config;
     use crate::FileName;
     use std::path::PathBuf;
 
     #[test]
-    fn does_not_print_when_no_files_reformatted() {
+    fn does_not_print_when_no_files_reformatted()
+    {
         let mut writer = Vec::new();
         let config = Config::default();
         let mut emitter = DiffEmitter::new(config);
@@ -75,7 +82,8 @@ mod tests {
     }
 
     #[test]
-    fn prints_file_names_when_config_is_enabled() {
+    fn prints_file_names_when_config_is_enabled()
+    {
         let bin_file = "src/bin.rs";
         let bin_original = "fn main() {\nprintln!(\"Hello, world!\");\n}";
         let bin_formatted = "fn main() {\n    println!(\"Hello, world!\");\n}";
@@ -115,7 +123,8 @@ mod tests {
     }
 
     #[test]
-    fn prints_newline_message_with_only_newline_style_diff() {
+    fn prints_newline_message_with_only_newline_style_diff()
+    {
         let mut writer = Vec::new();
         let config = Config::default();
         let mut emitter = DiffEmitter::new(config);

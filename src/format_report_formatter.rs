@@ -5,14 +5,17 @@ use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, Sou
 use std::fmt::{self, Display};
 
 /// A builder for [`FormatReportFormatter`].
-pub struct FormatReportFormatterBuilder<'a> {
+pub struct FormatReportFormatterBuilder<'a>
+{
     report: &'a FormatReport,
     enable_colors: bool,
 }
 
-impl<'a> FormatReportFormatterBuilder<'a> {
+impl<'a> FormatReportFormatterBuilder<'a>
+{
     /// Creates a new [`FormatReportFormatterBuilder`].
-    pub fn new(report: &'a FormatReport) -> Self {
+    pub fn new(report: &'a FormatReport) -> Self
+    {
         Self {
             report,
             enable_colors: false,
@@ -21,7 +24,8 @@ impl<'a> FormatReportFormatterBuilder<'a> {
 
     /// Enables colors and formatting in the output.
     #[must_use]
-    pub fn enable_colors(self, enable_colors: bool) -> Self {
+    pub fn enable_colors(self, enable_colors: bool) -> Self
+    {
         Self {
             enable_colors,
             ..self
@@ -29,7 +33,8 @@ impl<'a> FormatReportFormatterBuilder<'a> {
     }
 
     /// Creates a new [`FormatReportFormatter`] from the settings in this builder.
-    pub fn build(self) -> FormatReportFormatter<'a> {
+    pub fn build(self) -> FormatReportFormatter<'a>
+    {
         FormatReportFormatter {
             report: self.report,
             enable_colors: self.enable_colors,
@@ -40,13 +45,16 @@ impl<'a> FormatReportFormatterBuilder<'a> {
 /// Formats the warnings/errors in a [`FormatReport`].
 ///
 /// Can be created using a [`FormatReportFormatterBuilder`].
-pub struct FormatReportFormatter<'a> {
+pub struct FormatReportFormatter<'a>
+{
     report: &'a FormatReport,
     enable_colors: bool,
 }
 
-impl<'a> Display for FormatReportFormatter<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<'a> Display for FormatReportFormatter<'a>
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
+    {
         let errors_by_file = &self.report.internal.borrow().0;
 
         let opt = FormatOptions {
@@ -119,7 +127,8 @@ impl<'a> Display for FormatReportFormatter<'a> {
     }
 }
 
-fn slice_annotation(error: &FormattingError) -> Option<SourceAnnotation<'_>> {
+fn slice_annotation(error: &FormattingError) -> Option<SourceAnnotation<'_>>
+{
     let (range_start, range_length) = error.format_len();
     let range_end = range_start + range_length;
 
@@ -134,7 +143,8 @@ fn slice_annotation(error: &FormattingError) -> Option<SourceAnnotation<'_>> {
     }
 }
 
-fn error_kind_to_snippet_annotation_type(error_kind: &ErrorKind) -> AnnotationType {
+fn error_kind_to_snippet_annotation_type(error_kind: &ErrorKind) -> AnnotationType
+{
     match error_kind {
         ErrorKind::LineOverflow(..)
         | ErrorKind::TrailingWhitespace

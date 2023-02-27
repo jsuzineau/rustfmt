@@ -23,7 +23,8 @@ use crate::utils::{contains_skip, mk_sp};
 use crate::visitor::FmtVisitor;
 
 /// Choose the ordering between the given two items.
-fn compare_items(a: &ast::Item, b: &ast::Item) -> Ordering {
+fn compare_items(a: &ast::Item, b: &ast::Item) -> Ordering
+{
     match (&a.kind, &b.kind) {
         (&ast::ItemKind::Mod(..), &ast::ItemKind::Mod(..)) => {
             a.ident.as_str().cmp(b.ident.as_str())
@@ -55,7 +56,8 @@ fn wrap_reorderable_items(
     context: &RewriteContext<'_>,
     list_items: &[ListItem],
     shape: Shape,
-) -> Option<String> {
+) -> Option<String>
+{
     let fmt = ListFormatting::new(shape, context.config)
         .separator("")
         .align_comments(false);
@@ -66,7 +68,8 @@ fn rewrite_reorderable_item(
     context: &RewriteContext<'_>,
     item: &ast::Item,
     shape: Shape,
-) -> Option<String> {
+) -> Option<String>
+{
     match item.kind {
         ast::ItemKind::ExternCrate(..) => rewrite_extern_crate(context, item, shape),
         ast::ItemKind::Mod(..) => rewrite_mod(context, item, shape),
@@ -82,7 +85,8 @@ fn rewrite_reorderable_or_regroupable_items(
     reorderable_items: &[&ast::Item],
     shape: Shape,
     span: Span,
-) -> Option<String> {
+) -> Option<String>
+{
     match reorderable_items[0].kind {
         // FIXME: Remove duplicated code.
         ast::ItemKind::Use(..) => {
@@ -166,13 +170,15 @@ fn rewrite_reorderable_or_regroupable_items(
     }
 }
 
-fn contains_macro_use_attr(item: &ast::Item) -> bool {
+fn contains_macro_use_attr(item: &ast::Item) -> bool
+{
     crate::attr::contains_name(&item.attrs, sym::macro_use)
 }
 
 /// Divides imports into three groups, corresponding to standard, external
 /// and local imports. Sorts each subgroup.
-fn group_imports(uts: Vec<UseTree>) -> Vec<Vec<UseTree>> {
+fn group_imports(uts: Vec<UseTree>) -> Vec<Vec<UseTree>>
+{
     let mut std_imports = Vec::new();
     let mut external_imports = Vec::new();
     let mut local_imports = Vec::new();
@@ -200,7 +206,8 @@ fn group_imports(uts: Vec<UseTree>) -> Vec<Vec<UseTree>> {
 
 /// A simplified version of `ast::ItemKind`.
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
-enum ReorderableItemKind {
+enum ReorderableItemKind
+{
     ExternCrate,
     Mod,
     Use,
@@ -209,8 +216,10 @@ enum ReorderableItemKind {
     Other,
 }
 
-impl ReorderableItemKind {
-    fn from(item: &ast::Item) -> Self {
+impl ReorderableItemKind
+{
+    fn from(item: &ast::Item) -> Self
+    {
         match item.kind {
             _ if contains_macro_use_attr(item) | contains_skip(&item.attrs) => {
                 ReorderableItemKind::Other
@@ -222,11 +231,13 @@ impl ReorderableItemKind {
         }
     }
 
-    fn is_same_item_kind(self, item: &ast::Item) -> bool {
+    fn is_same_item_kind(self, item: &ast::Item) -> bool
+    {
         ReorderableItemKind::from(item) == self
     }
 
-    fn is_reorderable(self, config: &Config) -> bool {
+    fn is_reorderable(self, config: &Config) -> bool
+    {
         match self {
             ReorderableItemKind::ExternCrate => config.reorder_imports(),
             ReorderableItemKind::Mod => config.reorder_modules(),
@@ -235,7 +246,8 @@ impl ReorderableItemKind {
         }
     }
 
-    fn is_regroupable(self, config: &Config) -> bool {
+    fn is_regroupable(self, config: &Config) -> bool
+    {
         match self {
             ReorderableItemKind::ExternCrate
             | ReorderableItemKind::Mod
@@ -244,7 +256,8 @@ impl ReorderableItemKind {
         }
     }
 
-    fn in_group(self, config: &Config) -> bool {
+    fn in_group(self, config: &Config) -> bool
+    {
         match self {
             ReorderableItemKind::ExternCrate | ReorderableItemKind::Mod => true,
             ReorderableItemKind::Use => config.group_imports() == GroupImportsTactic::Preserve,
@@ -253,7 +266,8 @@ impl ReorderableItemKind {
     }
 }
 
-impl<'b, 'a: 'b> FmtVisitor<'a> {
+impl<'b, 'a: 'b> FmtVisitor<'a>
+{
     /// Format items with the same item kind and reorder them, regroup them, or
     /// both. If `in_group` is `true`, then the items separated by an empty line
     /// will not be reordered together.
@@ -262,7 +276,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         items: &[&ast::Item],
         item_kind: ReorderableItemKind,
         in_group: bool,
-    ) -> usize {
+    ) -> usize
+    {
         let mut last = self.parse_sess.lookup_line_range(items[0].span());
         let item_length = items
             .iter()
@@ -304,7 +319,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
 
     /// Visits and format the given items. Items are reordered If they are
     /// consecutive and reorderable.
-    pub(crate) fn visit_items_with_reordering(&mut self, mut items: &[&ast::Item]) {
+    pub(crate) fn visit_items_with_reordering(&mut self, mut items: &[&ast::Item])
+    {
         while !items.is_empty() {
             // If the next item is a `use`, `extern crate` or `mod`, then extract it and any
             // subsequent items that have the same item kind to be reordered within

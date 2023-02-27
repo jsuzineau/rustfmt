@@ -6,7 +6,8 @@ use crate::config::IndentStyle;
 
 /// The definitive formatting tactic for lists.
 #[derive(Eq, PartialEq, Debug, Copy, Clone)]
-pub enum DefinitiveListTactic {
+pub enum DefinitiveListTactic
+{
     Vertical,
     Horizontal,
     Mixed,
@@ -14,8 +15,10 @@ pub enum DefinitiveListTactic {
     SpecialMacro(usize),
 }
 
-impl DefinitiveListTactic {
-    pub fn ends_with_newline(&self, indent_style: IndentStyle) -> bool {
+impl DefinitiveListTactic
+{
+    pub fn ends_with_newline(&self, indent_style: IndentStyle) -> bool
+    {
         match indent_style {
             IndentStyle::Block => *self != DefinitiveListTactic::Horizontal,
             IndentStyle::Visual => false,
@@ -27,7 +30,8 @@ impl DefinitiveListTactic {
 /// `DefinitiveListTactic` depending on the number and length of the items and
 /// their comments.
 #[config_type]
-pub enum ListTactic {
+pub enum ListTactic
+{
     /// One item per row.
     Vertical,
     /// All items on one row.
@@ -41,14 +45,17 @@ pub enum ListTactic {
 }
 
 #[config_type]
-pub enum SeparatorTactic {
+pub enum SeparatorTactic
+{
     Always,
     Never,
     Vertical,
 }
 
-impl SeparatorTactic {
-    pub fn from_bool(b: bool) -> SeparatorTactic {
+impl SeparatorTactic
+{
+    pub fn from_bool(b: bool) -> SeparatorTactic
+    {
         if b {
             SeparatorTactic::Always
         } else {
@@ -59,17 +66,21 @@ impl SeparatorTactic {
 
 /// Where to put separator.
 #[config_type]
-pub enum SeparatorPlace {
+pub enum SeparatorPlace
+{
     Front,
     Back,
 }
 
-impl SeparatorPlace {
-    pub fn is_front(self) -> bool {
+impl SeparatorPlace
+{
+    pub fn is_front(self) -> bool
+    {
         self == SeparatorPlace::Front
     }
 
-    pub fn is_back(self) -> bool {
+    pub fn is_back(self) -> bool
+    {
         self == SeparatorPlace::Back
     }
 
@@ -77,7 +88,8 @@ impl SeparatorPlace {
         default: SeparatorPlace,
         tactic: DefinitiveListTactic,
         sep: &str,
-    ) -> SeparatorPlace {
+    ) -> SeparatorPlace
+    {
         match tactic {
             DefinitiveListTactic::Vertical => default,
             _ => {

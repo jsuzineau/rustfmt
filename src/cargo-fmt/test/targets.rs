@@ -1,12 +1,14 @@
 use super::*;
 
-struct ExpTarget {
+struct ExpTarget
+{
     path: &'static str,
     edition: &'static str,
     kind: &'static str,
 }
 
-mod all_targets {
+mod all_targets
+{
     use super::*;
 
     fn assert_correct_targets_loaded(
@@ -14,7 +16,8 @@ mod all_targets {
         source_root: &str,
         exp_targets: &[ExpTarget],
         exp_num_targets: usize,
-    ) {
+    )
+    {
         let root_path = Path::new("tests/cargo-fmt/source").join(source_root);
         let get_path = |exp: &str| PathBuf::from(&root_path).join(exp).canonicalize().unwrap();
         let manifest_path = Path::new(&root_path).join(manifest_suffix);
@@ -32,10 +35,12 @@ mod all_targets {
         }
     }
 
-    mod different_crate_and_dir_names {
+    mod different_crate_and_dir_names
+    {
         use super::*;
 
-        fn assert_correct_targets_loaded(manifest_suffix: &str) {
+        fn assert_correct_targets_loaded(manifest_suffix: &str)
+        {
             let exp_targets = vec![
                 ExpTarget {
                     path: "dependency-dir-name/subdep-dir-name/src/lib.rs",
@@ -62,20 +67,24 @@ mod all_targets {
         }
 
         #[test]
-        fn correct_targets_from_root() {
+        fn correct_targets_from_root()
+        {
             assert_correct_targets_loaded("Cargo.toml");
         }
 
         #[test]
-        fn correct_targets_from_sub_local_dep() {
+        fn correct_targets_from_sub_local_dep()
+        {
             assert_correct_targets_loaded("dependency-dir-name/Cargo.toml");
         }
     }
 
-    mod workspaces {
+    mod workspaces
+    {
         use super::*;
 
-        fn assert_correct_targets_loaded(manifest_suffix: &str) {
+        fn assert_correct_targets_loaded(manifest_suffix: &str)
+        {
             let exp_targets = vec![
                 ExpTarget {
                     path: "ws/a/src/main.rs",
@@ -117,17 +126,20 @@ mod all_targets {
         }
 
         #[test]
-        fn includes_outside_workspace_deps() {
+        fn includes_outside_workspace_deps()
+        {
             assert_correct_targets_loaded("ws/Cargo.toml");
         }
 
         #[test]
-        fn includes_workspace_from_dep_above() {
+        fn includes_workspace_from_dep_above()
+        {
             assert_correct_targets_loaded("e/Cargo.toml");
         }
 
         #[test]
-        fn includes_all_packages_from_workspace_subdir() {
+        fn includes_all_packages_from_workspace_subdir()
+        {
             assert_correct_targets_loaded("ws/a/d/f/Cargo.toml");
         }
     }

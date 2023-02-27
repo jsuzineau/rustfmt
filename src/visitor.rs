@@ -30,7 +30,8 @@ use crate::utils::{
 use crate::{ErrorKind, FormatReport, FormattingError};
 
 /// Creates a string slice corresponding to the specified span.
-pub(crate) struct SnippetProvider {
+pub(crate) struct SnippetProvider
+{
     /// A pointer to the content of the file we are formatting.
     big_snippet: Lrc<String>,
     /// A position of the start of `big_snippet`, used as an offset.
@@ -39,14 +40,17 @@ pub(crate) struct SnippetProvider {
     end_pos: usize,
 }
 
-impl SnippetProvider {
-    pub(crate) fn span_to_snippet(&self, span: Span) -> Option<&str> {
+impl SnippetProvider
+{
+    pub(crate) fn span_to_snippet(&self, span: Span) -> Option<&str>
+    {
         let start_index = span.lo().to_usize().checked_sub(self.start_pos)?;
         let end_index = span.hi().to_usize().checked_sub(self.start_pos)?;
         Some(&self.big_snippet[start_index..end_index])
     }
 
-    pub(crate) fn new(start_pos: BytePos, end_pos: BytePos, big_snippet: Lrc<String>) -> Self {
+    pub(crate) fn new(start_pos: BytePos, end_pos: BytePos, big_snippet: Lrc<String>) -> Self
+    {
         let start_pos = start_pos.to_usize();
         let end_pos = end_pos.to_usize();
         SnippetProvider {
@@ -56,20 +60,24 @@ impl SnippetProvider {
         }
     }
 
-    pub(crate) fn entire_snippet(&self) -> &str {
+    pub(crate) fn entire_snippet(&self) -> &str
+    {
         self.big_snippet.as_str()
     }
 
-    pub(crate) fn start_pos(&self) -> BytePos {
+    pub(crate) fn start_pos(&self) -> BytePos
+    {
         BytePos::from_usize(self.start_pos)
     }
 
-    pub(crate) fn end_pos(&self) -> BytePos {
+    pub(crate) fn end_pos(&self) -> BytePos
+    {
         BytePos::from_usize(self.end_pos)
     }
 }
 
-pub(crate) struct FmtVisitor<'a> {
+pub(crate) struct FmtVisitor<'a>
+{
     parent_context: Option<&'a RewriteContext<'a>>,
     pub(crate) parse_sess: &'a ParseSess,
     pub(crate) buffer: String,
@@ -89,8 +97,10 @@ pub(crate) struct FmtVisitor<'a> {
     pub(crate) is_macro_def: bool,
 }
 
-impl<'a> Drop for FmtVisitor<'a> {
-    fn drop(&mut self) {
+impl<'a> Drop for FmtVisitor<'a>
+{
+    fn drop(&mut self)
+    {
         if let Some(ctx) = self.parent_context {
             if self.macro_rewrite_failure {
                 ctx.macro_rewrite_failure.replace(true);
@@ -99,20 +109,25 @@ impl<'a> Drop for FmtVisitor<'a> {
     }
 }
 
-impl<'b, 'a: 'b> FmtVisitor<'a> {
-    fn set_parent_context(&mut self, context: &'a RewriteContext<'_>) {
+impl<'b, 'a: 'b> FmtVisitor<'a>
+{
+    fn set_parent_context(&mut self, context: &'a RewriteContext<'_>)
+    {
         self.parent_context = Some(context);
     }
 
-    pub(crate) fn shape(&self) -> Shape {
+    pub(crate) fn shape(&self) -> Shape
+    {
         Shape::indented(self.block_indent, self.config)
     }
 
-    fn next_span(&self, hi: BytePos) -> Span {
+    fn next_span(&self, hi: BytePos) -> Span
+    {
         mk_sp(self.last_pos, hi)
     }
 
-    fn visit_stmt(&mut self, stmt: &Stmt<'_>, include_empty_semi: bool) {
+    fn visit_stmt(&mut self, stmt: &Stmt<'_>, include_empty_semi: bool)
+    {
         debug!(
             "visit_stmt: {}",
             self.parse_sess.span_to_debug_info(stmt.span())
@@ -189,7 +204,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         &mut self,
         b: &ast::Block,
         inner_attrs: Option<&[ast::Attribute]>,
-    ) {
+    )
+    {
         if let Some(first_stmt) = b.stmts.first() {
             let hi = inner_attrs
                 .and_then(|attrs| inner_attributes(attrs).first().map(|attr| attr.span.lo()))
@@ -216,7 +232,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         b: &ast::Block,
         inner_attrs: Option<&[ast::Attribute]>,
         has_braces: bool,
-    ) {
+    )
+    {
         debug!(
             "visit_block: {}",
             self.parse_sess.span_to_debug_info(b.span),
@@ -257,7 +274,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         self.last_pos = source!(self, b.span).hi();
     }
 
-    fn close_block(&mut self, span: Span, unindent_comment: bool) {
+    fn close_block(&mut self, span: Span, unindent_comment: bool)
+    {
         let config = self.config;
 
         let mut last_hi = span.lo();
@@ -373,7 +391,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         self.push_str("}");
     }
 
-    fn unindent_comment_on_closing_brace(&self, b: &ast::Block) -> bool {
+    fn unindent_comment_on_closing_brace(&self, b: &ast::Block) -> bool
+    {
         self.is_if_else_block && !b.stmts.is_empty()
     }
 
@@ -386,7 +405,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         s: Span,
         defaultness: ast::Defaultness,
         inner_attrs: Option<&[ast::Attribute]>,
-    ) {
+    )
+    {
         let indent = self.block_indent;
         let block;
         let rewrite = match fk {
@@ -427,7 +447,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         self.visit_block(block, inner_attrs, true)
     }
 
-    pub(crate) fn visit_item(&mut self, item: &ast::Item) {
+    pub(crate) fn visit_item(&mut self, item: &ast::Item)
+    {
         skip_out_of_file_lines_range_visitor!(self, item.span);
 
         // This is where we bail out if there is a skip attribute. This is only
@@ -602,7 +623,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         ty_kind: &ast::TyAlias,
         visitor_kind: &ItemVisitorKind<'_>,
         span: Span,
-    ) {
+    )
+    {
         let rewrite = rewrite_type_alias(
             ty_kind,
             &self.get_context(),
@@ -613,7 +635,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         self.push_rewrite(span, rewrite);
     }
 
-    fn visit_assoc_item(&mut self, visitor_kind: &ItemVisitorKind<'_>) {
+    fn visit_assoc_item(&mut self, visitor_kind: &ItemVisitorKind<'_>)
+    {
         use ItemVisitorKind::*;
         // TODO(calebcartwright): Not sure the skip spans are correct
         let (ai, skip_span, assoc_ctxt) = match visitor_kind {
@@ -670,15 +693,18 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         }
     }
 
-    pub(crate) fn visit_trait_item(&mut self, ti: &ast::AssocItem) {
+    pub(crate) fn visit_trait_item(&mut self, ti: &ast::AssocItem)
+    {
         self.visit_assoc_item(&ItemVisitorKind::AssocTraitItem(ti));
     }
 
-    pub(crate) fn visit_impl_item(&mut self, ii: &ast::AssocItem) {
+    pub(crate) fn visit_impl_item(&mut self, ii: &ast::AssocItem)
+    {
         self.visit_assoc_item(&ItemVisitorKind::AssocImplItem(ii));
     }
 
-    fn visit_mac(&mut self, mac: &ast::MacCall, ident: Option<symbol::Ident>, pos: MacroPosition) {
+    fn visit_mac(&mut self, mac: &ast::MacCall, ident: Option<symbol::Ident>, pos: MacroPosition)
+    {
         skip_out_of_file_lines_range_visitor!(self, mac.span());
 
         // 1 = ;
@@ -708,13 +734,15 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         self.push_rewrite(span, rewrite);
     }
 
-    pub(crate) fn push_str(&mut self, s: &str) {
+    pub(crate) fn push_str(&mut self, s: &str)
+    {
         self.line_number += count_newlines(s);
         self.buffer.push_str(s);
     }
 
     #[allow(clippy::needless_pass_by_value)]
-    fn push_rewrite_inner(&mut self, span: Span, rewrite: Option<String>) {
+    fn push_rewrite_inner(&mut self, span: Span, rewrite: Option<String>)
+    {
         if let Some(ref s) = rewrite {
             self.push_str(s);
         } else {
@@ -724,7 +752,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         self.last_pos = source!(self, span).hi();
     }
 
-    pub(crate) fn push_rewrite(&mut self, span: Span, rewrite: Option<String>) {
+    pub(crate) fn push_rewrite(&mut self, span: Span, rewrite: Option<String>)
+    {
         self.format_missing_with_indent(source!(self, span).lo());
         self.push_rewrite_inner(span, rewrite);
     }
@@ -734,7 +763,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         attrs: &[ast::Attribute],
         item_span: Span,
         main_span: Span,
-    ) {
+    )
+    {
         self.format_missing_with_indent(source!(self, item_span).lo());
         // do not take into account the lines with attributes as part of the skipped range
         let attrs_end = attrs
@@ -752,7 +782,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         self.skipped_range.borrow_mut().push((lo, hi));
     }
 
-    pub(crate) fn from_context(ctx: &'a RewriteContext<'_>) -> FmtVisitor<'a> {
+    pub(crate) fn from_context(ctx: &'a RewriteContext<'_>) -> FmtVisitor<'a>
+    {
         let mut visitor = FmtVisitor::from_parse_sess(
             ctx.parse_sess,
             ctx.config,
@@ -769,7 +800,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         config: &'a Config,
         snippet_provider: &'a SnippetProvider,
         report: FormatReport,
-    ) -> FmtVisitor<'a> {
+    ) -> FmtVisitor<'a>
+    {
         let mut skip_context = SkipContext::default();
         let mut macro_names = Vec::new();
         for macro_selector in config.skip_macro_invocations().0 {
@@ -797,16 +829,19 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         }
     }
 
-    pub(crate) fn opt_snippet(&'b self, span: Span) -> Option<&'a str> {
+    pub(crate) fn opt_snippet(&'b self, span: Span) -> Option<&'a str>
+    {
         self.snippet_provider.span_to_snippet(span)
     }
 
-    pub(crate) fn snippet(&'b self, span: Span) -> &'a str {
+    pub(crate) fn snippet(&'b self, span: Span) -> &'a str
+    {
         self.opt_snippet(span).unwrap()
     }
 
     // Returns true if we should skip the following item.
-    pub(crate) fn visit_attrs(&mut self, attrs: &[ast::Attribute], style: ast::AttrStyle) -> bool {
+    pub(crate) fn visit_attrs(&mut self, attrs: &[ast::Attribute], style: ast::AttrStyle) -> bool
+    {
         for attr in attrs {
             if attr.has_name(depr_skip_annotation()) {
                 let file_name = self.parse_sess.span_to_filename(attr.span);
@@ -853,18 +888,21 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         false
     }
 
-    fn is_unknown_rustfmt_attr(&self, segments: &[ast::PathSegment]) -> bool {
+    fn is_unknown_rustfmt_attr(&self, segments: &[ast::PathSegment]) -> bool
+    {
         if segments[0].ident.to_string() != "rustfmt" {
             return false;
         }
         !is_skip_attr(segments)
     }
 
-    fn walk_mod_items(&mut self, items: &[rustc_ast::ptr::P<ast::Item>]) {
+    fn walk_mod_items(&mut self, items: &[rustc_ast::ptr::P<ast::Item>])
+    {
         self.visit_items_with_reordering(&ptr_vec_to_ref_vec(items));
     }
 
-    fn walk_stmts(&mut self, stmts: &[Stmt<'_>], include_current_empty_semi: bool) {
+    fn walk_stmts(&mut self, stmts: &[Stmt<'_>], include_current_empty_semi: bool)
+    {
         if stmts.is_empty() {
             return;
         }
@@ -907,7 +945,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         }
     }
 
-    fn walk_block_stmts(&mut self, b: &ast::Block) {
+    fn walk_block_stmts(&mut self, b: &ast::Block)
+    {
         self.walk_stmts(&Stmt::from_ast_nodes(b.stmts.iter()), false)
     }
 
@@ -919,7 +958,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         s: Span,
         ident: symbol::Ident,
         attrs: &[ast::Attribute],
-    ) {
+    )
+    {
         let vis_str = utils::format_visibility(&self.get_context(), vis);
         self.push_str(&*vis_str);
         self.push_str(format_unsafety(unsafety));
@@ -963,7 +1003,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         }
     }
 
-    pub(crate) fn format_separate_mod(&mut self, m: &Module<'_>, end_pos: BytePos) {
+    pub(crate) fn format_separate_mod(&mut self, m: &Module<'_>, end_pos: BytePos)
+    {
         self.block_indent = Indent::empty();
         let skipped = self.visit_attrs(m.attrs(), ast::AttrStyle::Inner);
         assert!(
@@ -974,7 +1015,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         self.format_missing_with_indent(end_pos);
     }
 
-    pub(crate) fn skip_empty_lines(&mut self, end_pos: BytePos) {
+    pub(crate) fn skip_empty_lines(&mut self, end_pos: BytePos)
+    {
         while let Some(pos) = self
             .snippet_provider
             .opt_span_after(self.next_span(end_pos), "\n")
@@ -1000,7 +1042,8 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         result
     }
 
-    pub(crate) fn get_context(&self) -> RewriteContext<'_> {
+    pub(crate) fn get_context(&self) -> RewriteContext<'_>
+    {
         RewriteContext {
             parse_sess: self.parse_sess,
             config: self.config,

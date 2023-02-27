@@ -5,7 +5,8 @@ use std::ops::{Add, Sub};
 use crate::Config;
 
 #[derive(Copy, Clone, Debug)]
-pub(crate) struct Indent {
+pub(crate) struct Indent
+{
     // Width of the block indent, in characters. Must be a multiple of
     // Config::tab_spaces.
     pub(crate) block_indent: usize,
@@ -18,15 +19,18 @@ const INDENT_BUFFER_LEN: usize = 80;
 const INDENT_BUFFER: &str =
     "\n                                                                                ";
 
-impl Indent {
-    pub(crate) fn new(block_indent: usize, alignment: usize) -> Indent {
+impl Indent
+{
+    pub(crate) fn new(block_indent: usize, alignment: usize) -> Indent
+    {
         Indent {
             block_indent,
             alignment,
         }
     }
 
-    pub(crate) fn from_width(config: &Config, width: usize) -> Indent {
+    pub(crate) fn from_width(config: &Config, width: usize) -> Indent
+    {
         if config.hard_tabs() {
             let tab_num = width / config.tab_spaces();
             let alignment = width % config.tab_spaces();
@@ -36,23 +40,27 @@ impl Indent {
         }
     }
 
-    pub(crate) fn empty() -> Indent {
+    pub(crate) fn empty() -> Indent
+    {
         Indent::new(0, 0)
     }
 
-    pub(crate) fn block_only(&self) -> Indent {
+    pub(crate) fn block_only(&self) -> Indent
+    {
         Indent {
             block_indent: self.block_indent,
             alignment: 0,
         }
     }
 
-    pub(crate) fn block_indent(mut self, config: &Config) -> Indent {
+    pub(crate) fn block_indent(mut self, config: &Config) -> Indent
+    {
         self.block_indent += config.tab_spaces();
         self
     }
 
-    pub(crate) fn block_unindent(mut self, config: &Config) -> Indent {
+    pub(crate) fn block_unindent(mut self, config: &Config) -> Indent
+    {
         if self.block_indent < config.tab_spaces() {
             Indent::new(self.block_indent, 0)
         } else {
@@ -61,19 +69,23 @@ impl Indent {
         }
     }
 
-    pub(crate) fn width(&self) -> usize {
+    pub(crate) fn width(&self) -> usize
+    {
         self.block_indent + self.alignment
     }
 
-    pub(crate) fn to_string(&self, config: &Config) -> Cow<'static, str> {
+    pub(crate) fn to_string(&self, config: &Config) -> Cow<'static, str>
+    {
         self.to_string_inner(config, 1)
     }
 
-    pub(crate) fn to_string_with_newline(&self, config: &Config) -> Cow<'static, str> {
+    pub(crate) fn to_string_with_newline(&self, config: &Config) -> Cow<'static, str>
+    {
         self.to_string_inner(config, 0)
     }
 
-    fn to_string_inner(&self, config: &Config, offset: usize) -> Cow<'static, str> {
+    fn to_string_inner(&self, config: &Config, offset: usize) -> Cow<'static, str>
+    {
         let (num_tabs, num_spaces) = if config.hard_tabs() {
             (self.block_indent / config.tab_spaces(), self.alignment)
         } else {
@@ -98,10 +110,12 @@ impl Indent {
     }
 }
 
-impl Add for Indent {
+impl Add for Indent
+{
     type Output = Indent;
 
-    fn add(self, rhs: Indent) -> Indent {
+    fn add(self, rhs: Indent) -> Indent
+    {
         Indent {
             block_indent: self.block_indent + rhs.block_indent,
             alignment: self.alignment + rhs.alignment,
@@ -109,10 +123,12 @@ impl Add for Indent {
     }
 }
 
-impl Sub for Indent {
+impl Sub for Indent
+{
     type Output = Indent;
 
-    fn sub(self, rhs: Indent) -> Indent {
+    fn sub(self, rhs: Indent) -> Indent
+    {
         Indent::new(
             self.block_indent - rhs.block_indent,
             self.alignment - rhs.alignment,
@@ -120,18 +136,22 @@ impl Sub for Indent {
     }
 }
 
-impl Add<usize> for Indent {
+impl Add<usize> for Indent
+{
     type Output = Indent;
 
-    fn add(self, rhs: usize) -> Indent {
+    fn add(self, rhs: usize) -> Indent
+    {
         Indent::new(self.block_indent, self.alignment + rhs)
     }
 }
 
-impl Sub<usize> for Indent {
+impl Sub<usize> for Indent
+{
     type Output = Indent;
 
-    fn sub(self, rhs: usize) -> Indent {
+    fn sub(self, rhs: usize) -> Indent
+    {
         Indent::new(self.block_indent, self.alignment - rhs)
     }
 }
@@ -140,7 +160,8 @@ impl Sub<usize> for Indent {
 const INFINITE_SHAPE_WIDTH: usize = 8096;
 
 #[derive(Copy, Clone, Debug)]
-pub(crate) struct Shape {
+pub(crate) struct Shape
+{
     pub(crate) width: usize,
     // The current indentation of code.
     pub(crate) indent: Indent,
@@ -149,7 +170,8 @@ pub(crate) struct Shape {
     pub(crate) offset: usize,
 }
 
-impl Shape {
+impl Shape
+{
     /// `indent` is the indentation of the first line. The next lines
     /// should begin with at least `indent` spaces (except backwards
     /// indentation). The first line should not begin with indentation.
@@ -165,7 +187,8 @@ impl Shape {
     // |<------------>|  max width
     // |<---->|          indent
     //        |<--->|    width
-    pub(crate) fn legacy(width: usize, indent: Indent) -> Shape {
+    pub(crate) fn legacy(width: usize, indent: Indent) -> Shape
+    {
         Shape {
             width,
             indent,
@@ -173,7 +196,8 @@ impl Shape {
         }
     }
 
-    pub(crate) fn indented(indent: Indent, config: &Config) -> Shape {
+    pub(crate) fn indented(indent: Indent, config: &Config) -> Shape
+    {
         Shape {
             width: config.max_width().saturating_sub(indent.width()),
             indent,
@@ -181,14 +205,16 @@ impl Shape {
         }
     }
 
-    pub(crate) fn with_max_width(&self, config: &Config) -> Shape {
+    pub(crate) fn with_max_width(&self, config: &Config) -> Shape
+    {
         Shape {
             width: config.max_width().saturating_sub(self.indent.width()),
             ..*self
         }
     }
 
-    pub(crate) fn visual_indent(&self, extra_width: usize) -> Shape {
+    pub(crate) fn visual_indent(&self, extra_width: usize) -> Shape
+    {
         let alignment = self.offset + extra_width;
         Shape {
             width: self.width,
@@ -197,7 +223,8 @@ impl Shape {
         }
     }
 
-    pub(crate) fn block_indent(&self, extra_width: usize) -> Shape {
+    pub(crate) fn block_indent(&self, extra_width: usize) -> Shape
+    {
         if self.indent.alignment == 0 {
             Shape {
                 width: self.width,
@@ -213,36 +240,42 @@ impl Shape {
         }
     }
 
-    pub(crate) fn block_left(&self, width: usize) -> Option<Shape> {
+    pub(crate) fn block_left(&self, width: usize) -> Option<Shape>
+    {
         self.block_indent(width).sub_width(width)
     }
 
-    pub(crate) fn add_offset(&self, extra_width: usize) -> Shape {
+    pub(crate) fn add_offset(&self, extra_width: usize) -> Shape
+    {
         Shape {
             offset: self.offset + extra_width,
             ..*self
         }
     }
 
-    pub(crate) fn block(&self) -> Shape {
+    pub(crate) fn block(&self) -> Shape
+    {
         Shape {
             indent: self.indent.block_only(),
             ..*self
         }
     }
 
-    pub(crate) fn saturating_sub_width(&self, width: usize) -> Shape {
+    pub(crate) fn saturating_sub_width(&self, width: usize) -> Shape
+    {
         self.sub_width(width).unwrap_or(Shape { width: 0, ..*self })
     }
 
-    pub(crate) fn sub_width(&self, width: usize) -> Option<Shape> {
+    pub(crate) fn sub_width(&self, width: usize) -> Option<Shape>
+    {
         Some(Shape {
             width: self.width.checked_sub(width)?,
             ..*self
         })
     }
 
-    pub(crate) fn shrink_left(&self, width: usize) -> Option<Shape> {
+    pub(crate) fn shrink_left(&self, width: usize) -> Option<Shape>
+    {
         Some(Shape {
             width: self.width.checked_sub(width)?,
             indent: self.indent + width,
@@ -250,21 +283,25 @@ impl Shape {
         })
     }
 
-    pub(crate) fn offset_left(&self, width: usize) -> Option<Shape> {
+    pub(crate) fn offset_left(&self, width: usize) -> Option<Shape>
+    {
         self.add_offset(width).sub_width(width)
     }
 
-    pub(crate) fn used_width(&self) -> usize {
+    pub(crate) fn used_width(&self) -> usize
+    {
         self.indent.block_indent + self.offset
     }
 
-    pub(crate) fn rhs_overhead(&self, config: &Config) -> usize {
+    pub(crate) fn rhs_overhead(&self, config: &Config) -> usize
+    {
         config
             .max_width()
             .saturating_sub(self.used_width() + self.width)
     }
 
-    pub(crate) fn comment(&self, config: &Config) -> Shape {
+    pub(crate) fn comment(&self, config: &Config) -> Shape
+    {
         let width = min(
             self.width,
             config.comment_width().saturating_sub(self.indent.width()),
@@ -272,14 +309,16 @@ impl Shape {
         Shape { width, ..*self }
     }
 
-    pub(crate) fn to_string_with_newline(&self, config: &Config) -> Cow<'static, str> {
+    pub(crate) fn to_string_with_newline(&self, config: &Config) -> Cow<'static, str>
+    {
         let mut offset_indent = self.indent;
         offset_indent.alignment = self.offset;
         offset_indent.to_string_inner(config, 0)
     }
 
     /// Creates a `Shape` with a virtually infinite width.
-    pub(crate) fn infinite_width(&self) -> Shape {
+    pub(crate) fn infinite_width(&self) -> Shape
+    {
         Shape {
             width: INFINITE_SHAPE_WIDTH,
             ..*self
@@ -288,11 +327,13 @@ impl Shape {
 }
 
 #[cfg(test)]
-mod test {
+mod test
+{
     use super::*;
 
     #[test]
-    fn indent_add_sub() {
+    fn indent_add_sub()
+    {
         let indent = Indent::new(4, 8) + Indent::new(8, 12);
         assert_eq!(12, indent.block_indent);
         assert_eq!(20, indent.alignment);
@@ -303,7 +344,8 @@ mod test {
     }
 
     #[test]
-    fn indent_add_sub_alignment() {
+    fn indent_add_sub_alignment()
+    {
         let indent = Indent::new(4, 8) + 4;
         assert_eq!(4, indent.block_indent);
         assert_eq!(12, indent.alignment);
@@ -314,7 +356,8 @@ mod test {
     }
 
     #[test]
-    fn indent_to_string_spaces() {
+    fn indent_to_string_spaces()
+    {
         let config = Config::default();
         let indent = Indent::new(4, 8);
 
@@ -323,7 +366,8 @@ mod test {
     }
 
     #[test]
-    fn indent_to_string_hard_tabs() {
+    fn indent_to_string_hard_tabs()
+    {
         let mut config = Config::default();
         config.set().hard_tabs(true);
         let indent = Indent::new(8, 4);
@@ -333,7 +377,8 @@ mod test {
     }
 
     #[test]
-    fn shape_visual_indent() {
+    fn shape_visual_indent()
+    {
         let config = Config::default();
         let indent = Indent::new(4, 8);
         let shape = Shape::legacy(config.max_width(), indent);
@@ -346,7 +391,8 @@ mod test {
     }
 
     #[test]
-    fn shape_block_indent_without_alignment() {
+    fn shape_block_indent_without_alignment()
+    {
         let config = Config::default();
         let indent = Indent::new(4, 0);
         let shape = Shape::legacy(config.max_width(), indent);
@@ -359,7 +405,8 @@ mod test {
     }
 
     #[test]
-    fn shape_block_indent_with_alignment() {
+    fn shape_block_indent_with_alignment()
+    {
         let config = Config::default();
         let indent = Indent::new(4, 8);
         let shape = Shape::legacy(config.max_width(), indent);

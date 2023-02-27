@@ -10,30 +10,37 @@ use crate::source_map::LineRangeUtils;
 use crate::spanned::Spanned;
 use crate::utils::semicolon_for_stmt;
 
-pub(crate) struct Stmt<'a> {
+pub(crate) struct Stmt<'a>
+{
     inner: &'a ast::Stmt,
     is_last: bool,
 }
 
-impl<'a> Spanned for Stmt<'a> {
-    fn span(&self) -> Span {
+impl<'a> Spanned for Stmt<'a>
+{
+    fn span(&self) -> Span
+    {
         self.inner.span()
     }
 }
 
-impl<'a> Stmt<'a> {
-    pub(crate) fn as_ast_node(&self) -> &ast::Stmt {
+impl<'a> Stmt<'a>
+{
+    pub(crate) fn as_ast_node(&self) -> &ast::Stmt
+    {
         self.inner
     }
 
-    pub(crate) fn to_item(&self) -> Option<&ast::Item> {
+    pub(crate) fn to_item(&self) -> Option<&ast::Item>
+    {
         match self.inner.kind {
             ast::StmtKind::Item(ref item) => Some(&**item),
             _ => None,
         }
     }
 
-    pub(crate) fn from_ast_node(inner: &'a ast::Stmt, is_last: bool) -> Self {
+    pub(crate) fn from_ast_node(inner: &'a ast::Stmt, is_last: bool) -> Self
+    {
         Stmt { inner, is_last }
     }
 
@@ -52,11 +59,13 @@ impl<'a> Stmt<'a> {
         result
     }
 
-    pub(crate) fn is_empty(&self) -> bool {
+    pub(crate) fn is_empty(&self) -> bool
+    {
         matches!(self.inner.kind, ast::StmtKind::Empty)
     }
 
-    fn is_last_expr(&self) -> bool {
+    fn is_last_expr(&self) -> bool
+    {
         if !self.is_last {
             return false;
         }
@@ -73,8 +82,10 @@ impl<'a> Stmt<'a> {
     }
 }
 
-impl<'a> Rewrite for Stmt<'a> {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl<'a> Rewrite for Stmt<'a>
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         let expr_type = if context.config.version() == Version::Two && self.is_last_expr() {
             ExprType::SubExpression
         } else {
@@ -84,8 +95,10 @@ impl<'a> Rewrite for Stmt<'a> {
     }
 }
 
-impl Rewrite for ast::Stmt {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::Stmt
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         format_stmt(context, shape, self, ExprType::Statement)
     }
 }
@@ -95,7 +108,8 @@ fn format_stmt(
     shape: Shape,
     stmt: &ast::Stmt,
     expr_type: ExprType,
-) -> Option<String> {
+) -> Option<String>
+{
     skip_out_of_file_lines_range!(context, stmt.span());
 
     let result = match stmt.kind {

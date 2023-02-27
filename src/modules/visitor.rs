@@ -6,31 +6,38 @@ use crate::attr::MetaVisitor;
 use crate::parse::macros::cfg_if::parse_cfg_if;
 use crate::parse::session::ParseSess;
 
-pub(crate) struct ModItem {
+pub(crate) struct ModItem
+{
     pub(crate) item: ast::Item,
 }
 
 /// Traverse `cfg_if!` macro and fetch modules.
-pub(crate) struct CfgIfVisitor<'a> {
+pub(crate) struct CfgIfVisitor<'a>
+{
     parse_sess: &'a ParseSess,
     mods: Vec<ModItem>,
 }
 
-impl<'a> CfgIfVisitor<'a> {
-    pub(crate) fn new(parse_sess: &'a ParseSess) -> CfgIfVisitor<'a> {
+impl<'a> CfgIfVisitor<'a>
+{
+    pub(crate) fn new(parse_sess: &'a ParseSess) -> CfgIfVisitor<'a>
+    {
         CfgIfVisitor {
             mods: vec![],
             parse_sess,
         }
     }
 
-    pub(crate) fn mods(self) -> Vec<ModItem> {
+    pub(crate) fn mods(self) -> Vec<ModItem>
+    {
         self.mods
     }
 }
 
-impl<'a, 'ast: 'a> Visitor<'ast> for CfgIfVisitor<'a> {
-    fn visit_mac_call(&mut self, mac: &'ast ast::MacCall) {
+impl<'a, 'ast: 'a> Visitor<'ast> for CfgIfVisitor<'a>
+{
+    fn visit_mac_call(&mut self, mac: &'ast ast::MacCall)
+    {
         match self.visit_mac_inner(mac) {
             Ok(()) => (),
             Err(e) => debug!("{}", e),
@@ -38,8 +45,10 @@ impl<'a, 'ast: 'a> Visitor<'ast> for CfgIfVisitor<'a> {
     }
 }
 
-impl<'a, 'ast: 'a> CfgIfVisitor<'a> {
-    fn visit_mac_inner(&mut self, mac: &'ast ast::MacCall) -> Result<(), &'static str> {
+impl<'a, 'ast: 'a> CfgIfVisitor<'a>
+{
+    fn visit_mac_inner(&mut self, mac: &'ast ast::MacCall) -> Result<(), &'static str>
+    {
         // Support both:
         // ```
         // extern crate cfg_if;
@@ -72,23 +81,24 @@ impl<'a, 'ast: 'a> CfgIfVisitor<'a> {
 
 /// Extracts `path = "foo.rs"` from attributes.
 #[derive(Default)]
-pub(crate) struct PathVisitor {
+pub(crate) struct PathVisitor
+{
     /// A list of path defined in attributes.
     paths: Vec<String>,
 }
 
-impl PathVisitor {
-    pub(crate) fn paths(self) -> Vec<String> {
+impl PathVisitor
+{
+    pub(crate) fn paths(self) -> Vec<String>
+    {
         self.paths
     }
 }
 
-impl<'ast> MetaVisitor<'ast> for PathVisitor {
-    fn visit_meta_name_value(
-        &mut self,
-        meta_item: &'ast ast::MetaItem,
-        lit: &'ast ast::MetaItemLit,
-    ) {
+impl<'ast> MetaVisitor<'ast> for PathVisitor
+{
+    fn visit_meta_name_value(&mut self, meta_item: &'ast ast::MetaItem, lit: &'ast ast::MetaItemLit)
+    {
         if meta_item.has_name(Symbol::intern("path")) && lit.kind.is_str() {
             self.paths.push(meta_item_lit_to_str(lit));
         }
@@ -96,7 +106,8 @@ impl<'ast> MetaVisitor<'ast> for PathVisitor {
 }
 
 #[cfg(not(windows))]
-fn meta_item_lit_to_str(lit: &ast::MetaItemLit) -> String {
+fn meta_item_lit_to_str(lit: &ast::MetaItemLit) -> String
+{
     match lit.kind {
         ast::LitKind::Str(symbol, ..) => symbol.to_string(),
         _ => unreachable!(),
@@ -104,7 +115,8 @@ fn meta_item_lit_to_str(lit: &ast::MetaItemLit) -> String {
 }
 
 #[cfg(windows)]
-fn meta_item_lit_to_str(lit: &ast::MetaItemLit) -> String {
+fn meta_item_lit_to_str(lit: &ast::MetaItemLit) -> String
+{
     match lit.kind {
         ast::LitKind::Str(symbol, ..) => symbol.as_str().replace("/", "\\"),
         _ => unreachable!(),

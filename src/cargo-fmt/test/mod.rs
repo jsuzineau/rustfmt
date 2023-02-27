@@ -4,7 +4,8 @@ mod message_format;
 mod targets;
 
 #[test]
-fn default_options() {
+fn default_options()
+{
     let empty: Vec<String> = vec![];
     let o = Opts::parse_from(&empty);
     assert_eq!(false, o.quiet);
@@ -19,7 +20,8 @@ fn default_options() {
 }
 
 #[test]
-fn good_options() {
+fn good_options()
+{
     let o = Opts::parse_from(&[
         "test",
         "-q",
@@ -45,21 +47,24 @@ fn good_options() {
 }
 
 #[test]
-fn unexpected_option() {
+fn unexpected_option()
+{
     assert!(Opts::command()
         .try_get_matches_from(&["test", "unexpected"])
         .is_err());
 }
 
 #[test]
-fn unexpected_flag() {
+fn unexpected_flag()
+{
     assert!(Opts::command()
         .try_get_matches_from(&["test", "--flag"])
         .is_err());
 }
 
 #[test]
-fn mandatory_separator() {
+fn mandatory_separator()
+{
     assert!(Opts::command()
         .try_get_matches_from(&["test", "--emit"])
         .is_err());
@@ -69,7 +74,8 @@ fn mandatory_separator() {
 }
 
 #[test]
-fn multiple_packages_one_by_one() {
+fn multiple_packages_one_by_one()
+{
     let o = Opts::parse_from(&[
         "test",
         "-p",
@@ -83,7 +89,8 @@ fn multiple_packages_one_by_one() {
 }
 
 #[test]
-fn multiple_packages_grouped() {
+fn multiple_packages_grouped()
+{
     let o = Opts::parse_from(&[
         "test",
         "--package",
@@ -97,28 +104,32 @@ fn multiple_packages_grouped() {
 }
 
 #[test]
-fn empty_packages_1() {
+fn empty_packages_1()
+{
     assert!(Opts::command()
         .try_get_matches_from(&["test", "-p"])
         .is_err());
 }
 
 #[test]
-fn empty_packages_2() {
+fn empty_packages_2()
+{
     assert!(Opts::command()
         .try_get_matches_from(&["test", "-p", "--", "--check"])
         .is_err());
 }
 
 #[test]
-fn empty_packages_3() {
+fn empty_packages_3()
+{
     assert!(Opts::command()
         .try_get_matches_from(&["test", "-p", "--verbose"])
         .is_err());
 }
 
 #[test]
-fn empty_packages_4() {
+fn empty_packages_4()
+{
     assert!(Opts::command()
         .try_get_matches_from(&["test", "-p", "--check"])
         .is_err());

@@ -2,12 +2,15 @@ use ignore::{self, gitignore};
 
 use crate::config::{FileName, IgnoreList};
 
-pub(crate) struct IgnorePathSet {
+pub(crate) struct IgnorePathSet
+{
     ignore_set: gitignore::Gitignore,
 }
 
-impl IgnorePathSet {
-    pub(crate) fn from_ignore_list(ignore_list: &IgnoreList) -> Result<Self, ignore::Error> {
+impl IgnorePathSet
+{
+    pub(crate) fn from_ignore_list(ignore_list: &IgnoreList) -> Result<Self, ignore::Error>
+    {
         let mut ignore_builder = gitignore::GitignoreBuilder::new(ignore_list.rustfmt_toml_path());
 
         for ignore_path in ignore_list {
@@ -19,7 +22,8 @@ impl IgnorePathSet {
         })
     }
 
-    pub(crate) fn is_match(&self, file_name: &FileName) -> bool {
+    pub(crate) fn is_match(&self, file_name: &FileName) -> bool
+    {
         match file_name {
             FileName::Stdin => false,
             FileName::Real(p) => self
@@ -31,12 +35,14 @@ impl IgnorePathSet {
 }
 
 #[cfg(test)]
-mod test {
+mod test
+{
     use rustfmt_config_proc_macro::nightly_only_test;
 
     #[nightly_only_test]
     #[test]
-    fn test_ignore_path_set() {
+    fn test_ignore_path_set()
+    {
         use crate::config::{Config, FileName};
         use crate::ignore_path::IgnorePathSet;
         use std::path::{Path, PathBuf};

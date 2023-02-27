@@ -35,7 +35,8 @@ pub(crate) fn rewrite_closure(
     span: Span,
     context: &RewriteContext<'_>,
     shape: Shape,
-) -> Option<String> {
+) -> Option<String>
+{
     debug!("rewrite_closure {:?}", body);
 
     let (prefix, extra_offset) = rewrite_closure_fn_decl(
@@ -78,7 +79,8 @@ fn try_rewrite_without_block(
     context: &RewriteContext<'_>,
     shape: Shape,
     body_shape: Shape,
-) -> Option<String> {
+) -> Option<String>
+{
     let expr = get_inner_expr(expr, prefix, context);
 
     if is_block_closure_forced(context, expr) {
@@ -92,7 +94,8 @@ fn get_inner_expr<'a>(
     expr: &'a ast::Expr,
     prefix: &str,
     context: &RewriteContext<'_>,
-) -> &'a ast::Expr {
+) -> &'a ast::Expr
+{
     if let ast::ExprKind::Block(ref block, _) = expr.kind {
         if !needs_block(block, prefix, context) {
             // block.stmts.len() == 1 except with `|| {{}}`;
@@ -107,7 +110,8 @@ fn get_inner_expr<'a>(
 }
 
 // Figure out if a block is necessary.
-fn needs_block(block: &ast::Block, prefix: &str, context: &RewriteContext<'_>) -> bool {
+fn needs_block(block: &ast::Block, prefix: &str, context: &RewriteContext<'_>) -> bool
+{
     let has_attributes = block.stmts.first().map_or(false, |first_stmt| {
         !get_attrs_from_stmt(first_stmt).is_empty()
     });
@@ -119,7 +123,8 @@ fn needs_block(block: &ast::Block, prefix: &str, context: &RewriteContext<'_>) -
         || prefix.contains('\n')
 }
 
-fn veto_block(e: &ast::Expr) -> bool {
+fn veto_block(e: &ast::Expr) -> bool
+{
     match e.kind {
         ast::ExprKind::Call(..)
         | ast::ExprKind::Binary(..)
@@ -142,7 +147,8 @@ fn rewrite_closure_with_block(
     prefix: &str,
     context: &RewriteContext<'_>,
     shape: Shape,
-) -> Option<String> {
+) -> Option<String>
+{
     let left_most = left_most_sub_expr(body);
     let veto_block = veto_block(body) && !expr_requires_semi_to_be_stmt(left_most);
     if veto_block {
@@ -183,8 +189,10 @@ fn rewrite_closure_expr(
     prefix: &str,
     context: &RewriteContext<'_>,
     shape: Shape,
-) -> Option<String> {
-    fn allow_multi_line(expr: &ast::Expr) -> bool {
+) -> Option<String>
+{
+    fn allow_multi_line(expr: &ast::Expr) -> bool
+    {
         match expr.kind {
             ast::ExprKind::Match(..)
             | ast::ExprKind::Async(..)
@@ -224,7 +232,8 @@ fn rewrite_closure_block(
     prefix: &str,
     context: &RewriteContext<'_>,
     shape: Shape,
-) -> Option<String> {
+) -> Option<String>
+{
     Some(format!("{} {}", prefix, block.rewrite(context, shape)?))
 }
 
@@ -240,7 +249,8 @@ fn rewrite_closure_fn_decl(
     span: Span,
     context: &RewriteContext<'_>,
     shape: Shape,
-) -> Option<(String, usize)> {
+) -> Option<(String, usize)>
+{
     let binder = match binder {
         ast::ClosureBinder::For { generic_params, .. } if generic_params.is_empty() => {
             "for<> ".to_owned()
@@ -336,7 +346,8 @@ pub(crate) fn rewrite_last_closure(
     context: &RewriteContext<'_>,
     expr: &ast::Expr,
     shape: Shape,
-) -> Option<String> {
+) -> Option<String>
+{
     if let ast::ExprKind::Closure(ref closure) = expr.kind {
         let ast::Closure {
             ref binder,
@@ -418,7 +429,8 @@ pub(crate) fn rewrite_last_closure(
 }
 
 /// Returns `true` if the given vector of arguments has more than one `ast::ExprKind::Closure`.
-pub(crate) fn args_have_many_closure(args: &[OverflowableItem<'_>]) -> bool {
+pub(crate) fn args_have_many_closure(args: &[OverflowableItem<'_>]) -> bool
+{
     args.iter()
         .filter_map(OverflowableItem::to_expr)
         .filter(|expr| matches!(expr.kind, ast::ExprKind::Closure(..)))
@@ -426,7 +438,8 @@ pub(crate) fn args_have_many_closure(args: &[OverflowableItem<'_>]) -> bool {
         > 1
 }
 
-fn is_block_closure_forced(context: &RewriteContext<'_>, expr: &ast::Expr) -> bool {
+fn is_block_closure_forced(context: &RewriteContext<'_>, expr: &ast::Expr) -> bool
+{
     // If we are inside macro, we do not want to add or remove block from closure body.
     if context.inside_macro() {
         false
@@ -435,7 +448,8 @@ fn is_block_closure_forced(context: &RewriteContext<'_>, expr: &ast::Expr) -> bo
     }
 }
 
-fn is_block_closure_forced_inner(expr: &ast::Expr, version: Version) -> bool {
+fn is_block_closure_forced_inner(expr: &ast::Expr, version: Version) -> bool
+{
     match expr.kind {
         ast::ExprKind::If(..) | ast::ExprKind::While(..) | ast::ExprKind::ForLoop(..) => true,
         ast::ExprKind::Loop(..) if version == Version::Two => true,
@@ -456,7 +470,8 @@ fn is_block_closure_forced_inner(expr: &ast::Expr, version: Version) -> bool {
 ///      |x| 5
 /// isn't parsed as (if true {...} else {...} | x) | 5
 // From https://github.com/rust-lang/rust/blob/master/src/libsyntax/parse/classify.rs.
-fn expr_requires_semi_to_be_stmt(e: &ast::Expr) -> bool {
+fn expr_requires_semi_to_be_stmt(e: &ast::Expr) -> bool
+{
     match e.kind {
         ast::ExprKind::If(..)
         | ast::ExprKind::Match(..)

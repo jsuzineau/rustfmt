@@ -5,12 +5,14 @@ use serde_json::to_string as to_json_string;
 use std::io::{self, Write};
 
 #[derive(Debug, Default)]
-pub(crate) struct JsonEmitter {
+pub(crate) struct JsonEmitter
+{
     mismatched_files: Vec<MismatchedFile>,
 }
 
 #[derive(Debug, Default, PartialEq, Serialize)]
-struct MismatchedBlock {
+struct MismatchedBlock
+{
     original_begin_line: u32,
     original_end_line: u32,
     expected_begin_line: u32,
@@ -20,13 +22,16 @@ struct MismatchedBlock {
 }
 
 #[derive(Debug, Default, PartialEq, Serialize)]
-struct MismatchedFile {
+struct MismatchedFile
+{
     name: String,
     mismatches: Vec<MismatchedBlock>,
 }
 
-impl Emitter for JsonEmitter {
-    fn emit_footer(&self, output: &mut dyn Write) -> Result<(), io::Error> {
+impl Emitter for JsonEmitter
+{
+    fn emit_footer(&self, output: &mut dyn Write) -> Result<(), io::Error>
+    {
         writeln!(output, "{}", &to_json_string(&self.mismatched_files)?)
     }
 
@@ -38,7 +43,8 @@ impl Emitter for JsonEmitter {
             original_text,
             formatted_text,
         }: FormattedFile<'_>,
-    ) -> Result<EmitterResult, io::Error> {
+    ) -> Result<EmitterResult, io::Error>
+    {
         const CONTEXT_SIZE: usize = 0;
         let diff = make_diff(original_text, formatted_text, CONTEXT_SIZE);
         let has_diff = !diff.is_empty();
@@ -51,12 +57,14 @@ impl Emitter for JsonEmitter {
     }
 }
 
-impl JsonEmitter {
+impl JsonEmitter
+{
     fn add_misformatted_file(
         &mut self,
         filename: &FileName,
         diff: Vec<Mismatch>,
-    ) -> Result<(), io::Error> {
+    ) -> Result<(), io::Error>
+    {
         let mut mismatches = vec![];
         for mismatch in diff {
             let original_begin_line = mismatch.line_number_orig;
@@ -104,13 +112,15 @@ impl JsonEmitter {
 }
 
 #[cfg(test)]
-mod tests {
+mod tests
+{
     use super::*;
     use crate::FileName;
     use std::path::PathBuf;
 
     #[test]
-    fn expected_line_range_correct_when_single_line_split() {
+    fn expected_line_range_correct_when_single_line_split()
+    {
         let mut emitter = JsonEmitter {
             mismatched_files: vec![],
         };
@@ -147,7 +157,8 @@ mod tests {
     }
 
     #[test]
-    fn context_lines_ignored() {
+    fn context_lines_ignored()
+    {
         let mut emitter = JsonEmitter {
             mismatched_files: vec![],
         };
@@ -192,7 +203,8 @@ mod tests {
     }
 
     #[test]
-    fn emits_empty_array_on_no_diffs() {
+    fn emits_empty_array_on_no_diffs()
+    {
         let mut writer = Vec::new();
         let mut emitter = JsonEmitter::default();
         let _ = emitter.emit_header(&mut writer);
@@ -212,7 +224,8 @@ mod tests {
     }
 
     #[test]
-    fn emits_array_with_files_with_diffs() {
+    fn emits_array_with_files_with_diffs()
+    {
         let file_name = "src/bin.rs";
         let original = vec![
             "fn main() {",
@@ -282,7 +295,8 @@ mod tests {
     }
 
     #[test]
-    fn emits_valid_json_with_multiple_files() {
+    fn emits_valid_json_with_multiple_files()
+    {
         let bin_file = "src/bin.rs";
         let bin_original = vec!["fn main() {", "println!(\"Hello, world!\");", "}"];
         let bin_formatted = vec!["fn main() {", "    println!(\"Hello, world!\");", "}"];

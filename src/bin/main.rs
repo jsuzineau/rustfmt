@@ -19,7 +19,8 @@ use crate::rustfmt::{
     FormatReportFormatterBuilder, Input, Session, Verbosity,
 };
 
-fn main() {
+fn main()
+{
     env_logger::Builder::from_env("RUSTFMT_LOG").init();
     let opts = make_opts();
 
@@ -41,9 +42,11 @@ fn main() {
 }
 
 /// Rustfmt operations.
-enum Operation {
+enum Operation
+{
     /// Format files and their child modules.
-    Format {
+    Format
+    {
         files: Vec<PathBuf>,
         minimal_config_path: Option<String>,
     },
@@ -52,16 +55,26 @@ enum Operation {
     /// Print version information
     Version,
     /// Output default config to a file, or stdout if None
-    ConfigOutputDefault { path: Option<String> },
+    ConfigOutputDefault
+    {
+        path: Option<String>
+    },
     /// Output current config (as if formatting to a file) to stdout
-    ConfigOutputCurrent { path: Option<String> },
+    ConfigOutputCurrent
+    {
+        path: Option<String>
+    },
     /// No file specified, read from stdin
-    Stdin { input: String },
+    Stdin
+    {
+        input: String
+    },
 }
 
 /// Rustfmt operations errors.
 #[derive(Error, Debug)]
-pub enum OperationError {
+pub enum OperationError
+{
     /// An unknown help topic was requested.
     #[error("Unknown help topic: `{0}`.")]
     UnknownHelpTopic(String),
@@ -80,20 +93,24 @@ pub enum OperationError {
     StdinBadEmit(EmitMode),
 }
 
-impl From<IoError> for OperationError {
-    fn from(e: IoError) -> OperationError {
+impl From<IoError> for OperationError
+{
+    fn from(e: IoError) -> OperationError
+    {
         OperationError::IoError(e)
     }
 }
 
 /// Arguments to `--help`
-enum HelpOp {
+enum HelpOp
+{
     None,
     Config,
     FileLines,
 }
 
-fn make_opts() -> Options {
+fn make_opts() -> Options
+{
     let mut opts = Options::new();
 
     opts.optflag(
@@ -187,12 +204,14 @@ fn make_opts() -> Options {
     opts
 }
 
-fn is_nightly() -> bool {
+fn is_nightly() -> bool
+{
     option_env!("CFG_RELEASE_CHANNEL").map_or(true, |c| c == "nightly" || c == "dev")
 }
 
 // Returned i32 is an exit code
-fn execute(opts: &Options) -> Result<i32> {
+fn execute(opts: &Options) -> Result<i32>
+{
     let matches = opts.parse(env::args().skip(1))?;
     let options = GetOptsOptions::from_matches(&matches)?;
 
@@ -246,7 +265,8 @@ fn execute(opts: &Options) -> Result<i32> {
     }
 }
 
-fn format_string(input: String, options: GetOptsOptions) -> Result<i32> {
+fn format_string(input: String, options: GetOptsOptions) -> Result<i32>
+{
     // try to read config from local directory
     let (mut config, _) = load_config(Some(Path::new(".")), Some(options.clone()))?;
 
@@ -292,7 +312,8 @@ fn format(
     files: Vec<PathBuf>,
     minimal_config_path: Option<String>,
     options: &GetOptsOptions,
-) -> Result<i32> {
+) -> Result<i32>
+{
     options.verify_file_lines(&files);
     let (config, config_path) = load_config(None, Some(options.clone()))?;
 
@@ -355,7 +376,8 @@ fn format(
     Ok(exit_code)
 }
 
-fn format_and_emit_report<T: Write>(session: &mut Session<'_, T>, input: Input) {
+fn format_and_emit_report<T: Write>(session: &mut Session<'_, T>, input: Input)
+{
     match session.format(input) {
         Ok(report) => {
             if report.has_warnings() {
@@ -374,7 +396,8 @@ fn format_and_emit_report<T: Write>(session: &mut Session<'_, T>, input: Input) 
     }
 }
 
-fn should_print_with_colors<T: Write>(session: &mut Session<'_, T>) -> bool {
+fn should_print_with_colors<T: Write>(session: &mut Session<'_, T>) -> bool
+{
     match term::stderr() {
         Some(ref t)
             if session.config.color().use_colored_tty()
@@ -387,7 +410,8 @@ fn should_print_with_colors<T: Write>(session: &mut Session<'_, T>) -> bool {
     }
 }
 
-fn print_usage_to_stdout(opts: &Options, reason: &str) {
+fn print_usage_to_stdout(opts: &Options, reason: &str)
+{
     let sep = if reason.is_empty() {
         String::new()
     } else {
@@ -400,7 +424,8 @@ fn print_usage_to_stdout(opts: &Options, reason: &str) {
     println!("{}", opts.usage(&msg));
 }
 
-fn print_help_file_lines() {
+fn print_help_file_lines()
+{
     println!(
         "If you want to restrict reformatting to specific sets of lines, you can
 use the `--file-lines` option. Its argument is a JSON array of objects
@@ -423,7 +448,8 @@ are included as out of line modules from `src/lib.rs`."
     );
 }
 
-fn print_version() {
+fn print_version()
+{
     let version_info = format!(
         "{}-{}",
         option_env!("CARGO_PKG_VERSION").unwrap_or("unknown"),
@@ -433,7 +459,8 @@ fn print_version() {
     println!("rustfmt {}", version_info);
 }
 
-fn determine_operation(matches: &Matches) -> Result<Operation, OperationError> {
+fn determine_operation(matches: &Matches) -> Result<Operation, OperationError>
+{
     if matches.opt_present("h") {
         let topic = matches.opt_str("h");
         if topic == None {
@@ -500,7 +527,8 @@ const STABLE_EMIT_MODES: [EmitMode; 3] = [EmitMode::Files, EmitMode::Stdout, Emi
 
 /// Parsed command line options.
 #[derive(Clone, Debug, Default)]
-struct GetOptsOptions {
+struct GetOptsOptions
+{
     skip_children: Option<bool>,
     quiet: bool,
     verbose: bool,
@@ -517,8 +545,10 @@ struct GetOptsOptions {
     print_misformatted_file_names: bool,
 }
 
-impl GetOptsOptions {
-    pub fn from_matches(matches: &Matches) -> Result<GetOptsOptions> {
+impl GetOptsOptions
+{
+    pub fn from_matches(matches: &Matches) -> Result<GetOptsOptions>
+    {
         let mut options = GetOptsOptions::default();
         options.verbose = matches.opt_present("verbose");
         options.quiet = matches.opt_present("quiet");
@@ -630,7 +660,8 @@ impl GetOptsOptions {
         Ok(options)
     }
 
-    fn verify_file_lines(&self, files: &[PathBuf]) {
+    fn verify_file_lines(&self, files: &[PathBuf])
+    {
         for f in self.file_lines.files() {
             match *f {
                 FileName::Real(ref f) if files.contains(f) => {}
@@ -643,8 +674,10 @@ impl GetOptsOptions {
     }
 }
 
-impl CliOptions for GetOptsOptions {
-    fn apply_to(self, config: &mut Config) {
+impl CliOptions for GetOptsOptions
+{
+    fn apply_to(self, config: &mut Config)
+    {
         if self.verbose {
             config.set().verbose(Verbosity::Verbose);
         } else if self.quiet {
@@ -683,12 +716,14 @@ impl CliOptions for GetOptsOptions {
         }
     }
 
-    fn config_path(&self) -> Option<&Path> {
+    fn config_path(&self) -> Option<&Path>
+    {
         self.config_path.as_deref()
     }
 }
 
-fn edition_from_edition_str(edition_str: &str) -> Result<Edition> {
+fn edition_from_edition_str(edition_str: &str) -> Result<Edition>
+{
     match edition_str {
         "2015" => Ok(Edition::Edition2015),
         "2018" => Ok(Edition::Edition2018),
@@ -698,7 +733,8 @@ fn edition_from_edition_str(edition_str: &str) -> Result<Edition> {
     }
 }
 
-fn emit_mode_from_emit_str(emit_str: &str) -> Result<EmitMode> {
+fn emit_mode_from_emit_str(emit_str: &str) -> Result<EmitMode>
+{
     match emit_str {
         "files" => Ok(EmitMode::Files),
         "stdout" => Ok(EmitMode::Stdout),

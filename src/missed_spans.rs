@@ -10,7 +10,8 @@ use crate::source_map::LineRangeUtils;
 use crate::utils::{count_lf_crlf, count_newlines, last_line_width, mk_sp};
 use crate::visitor::FmtVisitor;
 
-struct SnippetStatus {
+struct SnippetStatus
+{
     /// An offset to the current line from the beginning of the original snippet.
     line_start: usize,
     /// A length of trailing whitespaces on the current line.
@@ -19,8 +20,10 @@ struct SnippetStatus {
     cur_line: usize,
 }
 
-impl SnippetStatus {
-    fn new(cur_line: usize) -> Self {
+impl SnippetStatus
+{
+    fn new(cur_line: usize) -> Self
+    {
         SnippetStatus {
             line_start: 0,
             last_wspace: None,
@@ -29,12 +32,15 @@ impl SnippetStatus {
     }
 }
 
-impl<'a> FmtVisitor<'a> {
-    fn output_at_start(&self) -> bool {
+impl<'a> FmtVisitor<'a>
+{
+    fn output_at_start(&self) -> bool
+    {
         self.buffer.is_empty()
     }
 
-    pub(crate) fn format_missing(&mut self, end: BytePos) {
+    pub(crate) fn format_missing(&mut self, end: BytePos)
+    {
         // HACK(topecongiro): we use `format_missing()` to extract a missing comment between
         // a macro (or similar) and a trailing semicolon. Here we just try to avoid calling
         // `format_missing_inner` in the common case where there is no such comment.
@@ -50,15 +56,18 @@ impl<'a> FmtVisitor<'a> {
         self.format_missing_inner(end, |this, last_snippet, _| this.push_str(last_snippet))
     }
 
-    pub(crate) fn format_missing_with_indent(&mut self, end: BytePos) {
+    pub(crate) fn format_missing_with_indent(&mut self, end: BytePos)
+    {
         self.format_missing_indent(end, true)
     }
 
-    pub(crate) fn format_missing_no_indent(&mut self, end: BytePos) {
+    pub(crate) fn format_missing_no_indent(&mut self, end: BytePos)
+    {
         self.format_missing_indent(end, false)
     }
 
-    fn format_missing_indent(&mut self, end: BytePos, should_indent: bool) {
+    fn format_missing_indent(&mut self, end: BytePos, should_indent: bool)
+    {
         let config = self.config;
         self.format_missing_inner(end, |this, last_snippet, snippet| {
             this.push_str(last_snippet.trim_end());
@@ -77,7 +86,8 @@ impl<'a> FmtVisitor<'a> {
         &mut self,
         end: BytePos,
         process_last_snippet: F,
-    ) {
+    )
+    {
         let start = self.last_pos;
 
         if start == end {
@@ -112,7 +122,8 @@ impl<'a> FmtVisitor<'a> {
         }
     }
 
-    fn push_vertical_spaces(&mut self, mut newline_count: usize) {
+    fn push_vertical_spaces(&mut self, mut newline_count: usize)
+    {
         let offset = self.buffer.chars().rev().take_while(|c| *c == '\n').count();
         let newline_upper_bound = self.config.blank_lines_upper_bound() + 1;
         let newline_lower_bound = self.config.blank_lines_lower_bound() + 1;
@@ -230,7 +241,8 @@ impl<'a> FmtVisitor<'a> {
         big_snippet: &str,
         offset: usize,
         subslice: &str,
-    ) {
+    )
+    {
         let last_char = big_snippet
             .chars()
             .rev()
@@ -323,7 +335,8 @@ impl<'a> FmtVisitor<'a> {
         subslice: &str,
         offset: usize,
         file_name: &FileName,
-    ) {
+    )
+    {
         for (mut i, c) in subslice.char_indices() {
             i += offset;
 

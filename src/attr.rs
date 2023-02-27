@@ -19,14 +19,14 @@ use crate::utils::{count_newlines, mk_sp};
 
 mod doc_comment;
 
-pub(crate) fn contains_name(attrs: &[ast::Attribute], name: Symbol) -> bool {
+pub(crate) fn contains_name(attrs: &[ast::Attribute], name: Symbol) -> bool
+{
     attrs.iter().any(|attr| attr.has_name(name))
 }
 
-pub(crate) fn first_attr_value_str_by_name(
-    attrs: &[ast::Attribute],
-    name: Symbol,
-) -> Option<Symbol> {
+pub(crate) fn first_attr_value_str_by_name(attrs: &[ast::Attribute], name: Symbol)
+    -> Option<Symbol>
+{
     attrs
         .iter()
         .find(|attr| attr.has_name(name))
@@ -34,11 +34,13 @@ pub(crate) fn first_attr_value_str_by_name(
 }
 
 /// Returns attributes on the given statement.
-pub(crate) fn get_attrs_from_stmt(stmt: &ast::Stmt) -> &[ast::Attribute] {
+pub(crate) fn get_attrs_from_stmt(stmt: &ast::Stmt) -> &[ast::Attribute]
+{
     stmt.attrs()
 }
 
-pub(crate) fn get_span_without_attrs(stmt: &ast::Stmt) -> Span {
+pub(crate) fn get_span_without_attrs(stmt: &ast::Stmt) -> Span
+{
     match stmt.kind {
         ast::StmtKind::Local(ref local) => local.span,
         ast::StmtKind::Item(ref item) => item.span,
@@ -49,7 +51,8 @@ pub(crate) fn get_span_without_attrs(stmt: &ast::Stmt) -> Span {
 }
 
 /// Returns attributes that are within `outer_span`.
-pub(crate) fn filter_inline_attrs(attrs: &[ast::Attribute], outer_span: Span) -> ast::AttrVec {
+pub(crate) fn filter_inline_attrs(attrs: &[ast::Attribute], outer_span: Span) -> ast::AttrVec
+{
     attrs
         .iter()
         .filter(|a| outer_span.lo() <= a.span.lo() && a.span.hi() <= outer_span.hi())
@@ -57,7 +60,8 @@ pub(crate) fn filter_inline_attrs(attrs: &[ast::Attribute], outer_span: Span) ->
         .collect()
 }
 
-fn is_derive(attr: &ast::Attribute) -> bool {
+fn is_derive(attr: &ast::Attribute) -> bool
+{
     attr.has_name(sym::derive)
 }
 
@@ -68,7 +72,8 @@ fn argument_shape(
     combine: bool,
     shape: Shape,
     context: &RewriteContext<'_>,
-) -> Option<Shape> {
+) -> Option<Shape>
+{
     match context.config.indent_style() {
         IndentStyle::Block => {
             if combine {
@@ -92,7 +97,8 @@ fn format_derive(
     derives: &[ast::Attribute],
     shape: Shape,
     context: &RewriteContext<'_>,
-) -> Option<String> {
+) -> Option<String>
+{
     // Collect all items from all attributes
     let all_items = derives
         .iter()
@@ -231,7 +237,8 @@ fn rewrite_initial_doc_comments(
     context: &RewriteContext<'_>,
     attrs: &[ast::Attribute],
     shape: Shape,
-) -> Option<(usize, Option<String>)> {
+) -> Option<(usize, Option<String>)>
+{
     if attrs.is_empty() {
         return Some((0, None));
     }
@@ -256,8 +263,10 @@ fn rewrite_initial_doc_comments(
     Some((0, None))
 }
 
-impl Rewrite for ast::NestedMetaItem {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::NestedMetaItem
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         match self {
             ast::NestedMetaItem::MetaItem(ref meta_item) => meta_item.rewrite(context, shape),
             ast::NestedMetaItem::Lit(ref l) => {
@@ -267,7 +276,8 @@ impl Rewrite for ast::NestedMetaItem {
     }
 }
 
-fn has_newlines_before_after_comment(comment: &str) -> (&str, &str) {
+fn has_newlines_before_after_comment(comment: &str) -> (&str, &str)
+{
     // Look at before and after comment and see if there are any empty lines.
     let comment_begin = comment.find('/');
     let len = comment_begin.unwrap_or_else(|| comment.len());
@@ -286,8 +296,10 @@ fn has_newlines_before_after_comment(comment: &str) -> (&str, &str) {
     (if mlb { "\n" } else { "" }, if mla { "\n" } else { "" })
 }
 
-impl Rewrite for ast::MetaItem {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::MetaItem
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         Some(match self.kind {
             ast::MetaItemKind::Word => {
                 rewrite_path(context, PathContext::Type, &None, &self.path, shape)?
@@ -328,8 +340,10 @@ impl Rewrite for ast::MetaItem {
     }
 }
 
-impl Rewrite for ast::Attribute {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for ast::Attribute
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         let snippet = context.snippet(self.span);
         if self.is_doc_comment() {
             rewrite_doc_comment(snippet, shape.comment(context.config), context.config)
@@ -378,8 +392,10 @@ impl Rewrite for ast::Attribute {
     }
 }
 
-impl Rewrite for [ast::Attribute] {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl Rewrite for [ast::Attribute]
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         if self.is_empty() {
             return Some(String::new());
         }
@@ -499,15 +515,18 @@ impl Rewrite for [ast::Attribute] {
     }
 }
 
-fn attr_prefix(attr: &ast::Attribute) -> &'static str {
+fn attr_prefix(attr: &ast::Attribute) -> &'static str
+{
     match attr.style {
         ast::AttrStyle::Inner => "#!",
         ast::AttrStyle::Outer => "#",
     }
 }
 
-pub(crate) trait MetaVisitor<'ast> {
-    fn visit_meta_item(&mut self, meta_item: &'ast ast::MetaItem) {
+pub(crate) trait MetaVisitor<'ast>
+{
+    fn visit_meta_item(&mut self, meta_item: &'ast ast::MetaItem)
+    {
         match meta_item.kind {
             ast::MetaItemKind::Word => self.visit_meta_word(meta_item),
             ast::MetaItemKind::List(ref list) => self.visit_meta_list(meta_item, list),
@@ -519,7 +538,8 @@ pub(crate) trait MetaVisitor<'ast> {
         &mut self,
         _meta_item: &'ast ast::MetaItem,
         list: &'ast [ast::NestedMetaItem],
-    ) {
+    )
+    {
         for nm in list {
             self.visit_nested_meta_item(nm);
         }
@@ -531,10 +551,12 @@ pub(crate) trait MetaVisitor<'ast> {
         &mut self,
         _meta_item: &'ast ast::MetaItem,
         _lit: &'ast ast::MetaItemLit,
-    ) {
+    )
+    {
     }
 
-    fn visit_nested_meta_item(&mut self, nm: &'ast ast::NestedMetaItem) {
+    fn visit_nested_meta_item(&mut self, nm: &'ast ast::NestedMetaItem)
+    {
         match nm {
             ast::NestedMetaItem::MetaItem(ref meta_item) => self.visit_meta_item(meta_item),
             ast::NestedMetaItem::Lit(ref lit) => self.visit_meta_item_lit(lit),

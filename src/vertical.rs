@@ -21,7 +21,8 @@ use crate::utils::{
     contains_skip, is_attributes_extendable, mk_sp, rewrite_ident, trimmed_last_line_width,
 };
 
-pub(crate) trait AlignedItem {
+pub(crate) trait AlignedItem
+{
     fn skip(&self) -> bool;
     fn get_span(&self) -> Span;
     fn rewrite_prefix(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>;
@@ -33,16 +34,20 @@ pub(crate) trait AlignedItem {
     ) -> Option<String>;
 }
 
-impl AlignedItem for ast::FieldDef {
-    fn skip(&self) -> bool {
+impl AlignedItem for ast::FieldDef
+{
+    fn skip(&self) -> bool
+    {
         contains_skip(&self.attrs)
     }
 
-    fn get_span(&self) -> Span {
+    fn get_span(&self) -> Span
+    {
         self.span()
     }
 
-    fn rewrite_prefix(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+    fn rewrite_prefix(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         let attrs_str = self.attrs.rewrite(context, shape)?;
         let missing_span = if self.attrs.is_empty() {
             mk_sp(self.span.lo(), self.span.lo())
@@ -67,21 +72,26 @@ impl AlignedItem for ast::FieldDef {
         context: &RewriteContext<'_>,
         shape: Shape,
         prefix_max_width: usize,
-    ) -> Option<String> {
+    ) -> Option<String>
+    {
         rewrite_struct_field(context, self, shape, prefix_max_width)
     }
 }
 
-impl AlignedItem for ast::ExprField {
-    fn skip(&self) -> bool {
+impl AlignedItem for ast::ExprField
+{
+    fn skip(&self) -> bool
+    {
         contains_skip(&self.attrs)
     }
 
-    fn get_span(&self) -> Span {
+    fn get_span(&self) -> Span
+    {
         self.span()
     }
 
-    fn rewrite_prefix(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+    fn rewrite_prefix(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         let attrs_str = self.attrs.rewrite(context, shape)?;
         let name = rewrite_ident(context, self.ident);
         let missing_span = if self.attrs.is_empty() {
@@ -104,7 +114,8 @@ impl AlignedItem for ast::ExprField {
         context: &RewriteContext<'_>,
         shape: Shape,
         prefix_max_width: usize,
-    ) -> Option<String> {
+    ) -> Option<String>
+    {
         rewrite_field(context, self, shape, prefix_max_width)
     }
 }
@@ -115,7 +126,8 @@ pub(crate) fn rewrite_with_alignment<T: AlignedItem>(
     shape: Shape,
     span: Span,
     one_line_width: usize,
-) -> Option<String> {
+) -> Option<String>
+{
     let (spaces, group_index) = if context.config.struct_field_align_threshold() > 0 {
         group_aligned_items(context, fields)
     } else {
@@ -191,7 +203,8 @@ fn struct_field_prefix_max_min_width<T: AlignedItem>(
     context: &RewriteContext<'_>,
     fields: &[T],
     shape: Shape,
-) -> (usize, usize) {
+) -> (usize, usize)
+{
     fields
         .iter()
         .map(|field| {
@@ -212,7 +225,8 @@ fn rewrite_aligned_items_inner<T: AlignedItem>(
     offset: Indent,
     one_line_width: usize,
     force_trailing_separator: bool,
-) -> Option<String> {
+) -> Option<String>
+{
     // 1 = ","
     let item_shape = Shape::indented(offset, context.config).sub_width(1)?;
     let (mut field_prefix_max_width, field_prefix_min_width) =
@@ -276,7 +290,8 @@ fn rewrite_aligned_items_inner<T: AlignedItem>(
 fn group_aligned_items<T: AlignedItem>(
     context: &RewriteContext<'_>,
     fields: &[T],
-) -> (&'static str, usize) {
+) -> (&'static str, usize)
+{
     let mut index = 0;
     for i in 0..fields.len() - 1 {
         if fields[i].skip() {

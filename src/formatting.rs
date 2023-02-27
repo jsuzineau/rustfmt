@@ -25,12 +25,14 @@ mod newline_style;
 pub(crate) type SourceFile = Vec<FileRecord>;
 pub(crate) type FileRecord = (FileName, String);
 
-impl<'b, T: Write + 'b> Session<'b, T> {
+impl<'b, T: Write + 'b> Session<'b, T>
+{
     pub(crate) fn format_input_inner(
         &mut self,
         input: Input,
         is_macro_def: bool,
-    ) -> Result<FormatReport, ErrorKind> {
+    ) -> Result<FormatReport, ErrorKind>
+    {
         if !self.config.version_meets_requirement() {
             return Err(ErrorKind::VersionMismatch);
         }
@@ -63,7 +65,8 @@ fn should_skip_module<T: FormatHandler>(
     main_file: &FileName,
     path: &FileName,
     module: &Module<'_>,
-) -> bool {
+) -> bool
+{
     if contains_skip(module.attrs()) {
         return true;
     }
@@ -90,7 +93,8 @@ fn should_skip_module<T: FormatHandler>(
     false
 }
 
-fn echo_back_stdin(input: &str) -> Result<FormatReport, ErrorKind> {
+fn echo_back_stdin(input: &str) -> Result<FormatReport, ErrorKind>
+{
     if let Err(e) = io::stdout().write_all(input.as_bytes()) {
         return Err(From::from(e));
     }
@@ -103,7 +107,8 @@ fn format_project<T: FormatHandler>(
     config: &Config,
     handler: &mut T,
     is_macro_def: bool,
-) -> Result<FormatReport, ErrorKind> {
+) -> Result<FormatReport, ErrorKind>
+{
     let mut timer = Timer::start();
 
     let main_file = input.file_name();
@@ -176,7 +181,8 @@ fn format_project<T: FormatHandler>(
 
 // Used for formatting files.
 #[derive(new)]
-struct FormatContext<'a, T: FormatHandler> {
+struct FormatContext<'a, T: FormatHandler>
+{
     krate: &'a ast::Crate,
     report: FormatReport,
     parse_session: ParseSess,
@@ -184,8 +190,10 @@ struct FormatContext<'a, T: FormatHandler> {
     handler: &'a mut T,
 }
 
-impl<'a, T: FormatHandler + 'a> FormatContext<'a, T> {
-    fn ignore_file(&self, path: &FileName) -> bool {
+impl<'a, T: FormatHandler + 'a> FormatContext<'a, T>
+{
+    fn ignore_file(&self, path: &FileName) -> bool
+    {
         self.parse_session.ignore_file(path)
     }
 
@@ -195,7 +203,8 @@ impl<'a, T: FormatHandler + 'a> FormatContext<'a, T> {
         path: FileName,
         module: &Module<'_>,
         is_macro_def: bool,
-    ) -> Result<(), ErrorKind> {
+    ) -> Result<(), ErrorKind>
+    {
         let snippet_provider = self.parse_session.snippet_provider(module.span);
         let mut visitor = FmtVisitor::from_parse_sess(
             &self.parse_session,
@@ -250,7 +259,8 @@ impl<'a, T: FormatHandler + 'a> FormatContext<'a, T> {
 }
 
 // Handle the results of formatting.
-trait FormatHandler {
+trait FormatHandler
+{
     fn handle_formatted_file(
         &mut self,
         parse_session: &ParseSess,
@@ -260,7 +270,8 @@ trait FormatHandler {
     ) -> Result<(), ErrorKind>;
 }
 
-impl<'b, T: Write + 'b> FormatHandler for Session<'b, T> {
+impl<'b, T: Write + 'b> FormatHandler for Session<'b, T>
+{
     // Called for each formatted file.
     fn handle_formatted_file(
         &mut self,
@@ -268,7 +279,8 @@ impl<'b, T: Write + 'b> FormatHandler for Session<'b, T> {
         path: FileName,
         result: String,
         report: &mut FormatReport,
-    ) -> Result<(), ErrorKind> {
+    ) -> Result<(), ErrorKind>
+    {
         if let Some(ref mut out) = self.out {
             match source_file::write_file(
                 Some(parse_session),
@@ -293,7 +305,8 @@ impl<'b, T: Write + 'b> FormatHandler for Session<'b, T> {
     }
 }
 
-pub(crate) struct FormattingError {
+pub(crate) struct FormattingError
+{
     pub(crate) line: usize,
     pub(crate) kind: ErrorKind,
     is_comment: bool,
@@ -301,12 +314,11 @@ pub(crate) struct FormattingError {
     pub(crate) line_buffer: String,
 }
 
-impl FormattingError {
-    pub(crate) fn from_span(
-        span: Span,
-        parse_sess: &ParseSess,
-        kind: ErrorKind,
-    ) -> FormattingError {
+impl FormattingError
+{
+    pub(crate) fn from_span(span: Span, parse_sess: &ParseSess, kind: ErrorKind)
+        -> FormattingError
+    {
         FormattingError {
             line: parse_sess.line_of_byte_pos(span.lo()),
             is_comment: kind.is_comment(),
@@ -316,7 +328,8 @@ impl FormattingError {
         }
     }
 
-    pub(crate) fn is_internal(&self) -> bool {
+    pub(crate) fn is_internal(&self) -> bool
+    {
         match self.kind {
             ErrorKind::LineOverflow(..)
             | ErrorKind::TrailingWhitespace
@@ -327,7 +340,8 @@ impl FormattingError {
         }
     }
 
-    pub(crate) fn msg_suffix(&self) -> &str {
+    pub(crate) fn msg_suffix(&self) -> &str
+    {
         if self.is_comment || self.is_string {
             "set `error_on_unformatted = false` to suppress \
              the warning against comments or string literals\n"
@@ -337,7 +351,8 @@ impl FormattingError {
     }
 
     // (space, target)
-    pub(crate) fn format_len(&self) -> (usize, usize) {
+    pub(crate) fn format_len(&self) -> (usize, usize)
+    {
         match self.kind {
             ErrorKind::LineOverflow(found, max) => (max, found - max),
             ErrorKind::TrailingWhitespace
@@ -362,7 +377,8 @@ impl FormattingError {
 pub(crate) type FormatErrorMap = HashMap<FileName, Vec<FormattingError>>;
 
 #[derive(Default, Debug, PartialEq)]
-pub(crate) struct ReportedErrors {
+pub(crate) struct ReportedErrors
+{
     // Encountered e.g., an IO error.
     pub(crate) has_operational_errors: bool,
 
@@ -385,9 +401,11 @@ pub(crate) struct ReportedErrors {
     pub(crate) has_unformatted_code_errors: bool,
 }
 
-impl ReportedErrors {
+impl ReportedErrors
+{
     /// Combine two summaries together.
-    pub(crate) fn add(&mut self, other: &ReportedErrors) {
+    pub(crate) fn add(&mut self, other: &ReportedErrors)
+    {
         self.has_operational_errors |= other.has_operational_errors;
         self.has_parsing_errors |= other.has_parsing_errors;
         self.has_formatting_errors |= other.has_formatting_errors;
@@ -399,22 +417,26 @@ impl ReportedErrors {
 }
 
 #[derive(Clone, Copy, Debug)]
-enum Timer {
+enum Timer
+{
     Disabled,
     Initialized(Instant),
     DoneParsing(Instant, Instant),
     DoneFormatting(Instant, Instant, Instant),
 }
 
-impl Timer {
-    fn start() -> Timer {
+impl Timer
+{
+    fn start() -> Timer
+    {
         if cfg!(target_arch = "wasm32") {
             Timer::Disabled
         } else {
             Timer::Initialized(Instant::now())
         }
     }
-    fn done_parsing(self) -> Self {
+    fn done_parsing(self) -> Self
+    {
         match self {
             Timer::Disabled => Timer::Disabled,
             Timer::Initialized(init_time) => Timer::DoneParsing(init_time, Instant::now()),
@@ -422,7 +444,8 @@ impl Timer {
         }
     }
 
-    fn done_formatting(self) -> Self {
+    fn done_formatting(self) -> Self
+    {
         match self {
             Timer::Disabled => Timer::Disabled,
             Timer::DoneParsing(init_time, parse_time) => {
@@ -433,7 +456,8 @@ impl Timer {
     }
 
     /// Returns the time it took to parse the source files in seconds.
-    fn get_parse_time(&self) -> f32 {
+    fn get_parse_time(&self) -> f32
+    {
         match *self {
             Timer::Disabled => panic!("this platform cannot time execution"),
             Timer::DoneParsing(init, parse_time) | Timer::DoneFormatting(init, parse_time, _) => {
@@ -446,7 +470,8 @@ impl Timer {
 
     /// Returns the time it took to go from the parsed AST to the formatted output. Parsing time is
     /// not included.
-    fn get_format_time(&self) -> f32 {
+    fn get_format_time(&self) -> f32
+    {
         match *self {
             Timer::Disabled => panic!("this platform cannot time execution"),
             Timer::DoneFormatting(_init, parse_time, format_time) => {
@@ -456,7 +481,8 @@ impl Timer {
         }
     }
 
-    fn duration_to_f32(d: Duration) -> f32 {
+    fn duration_to_f32(d: Duration) -> f32
+    {
         d.as_secs() as f32 + d.subsec_nanos() as f32 / 1_000_000_000f32
     }
 }
@@ -469,7 +495,8 @@ fn format_lines(
     skipped_range: &[(usize, usize)],
     config: &Config,
     report: &FormatReport,
-) {
+)
+{
     let mut formatter = FormatLines::new(name, skipped_range, config);
     formatter.iterate(text);
 
@@ -482,7 +509,8 @@ fn format_lines(
     report.append(name.clone(), formatter.errors);
 }
 
-struct FormatLines<'a> {
+struct FormatLines<'a>
+{
     name: &'a FileName,
     skipped_range: &'a [(usize, usize)],
     last_was_space: bool,
@@ -496,12 +524,14 @@ struct FormatLines<'a> {
     config: &'a Config,
 }
 
-impl<'a> FormatLines<'a> {
+impl<'a> FormatLines<'a>
+{
     fn new(
         name: &'a FileName,
         skipped_range: &'a [(usize, usize)],
         config: &'a Config,
-    ) -> FormatLines<'a> {
+    ) -> FormatLines<'a>
+    {
         FormatLines {
             name,
             skipped_range,
@@ -518,7 +548,8 @@ impl<'a> FormatLines<'a> {
     }
 
     // Iterate over the chars in the file map.
-    fn iterate(&mut self, text: &mut String) {
+    fn iterate(&mut self, text: &mut String)
+    {
         for (kind, c) in CharClasses::new(text.chars()) {
             if c == '\r' {
                 continue;
@@ -532,7 +563,8 @@ impl<'a> FormatLines<'a> {
         }
     }
 
-    fn new_line(&mut self, kind: FullCodeCharKind) {
+    fn new_line(&mut self, kind: FullCodeCharKind)
+    {
         if self.format_line {
             // Check for (and record) trailing whitespace.
             if self.last_was_space {
@@ -571,7 +603,8 @@ impl<'a> FormatLines<'a> {
         self.current_line_contains_string_literal = false;
     }
 
-    fn char(&mut self, c: char, kind: FullCodeCharKind) {
+    fn char(&mut self, c: char, kind: FullCodeCharKind)
+    {
         self.newline_count = 0;
         self.line_len += if c == '\t' {
             self.config.tab_spaces()
@@ -585,7 +618,8 @@ impl<'a> FormatLines<'a> {
         }
     }
 
-    fn push_err(&mut self, kind: ErrorKind, is_comment: bool, is_string: bool) {
+    fn push_err(&mut self, kind: ErrorKind, is_comment: bool, is_string: bool)
+    {
         self.errors.push(FormattingError {
             line: self.cur_line,
             kind,
@@ -595,7 +629,8 @@ impl<'a> FormatLines<'a> {
         });
     }
 
-    fn should_report_error(&self, char_kind: FullCodeCharKind, error_kind: &ErrorKind) -> bool {
+    fn should_report_error(&self, char_kind: FullCodeCharKind, error_kind: &ErrorKind) -> bool
+    {
         let allow_error_report = if char_kind.is_comment()
             || self.current_line_contains_string_literal
             || error_kind.is_comment()
@@ -615,7 +650,8 @@ impl<'a> FormatLines<'a> {
     }
 
     /// Returns `true` if the line with the given line number was skipped by `#[rustfmt::skip]`.
-    fn is_skipped_line(&self) -> bool {
+    fn is_skipped_line(&self) -> bool
+    {
         self.skipped_range
             .iter()
             .any(|&(lo, hi)| lo <= self.cur_line && self.cur_line <= hi)

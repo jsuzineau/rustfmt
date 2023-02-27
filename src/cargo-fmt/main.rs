@@ -27,7 +27,8 @@ mod cargo_fmt_tests;
     about = "This utility formats all bin and lib files of \
              the current crate using rustfmt."
 )]
-pub struct Opts {
+pub struct Opts
+{
     /// No output printed to stdout
     #[clap(short = 'q', long = "quiet")]
     quiet: bool,
@@ -71,7 +72,8 @@ pub struct Opts {
     check: bool,
 }
 
-fn main() {
+fn main()
+{
     let exit_status = execute();
     std::io::stdout().flush().unwrap();
     std::process::exit(exit_status);
@@ -80,7 +82,8 @@ fn main() {
 const SUCCESS: i32 = 0;
 const FAILURE: i32 = 1;
 
-fn execute() -> i32 {
+fn execute() -> i32
+{
     // Drop extra `fmt` argument provided by `cargo`.
     let mut found_fmt = false;
     let args = env::args().filter(|x| {
@@ -148,7 +151,8 @@ fn execute() -> i32 {
     }
 }
 
-fn rustfmt_command() -> Command {
+fn rustfmt_command() -> Command
+{
     let rustfmt_var = env::var_os("RUSTFMT");
     let rustfmt = match &rustfmt_var {
         Some(rustfmt) => rustfmt,
@@ -160,7 +164,8 @@ fn rustfmt_command() -> Command {
 fn convert_message_format_to_rustfmt_args(
     message_format: &str,
     rustfmt_args: &mut Vec<String>,
-) -> Result<(), String> {
+) -> Result<(), String>
+{
     let mut contains_emit_mode = false;
     let mut contains_check = false;
     let mut contains_list_files = false;
@@ -205,7 +210,8 @@ fn convert_message_format_to_rustfmt_args(
     }
 }
 
-fn print_usage_to_stderr(reason: &str) {
+fn print_usage_to_stderr(reason: &str)
+{
     eprintln!("{}", reason);
     let app = Opts::command();
     app.after_help("")
@@ -214,13 +220,15 @@ fn print_usage_to_stderr(reason: &str) {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Verbosity {
+pub enum Verbosity
+{
     Verbose,
     Normal,
     Quiet,
 }
 
-fn handle_command_status(status: Result<i32, io::Error>) -> i32 {
+fn handle_command_status(status: Result<i32, io::Error>) -> i32
+{
     match status {
         Err(e) => {
             print_usage_to_stderr(&e.to_string());
@@ -230,7 +238,8 @@ fn handle_command_status(status: Result<i32, io::Error>) -> i32 {
     }
 }
 
-fn get_rustfmt_info(args: &[String]) -> Result<i32, io::Error> {
+fn get_rustfmt_info(args: &[String]) -> Result<i32, io::Error>
+{
     let mut command = rustfmt_command()
         .stdout(std::process::Stdio::inherit())
         .args(args)
@@ -255,7 +264,8 @@ fn format_crate(
     strategy: &CargoFmtStrategy,
     rustfmt_args: Vec<String>,
     manifest_path: Option<&Path>,
-) -> Result<i32, io::Error> {
+) -> Result<i32, io::Error>
+{
     let targets = get_targets(strategy, manifest_path)?;
 
     // Currently only bin and lib files get formatted.
@@ -264,7 +274,8 @@ fn format_crate(
 
 /// Target uses a `path` field for equality and hashing.
 #[derive(Debug)]
-pub struct Target {
+pub struct Target
+{
     /// A path to the main source file of the target.
     path: PathBuf,
     /// A kind of target (e.g., lib, bin, example, ...).
@@ -273,8 +284,10 @@ pub struct Target {
     edition: String,
 }
 
-impl Target {
-    pub fn from_target(target: &cargo_metadata::Target) -> Self {
+impl Target
+{
+    pub fn from_target(target: &cargo_metadata::Target) -> Self
+    {
         let path = PathBuf::from(&target.src_path);
         let canonicalized = fs::canonicalize(&path).unwrap_or(path);
 
@@ -286,34 +299,43 @@ impl Target {
     }
 }
 
-impl PartialEq for Target {
-    fn eq(&self, other: &Target) -> bool {
+impl PartialEq for Target
+{
+    fn eq(&self, other: &Target) -> bool
+    {
         self.path == other.path
     }
 }
 
-impl PartialOrd for Target {
-    fn partial_cmp(&self, other: &Target) -> Option<Ordering> {
+impl PartialOrd for Target
+{
+    fn partial_cmp(&self, other: &Target) -> Option<Ordering>
+    {
         Some(self.path.cmp(&other.path))
     }
 }
 
-impl Ord for Target {
-    fn cmp(&self, other: &Target) -> Ordering {
+impl Ord for Target
+{
+    fn cmp(&self, other: &Target) -> Ordering
+    {
         self.path.cmp(&other.path)
     }
 }
 
 impl Eq for Target {}
 
-impl Hash for Target {
-    fn hash<H: Hasher>(&self, state: &mut H) {
+impl Hash for Target
+{
+    fn hash<H: Hasher>(&self, state: &mut H)
+    {
         self.path.hash(state);
     }
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum CargoFmtStrategy {
+pub enum CargoFmtStrategy
+{
     /// Format every packages and dependencies.
     All,
     /// Format packages that are specified by the command line argument.
@@ -322,8 +344,10 @@ pub enum CargoFmtStrategy {
     Root,
 }
 
-impl CargoFmtStrategy {
-    pub fn from_opts(opts: &Opts) -> CargoFmtStrategy {
+impl CargoFmtStrategy
+{
+    pub fn from_opts(opts: &Opts) -> CargoFmtStrategy
+    {
         match (opts.format_all, opts.packages.is_empty()) {
             (false, true) => CargoFmtStrategy::Root,
             (true, _) => CargoFmtStrategy::All,
@@ -336,7 +360,8 @@ impl CargoFmtStrategy {
 fn get_targets(
     strategy: &CargoFmtStrategy,
     manifest_path: Option<&Path>,
-) -> Result<BTreeSet<Target>, io::Error> {
+) -> Result<BTreeSet<Target>, io::Error>
+{
     let mut targets = BTreeSet::new();
 
     match *strategy {
@@ -362,7 +387,8 @@ fn get_targets(
 fn get_targets_root_only(
     manifest_path: Option<&Path>,
     targets: &mut BTreeSet<Target>,
-) -> Result<(), io::Error> {
+) -> Result<(), io::Error>
+{
     let metadata = get_cargo_metadata(manifest_path)?;
     let workspace_root_path = PathBuf::from(&metadata.workspace_root).canonicalize()?;
     let (in_workspace_root, current_dir_manifest) = if let Some(target_manifest) = manifest_path {
@@ -405,7 +431,8 @@ fn get_targets_recursive(
     manifest_path: Option<&Path>,
     targets: &mut BTreeSet<Target>,
     visited: &mut BTreeSet<String>,
-) -> Result<(), io::Error> {
+) -> Result<(), io::Error>
+{
     let metadata = get_cargo_metadata(manifest_path)?;
     for package in &metadata.packages {
         add_targets(&package.targets, targets);
@@ -441,7 +468,8 @@ fn get_targets_with_hitlist(
     manifest_path: Option<&Path>,
     hitlist: &[String],
     targets: &mut BTreeSet<Target>,
-) -> Result<(), io::Error> {
+) -> Result<(), io::Error>
+{
     let metadata = get_cargo_metadata(manifest_path)?;
     let mut workspace_hitlist: BTreeSet<&String> = BTreeSet::from_iter(hitlist);
 
@@ -464,7 +492,8 @@ fn get_targets_with_hitlist(
     }
 }
 
-fn add_targets(target_paths: &[cargo_metadata::Target], targets: &mut BTreeSet<Target>) {
+fn add_targets(target_paths: &[cargo_metadata::Target], targets: &mut BTreeSet<Target>)
+{
     for target in target_paths {
         targets.insert(Target::from_target(target));
     }
@@ -474,7 +503,8 @@ fn run_rustfmt(
     targets: &BTreeSet<Target>,
     fmt_args: &[String],
     verbosity: Verbosity,
-) -> Result<i32, io::Error> {
+) -> Result<i32, io::Error>
+{
     let by_edition = targets
         .iter()
         .inspect(|t| {
@@ -527,7 +557,8 @@ fn run_rustfmt(
         .unwrap_or(SUCCESS))
 }
 
-fn get_cargo_metadata(manifest_path: Option<&Path>) -> Result<cargo_metadata::Metadata, io::Error> {
+fn get_cargo_metadata(manifest_path: Option<&Path>) -> Result<cargo_metadata::Metadata, io::Error>
+{
     let mut cmd = cargo_metadata::MetadataCommand::new();
     cmd.no_deps();
     if let Some(manifest_path) = manifest_path {

@@ -8,14 +8,17 @@ mod xml;
 #[derive(Debug, Default)]
 pub(crate) struct CheckstyleEmitter;
 
-impl Emitter for CheckstyleEmitter {
-    fn emit_header(&self, output: &mut dyn Write) -> Result<(), io::Error> {
+impl Emitter for CheckstyleEmitter
+{
+    fn emit_header(&self, output: &mut dyn Write) -> Result<(), io::Error>
+    {
         writeln!(output, r#"<?xml version="1.0" encoding="utf-8"?>"#)?;
         write!(output, r#"<checkstyle version="4.3">"#)?;
         Ok(())
     }
 
-    fn emit_footer(&self, output: &mut dyn Write) -> Result<(), io::Error> {
+    fn emit_footer(&self, output: &mut dyn Write) -> Result<(), io::Error>
+    {
         writeln!(output, "</checkstyle>")
     }
 
@@ -27,7 +30,8 @@ impl Emitter for CheckstyleEmitter {
             original_text,
             formatted_text,
         }: FormattedFile<'_>,
-    ) -> Result<EmitterResult, io::Error> {
+    ) -> Result<EmitterResult, io::Error>
+    {
         const CONTEXT_SIZE: usize = 0;
         let diff = make_diff(original_text, formatted_text, CONTEXT_SIZE);
         output_checkstyle_file(output, filename, diff)?;
@@ -67,12 +71,14 @@ where
 }
 
 #[cfg(test)]
-mod tests {
+mod tests
+{
     use super::*;
     use std::path::PathBuf;
 
     #[test]
-    fn emits_empty_record_on_file_with_no_mismatches() {
+    fn emits_empty_record_on_file_with_no_mismatches()
+    {
         let file_name = "src/well_formatted.rs";
         let mut writer = Vec::new();
         let _ = output_checkstyle_file(
@@ -88,7 +94,8 @@ mod tests {
 
     // https://github.com/rust-lang/rustfmt/issues/1636
     #[test]
-    fn emits_single_xml_tree_containing_all_files() {
+    fn emits_single_xml_tree_containing_all_files()
+    {
         let bin_file = "src/bin.rs";
         let bin_original = vec!["fn main() {", "println!(\"Hello, world!\");", "}"];
         let bin_formatted = vec!["fn main() {", "    println!(\"Hello, world!\");", "}"];

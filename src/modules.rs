@@ -23,20 +23,23 @@ type FileModMap<'ast> = BTreeMap<FileName, Module<'ast>>;
 
 /// Represents module with its inner attributes.
 #[derive(Debug, Clone)]
-pub(crate) struct Module<'a> {
+pub(crate) struct Module<'a>
+{
     ast_mod_kind: Option<Cow<'a, ast::ModKind>>,
     pub(crate) items: Cow<'a, Vec<rustc_ast::ptr::P<ast::Item>>>,
     inner_attr: ast::AttrVec,
     pub(crate) span: Span,
 }
 
-impl<'a> Module<'a> {
+impl<'a> Module<'a>
+{
     pub(crate) fn new(
         mod_span: Span,
         ast_mod_kind: Option<Cow<'a, ast::ModKind>>,
         mod_items: Cow<'a, Vec<rustc_ast::ptr::P<ast::Item>>>,
         mod_attrs: Cow<'a, ast::AttrVec>,
-    ) -> Self {
+    ) -> Self
+    {
         let inner_attr = mod_attrs
             .iter()
             .filter(|attr| attr.style == ast::AttrStyle::Inner)
@@ -50,13 +53,15 @@ impl<'a> Module<'a> {
         }
     }
 
-    pub(crate) fn attrs(&self) -> &[ast::Attribute] {
+    pub(crate) fn attrs(&self) -> &[ast::Attribute]
+    {
         &self.inner_attr
     }
 }
 
 /// Maps each module to the corresponding file.
-pub(crate) struct ModResolver<'ast, 'sess> {
+pub(crate) struct ModResolver<'ast, 'sess>
+{
     parse_sess: &'sess ParseSess,
     directory: Directory,
     file_map: FileModMap<'ast>,
@@ -66,30 +71,40 @@ pub(crate) struct ModResolver<'ast, 'sess> {
 /// Represents errors while trying to resolve modules.
 #[derive(Debug, Error)]
 #[error("failed to resolve mod `{module}`: {kind}")]
-pub struct ModuleResolutionError {
+pub struct ModuleResolutionError
+{
     pub(crate) module: String,
     pub(crate) kind: ModuleResolutionErrorKind,
 }
 
 /// Defines variants similar to those of [rustc_expand::module::ModError]
 #[derive(Debug, Error)]
-pub(crate) enum ModuleResolutionErrorKind {
+pub(crate) enum ModuleResolutionErrorKind
+{
     /// Find a file that cannot be parsed.
     #[error("cannot parse {file}")]
-    ParseError { file: PathBuf },
+    ParseError
+    {
+        file: PathBuf
+    },
     /// File cannot be found.
     #[error("{file} does not exist")]
-    NotFound { file: PathBuf },
+    NotFound
+    {
+        file: PathBuf
+    },
     /// File a.rs and a/mod.rs both exist
     #[error("file for module found at both {default_path:?} and {secondary_path:?}")]
-    MultipleCandidates {
+    MultipleCandidates
+    {
         default_path: PathBuf,
         secondary_path: PathBuf,
     },
 }
 
 #[derive(Clone)]
-enum SubModKind<'a, 'ast> {
+enum SubModKind<'a, 'ast>
+{
     /// `mod foo;`
     External(PathBuf, DirectoryOwnership, Module<'ast>),
     /// `mod foo;` with multiple sources.
@@ -98,13 +113,15 @@ enum SubModKind<'a, 'ast> {
     Internal(&'a ast::Item),
 }
 
-impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
+impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess>
+{
     /// Creates a new `ModResolver`.
     pub(crate) fn new(
         parse_sess: &'sess ParseSess,
         directory_ownership: DirectoryOwnership,
         recursive: bool,
-    ) -> Self {
+    ) -> Self
+    {
         ModResolver {
             directory: Directory {
                 path: PathBuf::new(),
@@ -120,7 +137,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
     pub(crate) fn visit_crate(
         mut self,
         krate: &'ast ast::Crate,
-    ) -> Result<FileModMap<'ast>, ModuleResolutionError> {
+    ) -> Result<FileModMap<'ast>, ModuleResolutionError>
+    {
         let root_filename = self.parse_sess.span_to_filename(krate.spans.inner_span);
         self.directory.path = match root_filename {
             FileName::Real(ref p) => p.parent().unwrap_or(Path::new("")).to_path_buf(),
@@ -147,7 +165,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
     }
 
     /// Visit `cfg_if` macro and look for module declarations.
-    fn visit_cfg_if(&mut self, item: Cow<'ast, ast::Item>) -> Result<(), ModuleResolutionError> {
+    fn visit_cfg_if(&mut self, item: Cow<'ast, ast::Item>) -> Result<(), ModuleResolutionError>
+    {
         let mut visitor = visitor::CfgIfVisitor::new(self.parse_sess);
         visitor.visit_item(&item);
         for module_item in visitor.mods() {
@@ -170,7 +189,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
     fn visit_mod_outside_ast(
         &mut self,
         items: Vec<rustc_ast::ptr::P<ast::Item>>,
-    ) -> Result<(), ModuleResolutionError> {
+    ) -> Result<(), ModuleResolutionError>
+    {
         for item in items {
             if is_cfg_if(&item) {
                 self.visit_cfg_if(Cow::Owned(item.into_inner()))?;
@@ -197,7 +217,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
     fn visit_mod_from_ast(
         &mut self,
         items: &'ast [rustc_ast::ptr::P<ast::Item>],
-    ) -> Result<(), ModuleResolutionError> {
+    ) -> Result<(), ModuleResolutionError>
+    {
         for item in items {
             if is_cfg_if(item) {
                 self.visit_cfg_if(Cow::Borrowed(item))?;
@@ -223,7 +244,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
         &mut self,
         item: &'c ast::Item,
         sub_mod: Module<'ast>,
-    ) -> Result<(), ModuleResolutionError> {
+    ) -> Result<(), ModuleResolutionError>
+    {
         let old_directory = self.directory.clone();
         let sub_mod_kind = self.peek_sub_mod(item, &sub_mod)?;
         if let Some(sub_mod_kind) = sub_mod_kind {
@@ -239,7 +261,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
         &self,
         item: &'c ast::Item,
         sub_mod: &Module<'ast>,
-    ) -> Result<Option<SubModKind<'c, 'ast>>, ModuleResolutionError> {
+    ) -> Result<Option<SubModKind<'c, 'ast>>, ModuleResolutionError>
+    {
         if contains_skip(&item.attrs) {
             return Ok(None);
         }
@@ -257,7 +280,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
     fn insert_sub_mod(
         &mut self,
         sub_mod_kind: SubModKind<'c, 'ast>,
-    ) -> Result<(), ModuleResolutionError> {
+    ) -> Result<(), ModuleResolutionError>
+    {
         match sub_mod_kind {
             SubModKind::External(mod_path, _, sub_mod) => {
                 self.file_map
@@ -280,7 +304,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
         &mut self,
         sub_mod: Module<'ast>,
         sub_mod_kind: SubModKind<'c, 'ast>,
-    ) -> Result<(), ModuleResolutionError> {
+    ) -> Result<(), ModuleResolutionError>
+    {
         match sub_mod_kind {
             SubModKind::External(mod_path, directory_ownership, sub_mod) => {
                 let directory = Directory {
@@ -310,7 +335,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
         &mut self,
         sub_mod: Module<'ast>,
         directory: Option<Directory>,
-    ) -> Result<(), ModuleResolutionError> {
+    ) -> Result<(), ModuleResolutionError>
+    {
         if let Some(directory) = directory {
             self.directory = directory;
         }
@@ -331,7 +357,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
         mod_name: symbol::Ident,
         attrs: &[ast::Attribute],
         sub_mod: &Module<'ast>,
-    ) -> Result<Option<SubModKind<'c, 'ast>>, ModuleResolutionError> {
+    ) -> Result<Option<SubModKind<'c, 'ast>>, ModuleResolutionError>
+    {
         let relative = match self.directory.ownership {
             DirectoryOwnership::Owned { relative } => relative,
             DirectoryOwnership::UnownedViaBlock => None,
@@ -469,7 +496,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
         }
     }
 
-    fn push_inline_mod_directory(&mut self, id: symbol::Ident, attrs: &[ast::Attribute]) {
+    fn push_inline_mod_directory(&mut self, id: symbol::Ident, attrs: &[ast::Attribute])
+    {
         if let Some(path) = find_path_value(attrs) {
             self.directory.path.push(path.as_str());
             self.directory.ownership = DirectoryOwnership::Owned { relative: None };
@@ -501,7 +529,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
         &self,
         attrs: &[ast::Attribute],
         sub_mod: &Module<'ast>,
-    ) -> Vec<(PathBuf, DirectoryOwnership, Module<'ast>)> {
+    ) -> Vec<(PathBuf, DirectoryOwnership, Module<'ast>)>
+    {
         // Filter nested path, like `#[cfg_attr(feature = "foo", path = "bar.rs")]`.
         let mut path_visitor = visitor::PathVisitor::default();
         for attr in attrs.iter() {
@@ -547,7 +576,8 @@ impl<'ast, 'sess, 'c> ModResolver<'ast, 'sess> {
     }
 }
 
-fn path_value(attr: &ast::Attribute) -> Option<Symbol> {
+fn path_value(attr: &ast::Attribute) -> Option<Symbol>
+{
     if attr.has_name(sym::path) {
         attr.value_str()
     } else {
@@ -558,11 +588,13 @@ fn path_value(attr: &ast::Attribute) -> Option<Symbol> {
 // N.B., even when there are multiple `#[path = ...]` attributes, we just need to
 // examine the first one, since rustc ignores the second and the subsequent ones
 // as unused attributes.
-fn find_path_value(attrs: &[ast::Attribute]) -> Option<Symbol> {
+fn find_path_value(attrs: &[ast::Attribute]) -> Option<Symbol>
+{
     attrs.iter().flat_map(path_value).next()
 }
 
-fn is_cfg_if(item: &ast::Item) -> bool {
+fn is_cfg_if(item: &ast::Item) -> bool
+{
     match item.kind {
         ast::ItemKind::MacCall(ref mac) => {
             if let Some(first_segment) = mac.path.segments.first() {

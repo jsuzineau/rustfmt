@@ -3,13 +3,16 @@ use std::fmt::{self, Display};
 
 /// Formats a string as a doc comment using the given [`CommentStyle`].
 #[derive(new)]
-pub(super) struct DocCommentFormatter<'a> {
+pub(super) struct DocCommentFormatter<'a>
+{
     literal: &'a str,
     style: CommentStyle<'a>,
 }
 
-impl Display for DocCommentFormatter<'_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for DocCommentFormatter<'_>
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result
+    {
         let opener = self.style.opener().trim_end();
         let mut lines = self.literal.lines().peekable();
 
@@ -31,11 +34,13 @@ impl Display for DocCommentFormatter<'_> {
 }
 
 #[cfg(test)]
-mod tests {
+mod tests
+{
     use super::*;
 
     #[test]
-    fn literal_controls_leading_spaces() {
+    fn literal_controls_leading_spaces()
+    {
         test_doc_comment_is_formatted_correctly(
             "    Lorem ipsum",
             "///    Lorem ipsum",
@@ -44,7 +49,8 @@ mod tests {
     }
 
     #[test]
-    fn single_line_doc_comment_is_formatted_correctly() {
+    fn single_line_doc_comment_is_formatted_correctly()
+    {
         test_doc_comment_is_formatted_correctly(
             "Lorem ipsum",
             "///Lorem ipsum",
@@ -53,7 +59,8 @@ mod tests {
     }
 
     #[test]
-    fn multi_line_doc_comment_is_formatted_correctly() {
+    fn multi_line_doc_comment_is_formatted_correctly()
+    {
         test_doc_comment_is_formatted_correctly(
             "Lorem ipsum\nDolor sit amet",
             "///Lorem ipsum\n///Dolor sit amet",
@@ -62,7 +69,8 @@ mod tests {
     }
 
     #[test]
-    fn whitespace_within_lines_is_preserved() {
+    fn whitespace_within_lines_is_preserved()
+    {
         test_doc_comment_is_formatted_correctly(
             " Lorem ipsum \n Dolor sit amet ",
             "/// Lorem ipsum \n/// Dolor sit amet ",
@@ -74,7 +82,8 @@ mod tests {
         literal: &str,
         expected_comment: &str,
         style: CommentStyle<'_>,
-    ) {
+    )
+    {
         assert_eq!(
             expected_comment,
             format!("{}", DocCommentFormatter::new(literal, style))

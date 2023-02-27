@@ -5,7 +5,8 @@ use super::read_config;
 
 use crate::{FileName, Input, Session};
 
-fn verify_mod_resolution(input_file_name: &str, exp_misformatted_files: &[&str]) {
+fn verify_mod_resolution(input_file_name: &str, exp_misformatted_files: &[&str])
+{
     let input_file = PathBuf::from(input_file_name);
     let config = read_config(&input_file);
     let mut session = Session::<io::Stdout>::new(config, None);
@@ -19,7 +20,8 @@ fn verify_mod_resolution(input_file_name: &str, exp_misformatted_files: &[&str])
 }
 
 #[test]
-fn nested_out_of_line_mods_loaded() {
+fn nested_out_of_line_mods_loaded()
+{
     // See also https://github.com/rust-lang/rustfmt/issues/4874
     verify_mod_resolution(
         "tests/mod-resolver/issue-4874/main.rs",
@@ -31,7 +33,8 @@ fn nested_out_of_line_mods_loaded() {
 }
 
 #[test]
-fn out_of_line_nested_inline_within_out_of_line() {
+fn out_of_line_nested_inline_within_out_of_line()
+{
     // See also https://github.com/rust-lang/rustfmt/issues/5063
     verify_mod_resolution(
         "tests/mod-resolver/issue-5063/main.rs",
@@ -43,7 +46,8 @@ fn out_of_line_nested_inline_within_out_of_line() {
 }
 
 #[test]
-fn skip_out_of_line_nested_inline_within_out_of_line() {
+fn skip_out_of_line_nested_inline_within_out_of_line()
+{
     // See also https://github.com/rust-lang/rustfmt/issues/5065
     verify_mod_resolution(
         "tests/mod-resolver/skip-files-issue-5065/main.rs",
@@ -52,7 +56,8 @@ fn skip_out_of_line_nested_inline_within_out_of_line() {
 }
 
 #[test]
-fn fmt_out_of_line_test_modules() {
+fn fmt_out_of_line_test_modules()
+{
     // See also https://github.com/rust-lang/rustfmt/issues/5119
     verify_mod_resolution(
         "tests/mod-resolver/test-submodule-issue-5119/tests/test1.rs",
@@ -66,7 +71,8 @@ fn fmt_out_of_line_test_modules() {
 }
 
 #[test]
-fn fallback_and_try_to_resolve_external_submod_relative_to_current_dir_path() {
+fn fallback_and_try_to_resolve_external_submod_relative_to_current_dir_path()
+{
     // See also https://github.com/rust-lang/rustfmt/issues/5198
     verify_mod_resolution(
         "tests/mod-resolver/issue-5198/lib.rs",

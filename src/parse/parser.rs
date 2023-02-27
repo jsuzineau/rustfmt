@@ -16,35 +16,42 @@ pub(crate) type ModulePathSuccess = rustc_expand::module::ModulePathSuccess;
 pub(crate) type ModError<'a> = rustc_expand::module::ModError<'a>;
 
 #[derive(Clone)]
-pub(crate) struct Directory {
+pub(crate) struct Directory
+{
     pub(crate) path: PathBuf,
     pub(crate) ownership: DirectoryOwnership,
 }
 
 /// A parser for Rust source code.
-pub(crate) struct Parser<'a> {
+pub(crate) struct Parser<'a>
+{
     parser: RawParser<'a>,
 }
 
 /// A builder for the `Parser`.
 #[derive(Default)]
-pub(crate) struct ParserBuilder<'a> {
+pub(crate) struct ParserBuilder<'a>
+{
     sess: Option<&'a ParseSess>,
     input: Option<Input>,
 }
 
-impl<'a> ParserBuilder<'a> {
-    pub(crate) fn input(mut self, input: Input) -> ParserBuilder<'a> {
+impl<'a> ParserBuilder<'a>
+{
+    pub(crate) fn input(mut self, input: Input) -> ParserBuilder<'a>
+    {
         self.input = Some(input);
         self
     }
 
-    pub(crate) fn sess(mut self, sess: &'a ParseSess) -> ParserBuilder<'a> {
+    pub(crate) fn sess(mut self, sess: &'a ParseSess) -> ParserBuilder<'a>
+    {
         self.sess = Some(sess);
         self
     }
 
-    pub(crate) fn build(self) -> Result<Parser<'a>, ParserError> {
+    pub(crate) fn build(self) -> Result<Parser<'a>, ParserError>
+    {
         let sess = self.sess.ok_or(ParserError::NoParseSess)?;
         let input = self.input.ok_or(ParserError::NoInput)?;
 
@@ -65,7 +72,8 @@ impl<'a> ParserBuilder<'a> {
     fn parser(
         sess: &'a rustc_session::parse::ParseSess,
         input: Input,
-    ) -> Result<rustc_parse::parser::Parser<'a>, Option<Vec<Diagnostic>>> {
+    ) -> Result<rustc_parse::parser::Parser<'a>, Option<Vec<Diagnostic>>>
+    {
         match input {
             Input::File(ref file) => catch_unwind(AssertUnwindSafe(move || {
                 new_parser_from_file(sess, file, None)
@@ -82,7 +90,8 @@ impl<'a> ParserBuilder<'a> {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum ParserError {
+pub(crate) enum ParserError
+{
     NoParseSess,
     NoInput,
     ParserCreationError,
@@ -90,8 +99,10 @@ pub(crate) enum ParserError {
     ParsePanicError,
 }
 
-impl<'a> Parser<'a> {
-    pub(crate) fn submod_path_from_attr(attrs: &[ast::Attribute], path: &Path) -> Option<PathBuf> {
+impl<'a> Parser<'a>
+{
+    pub(crate) fn submod_path_from_attr(attrs: &[ast::Attribute], path: &Path) -> Option<PathBuf>
+    {
         let path_sym = first_attr_value_str_by_name(attrs, sym::path)?;
         let path_str = path_sym.as_str();
 
@@ -109,7 +120,8 @@ impl<'a> Parser<'a> {
         sess: &'a ParseSess,
         path: &Path,
         span: Span,
-    ) -> Result<(ast::AttrVec, Vec<ptr::P<ast::Item>>, Span), ParserError> {
+    ) -> Result<(ast::AttrVec, Vec<ptr::P<ast::Item>>, Span), ParserError>
+    {
         let result = catch_unwind(AssertUnwindSafe(|| {
             let mut parser = new_parser_from_file(sess.inner(), path, Some(span));
             match parser.parse_mod(&TokenKind::Eof) {
@@ -135,10 +147,9 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub(crate) fn parse_crate(
-        input: Input,
-        sess: &'a ParseSess,
-    ) -> Result<ast::Crate, ParserError> {
+    pub(crate) fn parse_crate(input: Input, sess: &'a ParseSess)
+        -> Result<ast::Crate, ParserError>
+    {
         let krate = Parser::parse_crate_inner(input, sess)?;
         if !sess.has_errors() {
             return Ok(krate);
@@ -152,7 +163,8 @@ impl<'a> Parser<'a> {
         Err(ParserError::ParseError)
     }
 
-    fn parse_crate_inner(input: Input, sess: &'a ParseSess) -> Result<ast::Crate, ParserError> {
+    fn parse_crate_inner(input: Input, sess: &'a ParseSess) -> Result<ast::Crate, ParserError>
+    {
         ParserBuilder::default()
             .input(input)
             .sess(sess)
@@ -160,7 +172,8 @@ impl<'a> Parser<'a> {
             .parse_crate_mod()
     }
 
-    fn parse_crate_mod(&mut self) -> Result<ast::Crate, ParserError> {
+    fn parse_crate_mod(&mut self) -> Result<ast::Crate, ParserError>
+    {
         let mut parser = AssertUnwindSafe(&mut self.parser);
 
         match catch_unwind(move || parser.parse_crate_mod()) {

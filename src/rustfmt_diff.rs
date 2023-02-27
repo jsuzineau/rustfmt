@@ -6,14 +6,16 @@ use std::io::Write;
 use crate::config::{Color, Config, Verbosity};
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum DiffLine {
+pub(crate) enum DiffLine
+{
     Context(String),
     Expected(String),
     Resulting(String),
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct Mismatch {
+pub(crate) struct Mismatch
+{
     /// The line number in the formatted version.
     pub(crate) line_number: u32,
     /// The line number in the original version.
@@ -22,8 +24,10 @@ pub(crate) struct Mismatch {
     pub(crate) lines: Vec<DiffLine>,
 }
 
-impl Mismatch {
-    fn new(line_number: u32, line_number_orig: u32) -> Mismatch {
+impl Mismatch
+{
+    fn new(line_number: u32, line_number_orig: u32) -> Mismatch
+    {
         Mismatch {
             line_number,
             line_number_orig,
@@ -35,7 +39,8 @@ impl Mismatch {
 /// A single span of changed lines, with 0 or more removed lines
 /// and a vector of 0 or more inserted lines.
 #[derive(Debug, PartialEq, Eq)]
-pub struct ModifiedChunk {
+pub struct ModifiedChunk
+{
     /// The first to be removed from the original text
     pub line_number_orig: u32,
     /// The number of lines which have been replaced
@@ -46,13 +51,16 @@ pub struct ModifiedChunk {
 
 /// Set of changed sections of a file.
 #[derive(Debug, PartialEq, Eq)]
-pub struct ModifiedLines {
+pub struct ModifiedLines
+{
     /// The set of changed chunks.
     pub chunks: Vec<ModifiedChunk>,
 }
 
-impl From<Vec<Mismatch>> for ModifiedLines {
-    fn from(mismatches: Vec<Mismatch>) -> ModifiedLines {
+impl From<Vec<Mismatch>> for ModifiedLines
+{
+    fn from(mismatches: Vec<Mismatch>) -> ModifiedLines
+    {
         let chunks = mismatches.into_iter().map(|mismatch| {
             let lines = mismatch.lines.iter();
             let num_removed = lines
@@ -83,8 +91,10 @@ impl From<Vec<Mismatch>> for ModifiedLines {
 //     lineno num_removed num_added
 // followed by (`num_added`) lines of added text. The line numbers are
 // relative to the original file.
-impl fmt::Display for ModifiedLines {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl fmt::Display for ModifiedLines
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
+    {
         for chunk in &self.chunks {
             writeln!(
                 f,
@@ -104,10 +114,12 @@ impl fmt::Display for ModifiedLines {
 }
 
 // Allows to convert `Display`ed `ModifiedLines` back to the structural data.
-impl std::str::FromStr for ModifiedLines {
+impl std::str::FromStr for ModifiedLines
+{
     type Err = ();
 
-    fn from_str(s: &str) -> Result<ModifiedLines, ()> {
+    fn from_str(s: &str) -> Result<ModifiedLines, ()>
+    {
         let mut chunks = vec![];
 
         let mut lines = s.lines();
@@ -141,14 +153,17 @@ impl std::str::FromStr for ModifiedLines {
 
 // This struct handles writing output to stdout and abstracts away the logic
 // of printing in color, if it's possible in the executing environment.
-pub(crate) struct OutputWriter {
+pub(crate) struct OutputWriter
+{
     terminal: Option<Box<dyn term::Terminal<Output = io::Stdout>>>,
 }
 
-impl OutputWriter {
+impl OutputWriter
+{
     // Create a new OutputWriter instance based on the caller's preference
     // for colorized output and the capabilities of the terminal.
-    pub(crate) fn new(color: Color) -> Self {
+    pub(crate) fn new(color: Color) -> Self
+    {
         if let Some(t) = term::stdout() {
             if color.use_colored_tty() && t.supports_color() {
                 return OutputWriter { terminal: Some(t) };
@@ -160,7 +175,8 @@ impl OutputWriter {
     // Write output in the optionally specified color. The output is written
     // in the specified color if this OutputWriter instance contains a
     // Terminal in its `terminal` field.
-    pub(crate) fn writeln(&mut self, msg: &str, color: Option<term::color::Color>) {
+    pub(crate) fn writeln(&mut self, msg: &str, color: Option<term::color::Color>)
+    {
         match &mut self.terminal {
             Some(ref mut t) => {
                 if let Some(color) = color {
@@ -177,7 +193,8 @@ impl OutputWriter {
 }
 
 // Produces a diff between the expected output and actual output of rustfmt.
-pub(crate) fn make_diff(expected: &str, actual: &str, context_size: usize) -> Vec<Mismatch> {
+pub(crate) fn make_diff(expected: &str, actual: &str, context_size: usize) -> Vec<Mismatch>
+{
     let mut line_number = 1;
     let mut line_number_orig = 1;
     let mut context_queue: VecDeque<&str> = VecDeque::with_capacity(context_size);
@@ -281,13 +298,15 @@ where
 }
 
 #[cfg(test)]
-mod test {
+mod test
+{
     use super::DiffLine::*;
     use super::{make_diff, Mismatch};
     use super::{ModifiedChunk, ModifiedLines};
 
     #[test]
-    fn diff_simple() {
+    fn diff_simple()
+    {
         let src = "one\ntwo\nthree\nfour\nfive\n";
         let dest = "one\ntwo\ntrois\nfour\nfive\n";
         let diff = make_diff(src, dest, 1);
@@ -307,7 +326,8 @@ mod test {
     }
 
     #[test]
-    fn diff_simple2() {
+    fn diff_simple2()
+    {
         let src = "one\ntwo\nthree\nfour\nfive\nsix\nseven\n";
         let dest = "one\ntwo\ntrois\nfour\ncinq\nsix\nseven\n";
         let diff = make_diff(src, dest, 1);
@@ -338,7 +358,8 @@ mod test {
     }
 
     #[test]
-    fn diff_zerocontext() {
+    fn diff_zerocontext()
+    {
         let src = "one\ntwo\nthree\nfour\nfive\n";
         let dest = "one\ntwo\ntrois\nfour\nfive\n";
         let diff = make_diff(src, dest, 0);
@@ -353,7 +374,8 @@ mod test {
     }
 
     #[test]
-    fn diff_trailing_newline() {
+    fn diff_trailing_newline()
+    {
         let src = "one\ntwo\nthree\nfour\nfive";
         let dest = "one\ntwo\nthree\nfour\nfive\n";
         let diff = make_diff(src, dest, 1);
@@ -368,7 +390,8 @@ mod test {
     }
 
     #[test]
-    fn modified_lines_from_str() {
+    fn modified_lines_from_str()
+    {
         use std::str::FromStr;
 
         let src = "1 6 2\nfn some() {}\nfn main() {}\n25 3 1\n  struct Test {}";

@@ -12,7 +12,8 @@ use serde_json as json;
 use thiserror::Error;
 
 /// A range of lines in a file, inclusive of both ends.
-pub struct LineRange {
+pub struct LineRange
+{
     pub(crate) file: Lrc<SourceFile>,
     pub(crate) lo: usize,
     pub(crate) hi: usize,
@@ -20,13 +21,16 @@ pub struct LineRange {
 
 /// Defines the name of an input - either a file or stdin.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
-pub enum FileName {
+pub enum FileName
+{
     Real(PathBuf),
     Stdin,
 }
 
-impl From<rustc_span::FileName> for FileName {
-    fn from(name: rustc_span::FileName) -> FileName {
+impl From<rustc_span::FileName> for FileName
+{
+    fn from(name: rustc_span::FileName) -> FileName
+    {
         match name {
             rustc_span::FileName::Real(rustc_span::RealFileName::LocalPath(p)) => FileName::Real(p),
             rustc_span::FileName::Custom(ref f) if f == "stdin" => FileName::Stdin,
@@ -35,8 +39,10 @@ impl From<rustc_span::FileName> for FileName {
     }
 }
 
-impl fmt::Display for FileName {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl fmt::Display for FileName
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
+    {
         match self {
             FileName::Real(p) => write!(f, "{}", p.to_str().unwrap()),
             FileName::Stdin => write!(f, "<stdin>"),
@@ -44,7 +50,8 @@ impl fmt::Display for FileName {
     }
 }
 
-impl<'de> Deserialize<'de> for FileName {
+impl<'de> Deserialize<'de> for FileName
+{
     fn deserialize<D>(deserializer: D) -> Result<FileName, D::Error>
     where
         D: Deserializer<'de>,
@@ -58,7 +65,8 @@ impl<'de> Deserialize<'de> for FileName {
     }
 }
 
-impl Serialize for FileName {
+impl Serialize for FileName
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -74,42 +82,53 @@ impl Serialize for FileName {
     }
 }
 
-impl LineRange {
-    pub(crate) fn file_name(&self) -> FileName {
+impl LineRange
+{
+    pub(crate) fn file_name(&self) -> FileName
+    {
         self.file.name.clone().into()
     }
 }
 
 /// A range that is inclusive of both ends.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, Deserialize)]
-pub struct Range {
+pub struct Range
+{
     lo: usize,
     hi: usize,
 }
 
-impl<'a> From<&'a LineRange> for Range {
-    fn from(range: &'a LineRange) -> Range {
+impl<'a> From<&'a LineRange> for Range
+{
+    fn from(range: &'a LineRange) -> Range
+    {
         Range::new(range.lo, range.hi)
     }
 }
 
-impl fmt::Display for Range {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl fmt::Display for Range
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
+    {
         write!(f, "{}..{}", self.lo, self.hi)
     }
 }
 
-impl Range {
-    pub fn new(lo: usize, hi: usize) -> Range {
+impl Range
+{
+    pub fn new(lo: usize, hi: usize) -> Range
+    {
         Range { lo, hi }
     }
 
-    fn is_empty(self) -> bool {
+    fn is_empty(self) -> bool
+    {
         self.lo > self.hi
     }
 
     #[allow(dead_code)]
-    fn contains(self, other: Range) -> bool {
+    fn contains(self, other: Range) -> bool
+    {
         if other.is_empty() {
             true
         } else {
@@ -117,7 +136,8 @@ impl Range {
         }
     }
 
-    fn intersects(self, other: Range) -> bool {
+    fn intersects(self, other: Range) -> bool
+    {
         if self.is_empty() || other.is_empty() {
             false
         } else {
@@ -126,7 +146,8 @@ impl Range {
         }
     }
 
-    fn adjacent_to(self, other: Range) -> bool {
+    fn adjacent_to(self, other: Range) -> bool
+    {
         if self.is_empty() || other.is_empty() {
             false
         } else {
@@ -136,7 +157,8 @@ impl Range {
 
     /// Returns a new `Range` with lines from `self` and `other` if they were adjacent or
     /// intersect; returns `None` otherwise.
-    fn merge(self, other: Range) -> Option<Range> {
+    fn merge(self, other: Range) -> Option<Range>
+    {
         if self.adjacent_to(other) || self.intersects(other) {
             Some(Range::new(
                 cmp::min(self.lo, other.lo),
@@ -156,8 +178,10 @@ impl Range {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct FileLines(Option<HashMap<FileName, Vec<Range>>>);
 
-impl fmt::Display for FileLines {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl fmt::Display for FileLines
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
+    {
         match &self.0 {
             None => write!(f, "None")?,
             Some(map) => {
@@ -173,7 +197,8 @@ impl fmt::Display for FileLines {
 
 /// Normalizes the ranges so that the invariants for `FileLines` hold: ranges are non-overlapping,
 /// and ordered by their start point.
-fn normalize_ranges(ranges: &mut HashMap<FileName, Vec<Range>>) {
+fn normalize_ranges(ranges: &mut HashMap<FileName, Vec<Range>>)
+{
     for ranges in ranges.values_mut() {
         ranges.sort();
         let mut result = vec![];
@@ -194,29 +219,35 @@ fn normalize_ranges(ranges: &mut HashMap<FileName, Vec<Range>>) {
     }
 }
 
-impl FileLines {
+impl FileLines
+{
     /// Creates a `FileLines` that contains all lines in all files.
-    pub(crate) fn all() -> FileLines {
+    pub(crate) fn all() -> FileLines
+    {
         FileLines(None)
     }
 
     /// Returns `true` if this `FileLines` contains all lines in all files.
-    pub(crate) fn is_all(&self) -> bool {
+    pub(crate) fn is_all(&self) -> bool
+    {
         self.0.is_none()
     }
 
-    pub fn from_ranges(mut ranges: HashMap<FileName, Vec<Range>>) -> FileLines {
+    pub fn from_ranges(mut ranges: HashMap<FileName, Vec<Range>>) -> FileLines
+    {
         normalize_ranges(&mut ranges);
         FileLines(Some(ranges))
     }
 
     /// Returns an iterator over the files contained in `self`.
-    pub fn files(&self) -> Files<'_> {
+    pub fn files(&self) -> Files<'_>
+    {
         Files(self.0.as_ref().map(HashMap::keys))
     }
 
     /// Returns JSON representation as accepted by the `--file-lines JSON` arg.
-    pub fn to_json_spans(&self) -> Vec<JsonSpan> {
+    pub fn to_json_spans(&self) -> Vec<JsonSpan>
+    {
         match &self.0 {
             None => vec![],
             Some(file_ranges) => file_ranges
@@ -250,22 +281,26 @@ impl FileLines {
 
     /// Returns `true` if `range` is fully contained in `self`.
     #[allow(dead_code)]
-    pub(crate) fn contains(&self, range: &LineRange) -> bool {
+    pub(crate) fn contains(&self, range: &LineRange) -> bool
+    {
         self.file_range_matches(&range.file_name(), |r| r.contains(Range::from(range)))
     }
 
     /// Returns `true` if any lines in `range` are in `self`.
-    pub(crate) fn intersects(&self, range: &LineRange) -> bool {
+    pub(crate) fn intersects(&self, range: &LineRange) -> bool
+    {
         self.file_range_matches(&range.file_name(), |r| r.intersects(Range::from(range)))
     }
 
     /// Returns `true` if `line` from `file_name` is in `self`.
-    pub(crate) fn contains_line(&self, file_name: &FileName, line: usize) -> bool {
+    pub(crate) fn contains_line(&self, file_name: &FileName, line: usize) -> bool
+    {
         self.file_range_matches(file_name, |r| r.lo <= line && r.hi >= line)
     }
 
     /// Returns `true` if all the lines between `lo` and `hi` from `file_name` are in `self`.
-    pub(crate) fn contains_range(&self, file_name: &FileName, lo: usize, hi: usize) -> bool {
+    pub(crate) fn contains_range(&self, file_name: &FileName, lo: usize, hi: usize) -> bool
+    {
         self.file_range_matches(file_name, |r| r.contains(Range::new(lo, hi)))
     }
 }
@@ -273,15 +308,18 @@ impl FileLines {
 /// `FileLines` files iterator.
 pub struct Files<'a>(Option<::std::collections::hash_map::Keys<'a, FileName, Vec<Range>>>);
 
-impl<'a> iter::Iterator for Files<'a> {
+impl<'a> iter::Iterator for Files<'a>
+{
     type Item = &'a FileName;
 
-    fn next(&mut self) -> Option<&'a FileName> {
+    fn next(&mut self) -> Option<&'a FileName>
+    {
         self.0.as_mut().and_then(Iterator::next)
     }
 }
 
-fn canonicalize_path_string(file: &FileName) -> Option<FileName> {
+fn canonicalize_path_string(file: &FileName) -> Option<FileName>
+{
     match *file {
         FileName::Real(ref path) => path.canonicalize().ok().map(FileName::Real),
         _ => Some(file.clone()),
@@ -289,7 +327,8 @@ fn canonicalize_path_string(file: &FileName) -> Option<FileName> {
 }
 
 #[derive(Error, Debug)]
-pub enum FileLinesError {
+pub enum FileLinesError
+{
     #[error("{0}")]
     Json(json::Error),
     #[error("Can't canonicalize {0}")]
@@ -297,10 +336,12 @@ pub enum FileLinesError {
 }
 
 // This impl is needed for `Config::override_value` to work for use in tests.
-impl str::FromStr for FileLines {
+impl str::FromStr for FileLines
+{
     type Err = FileLinesError;
 
-    fn from_str(s: &str) -> Result<FileLines, Self::Err> {
+    fn from_str(s: &str) -> Result<FileLines, Self::Err>
+    {
         let v: Vec<JsonSpan> = json::from_str(s).map_err(FileLinesError::Json)?;
         let mut m = HashMap::new();
         for js in v {
@@ -313,13 +354,16 @@ impl str::FromStr for FileLines {
 
 // For JSON decoding.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Deserialize, Serialize)]
-pub struct JsonSpan {
+pub struct JsonSpan
+{
     file: FileName,
     range: (usize, usize),
 }
 
-impl JsonSpan {
-    fn into_tuple(self) -> Result<(FileName, Range), FileLinesError> {
+impl JsonSpan
+{
+    fn into_tuple(self) -> Result<(FileName, Range), FileLinesError>
+    {
         let (lo, hi) = self.range;
         let canonical = canonicalize_path_string(&self.file)
             .ok_or(FileLinesError::CannotCanonicalize(self.file))?;
@@ -329,7 +373,8 @@ impl JsonSpan {
 
 // This impl is needed for inclusion in the `Config` struct. We don't have a toml representation
 // for `FileLines`, so it will just panic instead.
-impl<'de> ::serde::de::Deserialize<'de> for FileLines {
+impl<'de> ::serde::de::Deserialize<'de> for FileLines
+{
     fn deserialize<D>(_: D) -> Result<Self, D::Error>
     where
         D: ::serde::de::Deserializer<'de>,
@@ -343,7 +388,8 @@ impl<'de> ::serde::de::Deserialize<'de> for FileLines {
 
 // We also want to avoid attempting to serialize a FileLines to toml. The
 // `Config` struct should ensure this impl is never reached.
-impl ::serde::ser::Serialize for FileLines {
+impl ::serde::ser::Serialize for FileLines
+{
     fn serialize<S>(&self, _: S) -> Result<S::Ok, S::Error>
     where
         S: ::serde::ser::Serializer,
@@ -353,11 +399,13 @@ impl ::serde::ser::Serialize for FileLines {
 }
 
 #[cfg(test)]
-mod test {
+mod test
+{
     use super::Range;
 
     #[test]
-    fn test_range_intersects() {
+    fn test_range_intersects()
+    {
         assert!(Range::new(1, 2).intersects(Range::new(1, 1)));
         assert!(Range::new(1, 2).intersects(Range::new(2, 2)));
         assert!(!Range::new(1, 2).intersects(Range::new(0, 0)));
@@ -366,7 +414,8 @@ mod test {
     }
 
     #[test]
-    fn test_range_adjacent_to() {
+    fn test_range_adjacent_to()
+    {
         assert!(!Range::new(1, 2).adjacent_to(Range::new(1, 1)));
         assert!(!Range::new(1, 2).adjacent_to(Range::new(2, 2)));
         assert!(Range::new(1, 2).adjacent_to(Range::new(0, 0)));
@@ -375,7 +424,8 @@ mod test {
     }
 
     #[test]
-    fn test_range_contains() {
+    fn test_range_contains()
+    {
         assert!(Range::new(1, 2).contains(Range::new(1, 1)));
         assert!(Range::new(1, 2).contains(Range::new(2, 2)));
         assert!(!Range::new(1, 2).contains(Range::new(0, 0)));
@@ -383,7 +433,8 @@ mod test {
     }
 
     #[test]
-    fn test_range_merge() {
+    fn test_range_merge()
+    {
         assert_eq!(None, Range::new(1, 3).merge(Range::new(5, 5)));
         assert_eq!(None, Range::new(4, 7).merge(Range::new(0, 1)));
         assert_eq!(
@@ -409,7 +460,8 @@ mod test {
     use std::{collections::HashMap, path::PathBuf};
 
     #[test]
-    fn file_lines_to_json() {
+    fn file_lines_to_json()
+    {
         let ranges: HashMap<FileName, Vec<Range>> = [
             (
                 FileName::Real(PathBuf::from("src/main.rs")),

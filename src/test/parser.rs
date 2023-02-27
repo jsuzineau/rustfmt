@@ -7,7 +7,8 @@ use crate::modules::{ModuleResolutionError, ModuleResolutionErrorKind};
 use crate::{ErrorKind, Input, Session};
 
 #[test]
-fn parser_errors_in_submods_are_surfaced() {
+fn parser_errors_in_submods_are_surfaced()
+{
     // See also https://github.com/rust-lang/rustfmt/issues/4126
     let filename = "tests/parser/issue-4126/lib.rs";
     let input_file = PathBuf::from(filename);
@@ -34,7 +35,8 @@ fn parser_errors_in_submods_are_surfaced() {
     }
 }
 
-fn assert_parser_error(filename: &str) {
+fn assert_parser_error(filename: &str)
+{
     let file = PathBuf::from(filename);
     let config = read_config(&file);
     let mut session = Session::<io::Stdout>::new(config, None);
@@ -43,14 +45,16 @@ fn assert_parser_error(filename: &str) {
 }
 
 #[test]
-fn parser_creation_errors_on_entry_new_parser_from_file_panic() {
+fn parser_creation_errors_on_entry_new_parser_from_file_panic()
+{
     // See also https://github.com/rust-lang/rustfmt/issues/4418
     let filename = "tests/parser/issue_4418.rs";
     assert_parser_error(filename);
 }
 
 #[test]
-fn crate_parsing_errors_on_unclosed_delims() {
+fn crate_parsing_errors_on_unclosed_delims()
+{
     // See also https://github.com/rust-lang/rustfmt/issues/4466
     let filename = "tests/parser/unclosed-delims/issue_4466.rs";
     assert_parser_error(filename);

@@ -20,7 +20,8 @@ use crate::visitor::SnippetProvider;
 use crate::{Config, ErrorKind, FileName};
 
 /// ParseSess holds structs necessary for constructing a parser.
-pub(crate) struct ParseSess {
+pub(crate) struct ParseSess
+{
     parse_sess: RawParseSess,
     ignore_path_set: Lrc<IgnorePathSet>,
     can_reset_errors: Lrc<AtomicBool>,
@@ -29,30 +30,37 @@ pub(crate) struct ParseSess {
 /// Emitter which discards every error.
 struct SilentEmitter;
 
-impl Translate for SilentEmitter {
-    fn fluent_bundle(&self) -> Option<&Lrc<rustc_errors::FluentBundle>> {
+impl Translate for SilentEmitter
+{
+    fn fluent_bundle(&self) -> Option<&Lrc<rustc_errors::FluentBundle>>
+    {
         None
     }
 
-    fn fallback_fluent_bundle(&self) -> &rustc_errors::FluentBundle {
+    fn fallback_fluent_bundle(&self) -> &rustc_errors::FluentBundle
+    {
         panic!("silent emitter attempted to translate a diagnostic");
     }
 }
 
-impl Emitter for SilentEmitter {
-    fn source_map(&self) -> Option<&Lrc<SourceMap>> {
+impl Emitter for SilentEmitter
+{
+    fn source_map(&self) -> Option<&Lrc<SourceMap>>
+    {
         None
     }
 
     fn emit_diagnostic(&mut self, _db: &Diagnostic) {}
 }
 
-fn silent_emitter() -> Box<dyn Emitter + Send> {
+fn silent_emitter() -> Box<dyn Emitter + Send>
+{
     Box::new(SilentEmitter {})
 }
 
 /// Emit errors against every files expect ones specified in the `ignore_path_set`.
-struct SilentOnIgnoredFilesEmitter {
+struct SilentOnIgnoredFilesEmitter
+{
     ignore_path_set: Lrc<IgnorePathSet>,
     source_map: Lrc<SourceMap>,
     emitter: Box<dyn Emitter + Send>,
@@ -60,30 +68,38 @@ struct SilentOnIgnoredFilesEmitter {
     can_reset: Lrc<AtomicBool>,
 }
 
-impl SilentOnIgnoredFilesEmitter {
-    fn handle_non_ignoreable_error(&mut self, db: &Diagnostic) {
+impl SilentOnIgnoredFilesEmitter
+{
+    fn handle_non_ignoreable_error(&mut self, db: &Diagnostic)
+    {
         self.has_non_ignorable_parser_errors = true;
         self.can_reset.store(false, Ordering::Release);
         self.emitter.emit_diagnostic(db);
     }
 }
 
-impl Translate for SilentOnIgnoredFilesEmitter {
-    fn fluent_bundle(&self) -> Option<&Lrc<rustc_errors::FluentBundle>> {
+impl Translate for SilentOnIgnoredFilesEmitter
+{
+    fn fluent_bundle(&self) -> Option<&Lrc<rustc_errors::FluentBundle>>
+    {
         self.emitter.fluent_bundle()
     }
 
-    fn fallback_fluent_bundle(&self) -> &rustc_errors::FluentBundle {
+    fn fallback_fluent_bundle(&self) -> &rustc_errors::FluentBundle
+    {
         self.emitter.fallback_fluent_bundle()
     }
 }
 
-impl Emitter for SilentOnIgnoredFilesEmitter {
-    fn source_map(&self) -> Option<&Lrc<SourceMap>> {
+impl Emitter for SilentOnIgnoredFilesEmitter
+{
+    fn source_map(&self) -> Option<&Lrc<SourceMap>>
+    {
         None
     }
 
-    fn emit_diagnostic(&mut self, db: &Diagnostic) {
+    fn emit_diagnostic(&mut self, db: &Diagnostic)
+    {
         if db.level() == DiagnosticLevel::Fatal {
             return self.handle_non_ignoreable_error(db);
         }
@@ -112,7 +128,8 @@ fn default_handler(
     ignore_path_set: Lrc<IgnorePathSet>,
     can_reset: Lrc<AtomicBool>,
     hide_parse_errors: bool,
-) -> Handler {
+) -> Handler
+{
     let supports_color = term::stderr().map_or(false, |term| term.supports_color());
     let color_cfg = if supports_color {
         ColorConfig::Auto
@@ -150,8 +167,10 @@ fn default_handler(
     )
 }
 
-impl ParseSess {
-    pub(crate) fn new(config: &Config) -> Result<ParseSess, ErrorKind> {
+impl ParseSess
+{
+    pub(crate) fn new(config: &Config) -> Result<ParseSess, ErrorKind>
+    {
         let ignore_path_set = match IgnorePathSet::from_ignore_list(&config.ignore()) {
             Ok(ignore_path_set) => Lrc::new(ignore_path_set),
             Err(e) => return Err(ErrorKind::InvalidGlobPattern(e)),
@@ -186,7 +205,8 @@ impl ParseSess {
         id: symbol::Ident,
         relative: Option<symbol::Ident>,
         dir_path: &Path,
-    ) -> Result<ModulePathSuccess, ModError<'_>> {
+    ) -> Result<ModulePathSuccess, ModError<'_>>
+    {
         rustc_expand::module::default_submod_path(&self.parse_sess, id, relative, dir_path).or_else(
             |e| {
                 // If resloving a module relative to {dir_path}/{symbol} fails because a file
@@ -203,7 +223,8 @@ impl ParseSess {
         )
     }
 
-    pub(crate) fn is_file_parsed(&self, path: &Path) -> bool {
+    pub(crate) fn is_file_parsed(&self, path: &Path) -> bool
+    {
         self.parse_sess
             .source_map()
             .get_source_file(&rustc_span::FileName::Real(
@@ -212,25 +233,30 @@ impl ParseSess {
             .is_some()
     }
 
-    pub(crate) fn ignore_file(&self, path: &FileName) -> bool {
+    pub(crate) fn ignore_file(&self, path: &FileName) -> bool
+    {
         self.ignore_path_set.as_ref().is_match(path)
     }
 
-    pub(crate) fn set_silent_emitter(&mut self) {
+    pub(crate) fn set_silent_emitter(&mut self)
+    {
         self.parse_sess.span_diagnostic = Handler::with_emitter(true, None, silent_emitter());
     }
 
-    pub(crate) fn span_to_filename(&self, span: Span) -> FileName {
+    pub(crate) fn span_to_filename(&self, span: Span) -> FileName
+    {
         self.parse_sess.source_map().span_to_filename(span).into()
     }
 
-    pub(crate) fn span_to_file_contents(&self, span: Span) -> Lrc<rustc_span::SourceFile> {
+    pub(crate) fn span_to_file_contents(&self, span: Span) -> Lrc<rustc_span::SourceFile>
+    {
         self.parse_sess
             .source_map()
             .lookup_source_file(span.data().lo)
     }
 
-    pub(crate) fn span_to_first_line_string(&self, span: Span) -> String {
+    pub(crate) fn span_to_first_line_string(&self, span: Span) -> String
+    {
         let file_lines = self.parse_sess.source_map().span_to_lines(span).ok();
 
         match file_lines {
@@ -242,7 +268,8 @@ impl ParseSess {
         }
     }
 
-    pub(crate) fn line_of_byte_pos(&self, pos: BytePos) -> usize {
+    pub(crate) fn line_of_byte_pos(&self, pos: BytePos) -> usize
+    {
         self.parse_sess.source_map().lookup_char_pos(pos).line
     }
 
@@ -251,19 +278,23 @@ impl ParseSess {
     // positions into account
     /// Determines whether two byte positions are in the same source line.
     #[allow(dead_code)]
-    pub(crate) fn byte_pos_same_line(&self, a: BytePos, b: BytePos) -> bool {
+    pub(crate) fn byte_pos_same_line(&self, a: BytePos, b: BytePos) -> bool
+    {
         self.line_of_byte_pos(a) == self.line_of_byte_pos(b)
     }
 
-    pub(crate) fn span_to_debug_info(&self, span: Span) -> String {
+    pub(crate) fn span_to_debug_info(&self, span: Span) -> String
+    {
         self.parse_sess.source_map().span_to_diagnostic_string(span)
     }
 
-    pub(crate) fn inner(&self) -> &RawParseSess {
+    pub(crate) fn inner(&self) -> &RawParseSess
+    {
         &self.parse_sess
     }
 
-    pub(crate) fn snippet_provider(&self, span: Span) -> SnippetProvider {
+    pub(crate) fn snippet_provider(&self, span: Span) -> SnippetProvider
+    {
         let source_file = self.parse_sess.source_map().lookup_char_pos(span.lo()).file;
         SnippetProvider::new(
             source_file.start_pos,
@@ -272,7 +303,8 @@ impl ParseSess {
         )
     }
 
-    pub(crate) fn get_original_snippet(&self, file_name: &FileName) -> Option<Lrc<String>> {
+    pub(crate) fn get_original_snippet(&self, file_name: &FileName) -> Option<Lrc<String>>
+    {
         self.parse_sess
             .source_map()
             .get_source_file(&file_name.into())
@@ -281,8 +313,10 @@ impl ParseSess {
 }
 
 // Methods that should be restricted within the parse module.
-impl ParseSess {
-    pub(super) fn emit_diagnostics(&self, diagnostics: Vec<Diagnostic>) {
+impl ParseSess
+{
+    pub(super) fn emit_diagnostics(&self, diagnostics: Vec<Diagnostic>)
+    {
         for mut diagnostic in diagnostics {
             self.parse_sess
                 .span_diagnostic
@@ -290,21 +324,26 @@ impl ParseSess {
         }
     }
 
-    pub(super) fn can_reset_errors(&self) -> bool {
+    pub(super) fn can_reset_errors(&self) -> bool
+    {
         self.can_reset_errors.load(Ordering::Acquire)
     }
 
-    pub(super) fn has_errors(&self) -> bool {
+    pub(super) fn has_errors(&self) -> bool
+    {
         self.parse_sess.span_diagnostic.has_errors().is_some()
     }
 
-    pub(super) fn reset_errors(&self) {
+    pub(super) fn reset_errors(&self)
+    {
         self.parse_sess.span_diagnostic.reset_err_count();
     }
 }
 
-impl LineRangeUtils for ParseSess {
-    fn lookup_line_range(&self, span: Span) -> LineRange {
+impl LineRangeUtils for ParseSess
+{
+    fn lookup_line_range(&self, span: Span) -> LineRange
+    {
         let snippet = self
             .parse_sess
             .source_map()
@@ -332,12 +371,14 @@ impl LineRangeUtils for ParseSess {
 }
 
 #[cfg(test)]
-mod tests {
+mod tests
+{
     use super::*;
 
     use rustfmt_config_proc_macro::nightly_only_test;
 
-    mod emitter {
+    mod emitter
+    {
         use super::*;
         use crate::config::IgnoreList;
         use crate::utils::mk_sp;
@@ -346,31 +387,39 @@ mod tests {
         use std::path::PathBuf;
         use std::sync::atomic::AtomicU32;
 
-        struct TestEmitter {
+        struct TestEmitter
+        {
             num_emitted_errors: Lrc<AtomicU32>,
         }
 
-        impl Translate for TestEmitter {
-            fn fluent_bundle(&self) -> Option<&Lrc<rustc_errors::FluentBundle>> {
+        impl Translate for TestEmitter
+        {
+            fn fluent_bundle(&self) -> Option<&Lrc<rustc_errors::FluentBundle>>
+            {
                 None
             }
 
-            fn fallback_fluent_bundle(&self) -> &rustc_errors::FluentBundle {
+            fn fallback_fluent_bundle(&self) -> &rustc_errors::FluentBundle
+            {
                 panic!("test emitter attempted to translate a diagnostic");
             }
         }
 
-        impl Emitter for TestEmitter {
-            fn source_map(&self) -> Option<&Lrc<SourceMap>> {
+        impl Emitter for TestEmitter
+        {
+            fn source_map(&self) -> Option<&Lrc<SourceMap>>
+            {
                 None
             }
 
-            fn emit_diagnostic(&mut self, _db: &Diagnostic) {
+            fn emit_diagnostic(&mut self, _db: &Diagnostic)
+            {
                 self.num_emitted_errors.fetch_add(1, Ordering::Release);
             }
         }
 
-        fn build_diagnostic(level: DiagnosticLevel, span: Option<MultiSpan>) -> Diagnostic {
+        fn build_diagnostic(level: DiagnosticLevel, span: Option<MultiSpan>) -> Diagnostic
+        {
             let mut diag = Diagnostic::new(level, "");
             diag.message.clear();
             if let Some(span) = span {
@@ -384,7 +433,8 @@ mod tests {
             can_reset: Lrc<AtomicBool>,
             source_map: Option<Lrc<SourceMap>>,
             ignore_list: Option<IgnoreList>,
-        ) -> SilentOnIgnoredFilesEmitter {
+        ) -> SilentOnIgnoredFilesEmitter
+        {
             let emitter_writer = TestEmitter { num_emitted_errors };
             let source_map =
                 source_map.unwrap_or_else(|| Lrc::new(SourceMap::new(FilePathMapping::empty())));
@@ -400,12 +450,14 @@ mod tests {
             }
         }
 
-        fn get_ignore_list(config: &str) -> IgnoreList {
+        fn get_ignore_list(config: &str) -> IgnoreList
+        {
             Config::from_toml(config, Path::new("")).unwrap().ignore()
         }
 
         #[test]
-        fn handles_fatal_parse_error_in_ignored_file() {
+        fn handles_fatal_parse_error_in_ignored_file()
+        {
             let num_emitted_errors = Lrc::new(AtomicU32::new(0));
             let can_reset_errors = Lrc::new(AtomicBool::new(false));
             let ignore_list = get_ignore_list(r#"ignore = ["foo.rs"]"#);
@@ -431,7 +483,8 @@ mod tests {
 
         #[nightly_only_test]
         #[test]
-        fn handles_recoverable_parse_error_in_ignored_file() {
+        fn handles_recoverable_parse_error_in_ignored_file()
+        {
             let num_emitted_errors = Lrc::new(AtomicU32::new(0));
             let can_reset_errors = Lrc::new(AtomicBool::new(false));
             let ignore_list = get_ignore_list(r#"ignore = ["foo.rs"]"#);
@@ -456,7 +509,8 @@ mod tests {
 
         #[nightly_only_test]
         #[test]
-        fn handles_recoverable_parse_error_in_non_ignored_file() {
+        fn handles_recoverable_parse_error_in_non_ignored_file()
+        {
             let num_emitted_errors = Lrc::new(AtomicU32::new(0));
             let can_reset_errors = Lrc::new(AtomicBool::new(false));
             let source_map = Lrc::new(SourceMap::new(FilePathMapping::empty()));
@@ -480,7 +534,8 @@ mod tests {
 
         #[nightly_only_test]
         #[test]
-        fn handles_mix_of_recoverable_parse_error() {
+        fn handles_mix_of_recoverable_parse_error()
+        {
             let num_emitted_errors = Lrc::new(AtomicU32::new(0));
             let can_reset_errors = Lrc::new(AtomicBool::new(false));
             let source_map = Lrc::new(SourceMap::new(FilePathMapping::empty()));

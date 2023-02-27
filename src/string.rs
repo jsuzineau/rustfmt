@@ -11,7 +11,8 @@ use crate::utils::{unicode_str_width, wrap_str};
 const MIN_STRING: usize = 10;
 
 /// Describes the layout of a piece of text.
-pub(crate) struct StringFormat<'a> {
+pub(crate) struct StringFormat<'a>
+{
     /// The opening sequence of characters for the piece of text
     pub(crate) opener: &'a str,
     /// The closing sequence of characters for the piece of text
@@ -27,8 +28,10 @@ pub(crate) struct StringFormat<'a> {
     pub(crate) config: &'a Config,
 }
 
-impl<'a> StringFormat<'a> {
-    pub(crate) fn new(shape: Shape, config: &'a Config) -> StringFormat<'a> {
+impl<'a> StringFormat<'a>
+{
+    pub(crate) fn new(shape: Shape, config: &'a Config) -> StringFormat<'a>
+    {
         StringFormat {
             opener: "\"",
             closer: "\"",
@@ -44,7 +47,8 @@ impl<'a> StringFormat<'a> {
     /// indentation into account.
     ///
     /// If we cannot put at least a single character per line, the rewrite won't succeed.
-    fn max_width_with_indent(&self) -> Option<usize> {
+    fn max_width_with_indent(&self) -> Option<usize>
+    {
         Some(
             self.shape
                 .width
@@ -56,7 +60,8 @@ impl<'a> StringFormat<'a> {
     /// Like max_width_with_indent but the indentation is not subtracted.
     /// This allows to fit more graphemes from the string on a line when
     /// SnippetState::EndWithLineFeed.
-    fn max_width_without_indent(&self) -> Option<usize> {
+    fn max_width_without_indent(&self) -> Option<usize>
+    {
         self.config.max_width().checked_sub(self.line_end.len())
     }
 }
@@ -65,7 +70,8 @@ pub(crate) fn rewrite_string<'a>(
     orig: &str,
     fmt: &StringFormat<'a>,
     newline_max_chars: usize,
-) -> Option<String> {
+) -> Option<String>
+{
     let max_width_with_indent = fmt.max_width_with_indent()?;
     let max_width_without_indent = fmt.max_width_without_indent()?;
     let indent_with_newline = fmt.shape.indent.to_string_with_newline(fmt.config);
@@ -155,7 +161,8 @@ pub(crate) fn rewrite_string<'a>(
 
 /// Returns the index to the end of the URL if the split at index of the given string includes a
 /// URL or alike. Otherwise, returns `None`.
-fn detect_url(s: &[&str], index: usize) -> Option<usize> {
+fn detect_url(s: &[&str], index: usize) -> Option<usize>
+{
     let start = match s[..=index].iter().rposition(|g| is_whitespace(g)) {
         Some(pos) => pos + 1,
         None => 0,
@@ -180,7 +187,8 @@ fn detect_url(s: &[&str], index: usize) -> Option<usize> {
 }
 
 /// Trims whitespaces to the right except for the line feed character.
-fn trim_end_but_line_feed(trim_end: bool, result: String) -> String {
+fn trim_end_but_line_feed(trim_end: bool, result: String) -> String
+{
     let whitespace_except_line_feed = |c: char| c.is_whitespace() && c != '\n';
     if trim_end && result.ends_with(whitespace_except_line_feed) {
         result
@@ -194,7 +202,8 @@ fn trim_end_but_line_feed(trim_end: bool, result: String) -> String {
 /// Result of breaking a string so it fits in a line and the state it ended in.
 /// The state informs about what to do with the snippet and how to continue the breaking process.
 #[derive(Debug, PartialEq)]
-enum SnippetState {
+enum SnippetState
+{
     /// The input could not be broken and so rewriting the string is finished.
     EndOfInput(String),
     /// The input could be broken and the returned snippet should be ended with a
@@ -214,14 +223,16 @@ enum SnippetState {
     EndWithLineFeed(String, usize),
 }
 
-fn not_whitespace_except_line_feed(g: &str) -> bool {
+fn not_whitespace_except_line_feed(g: &str) -> bool
+{
     is_new_line(g) || !is_whitespace(g)
 }
 
 /// Break the input string at a boundary character around the offset `max_width`. A boundary
 /// character is either a punctuation or a whitespace.
 /// FIXME(issue#3281): We must follow UAX#14 algorithm instead of this.
-fn break_string(max_width: usize, trim_end: bool, line_end: &str, input: &[&str]) -> SnippetState {
+fn break_string(max_width: usize, trim_end: bool, line_end: &str, input: &[&str]) -> SnippetState
+{
     let break_at = |index /* grapheme at index is included */| {
         // Take in any whitespaces to the left/right of `input[index]` while
         // preserving line feeds
@@ -337,7 +348,8 @@ fn break_string(max_width: usize, trim_end: bool, line_end: &str, input: &[&str]
     }
 }
 
-fn is_valid_linebreak(input: &[&str], pos: usize) -> bool {
+fn is_valid_linebreak(input: &[&str], pos: usize) -> bool
+{
     let is_whitespace = is_whitespace(input[pos]);
     if is_whitespace {
         return true;
@@ -349,46 +361,54 @@ fn is_valid_linebreak(input: &[&str], pos: usize) -> bool {
     false
 }
 
-fn is_part_of_type(input: &[&str], pos: usize) -> bool {
+fn is_part_of_type(input: &[&str], pos: usize) -> bool
+{
     input.get(pos..=pos + 1) == Some(&[":", ":"])
         || input.get(pos.saturating_sub(1)..=pos) == Some(&[":", ":"])
 }
 
-fn is_new_line(grapheme: &str) -> bool {
+fn is_new_line(grapheme: &str) -> bool
+{
     let bytes = grapheme.as_bytes();
     bytes.starts_with(b"\n") || bytes.starts_with(b"\r\n")
 }
 
-fn is_whitespace(grapheme: &str) -> bool {
+fn is_whitespace(grapheme: &str) -> bool
+{
     grapheme.chars().all(char::is_whitespace)
 }
 
-fn is_punctuation(grapheme: &str) -> bool {
+fn is_punctuation(grapheme: &str) -> bool
+{
     grapheme
         .chars()
         .all(UnicodeCategories::is_punctuation_other)
 }
 
-fn graphemes_width(graphemes: &[&str]) -> usize {
+fn graphemes_width(graphemes: &[&str]) -> usize
+{
     graphemes.iter().map(|s| unicode_str_width(s)).sum()
 }
 
 #[cfg(test)]
-mod test {
+mod test
+{
     use super::{break_string, detect_url, rewrite_string, SnippetState, StringFormat};
     use crate::config::Config;
     use crate::shape::{Indent, Shape};
     use unicode_segmentation::UnicodeSegmentation;
 
     #[test]
-    fn issue343() {
+    fn issue343()
+    {
         let config = Default::default();
         let fmt = StringFormat::new(Shape::legacy(2, Indent::empty()), &config);
         rewrite_string("eq_", &fmt, 2);
     }
 
     #[test]
-    fn line_break_at_valid_points_test() {
+    fn line_break_at_valid_points_test()
+    {
         let string = "[TheName](Dont::break::my::type::That::would::be::very::nice) break here";
         let graphemes = UnicodeSegmentation::graphemes(&*string, false).collect::<Vec<&str>>();
         assert_eq!(
@@ -401,7 +421,8 @@ mod test {
     }
 
     #[test]
-    fn should_break_on_whitespace() {
+    fn should_break_on_whitespace()
+    {
         let string = "Placerat felis. Mauris porta ante sagittis purus.";
         let graphemes = UnicodeSegmentation::graphemes(&*string, false).collect::<Vec<&str>>();
         assert_eq!(
@@ -415,7 +436,8 @@ mod test {
     }
 
     #[test]
-    fn should_break_on_punctuation() {
+    fn should_break_on_punctuation()
+    {
         let string = "Placerat_felis._Mauris_porta_ante_sagittis_purus.";
         let graphemes = UnicodeSegmentation::graphemes(&*string, false).collect::<Vec<&str>>();
         assert_eq!(
@@ -425,7 +447,8 @@ mod test {
     }
 
     #[test]
-    fn should_break_forward() {
+    fn should_break_forward()
+    {
         let string = "Venenatis_tellus_vel_tellus. Aliquam aliquam dolor at justo.";
         let graphemes = UnicodeSegmentation::graphemes(&*string, false).collect::<Vec<&str>>();
         assert_eq!(
@@ -439,7 +462,8 @@ mod test {
     }
 
     #[test]
-    fn nothing_to_break() {
+    fn nothing_to_break()
+    {
         let string = "Venenatis_tellus_vel_tellus";
         let graphemes = UnicodeSegmentation::graphemes(&*string, false).collect::<Vec<&str>>();
         assert_eq!(
@@ -449,7 +473,8 @@ mod test {
     }
 
     #[test]
-    fn significant_whitespaces() {
+    fn significant_whitespaces()
+    {
         let string = "Neque in sem.      \n      Pellentesque tellus augue.";
         let graphemes = UnicodeSegmentation::graphemes(&*string, false).collect::<Vec<&str>>();
         assert_eq!(
@@ -472,7 +497,8 @@ mod test {
     }
 
     #[test]
-    fn big_whitespace() {
+    fn big_whitespace()
+    {
         let string = "Neque in sem.            Pellentesque tellus augue.";
         let graphemes = UnicodeSegmentation::graphemes(&*string, false).collect::<Vec<&str>>();
         assert_eq!(
@@ -486,7 +512,8 @@ mod test {
     }
 
     #[test]
-    fn newline_in_candidate_line() {
+    fn newline_in_candidate_line()
+    {
         let string = "Nulla\nconsequat erat at massa. Vivamus id mi.";
 
         let graphemes = UnicodeSegmentation::graphemes(&*string, false).collect::<Vec<&str>>();
@@ -510,7 +537,8 @@ mod test {
     }
 
     #[test]
-    fn last_line_fit_with_trailing_whitespaces() {
+    fn last_line_fit_with_trailing_whitespaces()
+    {
         let string = "Vivamus id mi.  ";
         let config: Config = Default::default();
         let mut fmt = StringFormat::new(Shape::legacy(25, Indent::empty()), &config);
@@ -525,7 +553,8 @@ mod test {
     }
 
     #[test]
-    fn last_line_fit_with_newline() {
+    fn last_line_fit_with_newline()
+    {
         let string = "Vivamus id mi.\nVivamus id mi.";
         let config: Config = Default::default();
         let fmt = StringFormat {
@@ -546,7 +575,8 @@ mod test {
     }
 
     #[test]
-    fn overflow_in_non_string_content() {
+    fn overflow_in_non_string_content()
+    {
         let comment = "Aenean metus.\nVestibulum ac lacus. Vivamus porttitor";
         let config: Config = Default::default();
         let fmt = StringFormat {
@@ -569,7 +599,8 @@ mod test {
     }
 
     #[test]
-    fn overflow_in_non_string_content_with_line_end() {
+    fn overflow_in_non_string_content_with_line_end()
+    {
         let comment = "Aenean metus.\nVestibulum ac lacus. Vivamus porttitor";
         let config: Config = Default::default();
         let fmt = StringFormat {
@@ -592,7 +623,8 @@ mod test {
     }
 
     #[test]
-    fn blank_line_with_non_empty_line_start() {
+    fn blank_line_with_non_empty_line_start()
+    {
         let config: Config = Default::default();
         let mut fmt = StringFormat {
             opener: "",
@@ -628,7 +660,8 @@ mod test {
     }
 
     #[test]
-    fn retain_blank_lines() {
+    fn retain_blank_lines()
+    {
         let config: Config = Default::default();
         let fmt = StringFormat {
             opener: "",
@@ -662,7 +695,8 @@ mod test {
     }
 
     #[test]
-    fn boundary_on_edge() {
+    fn boundary_on_edge()
+    {
         let config: Config = Default::default();
         let mut fmt = StringFormat {
             opener: "",
@@ -697,7 +731,8 @@ mod test {
     }
 
     #[test]
-    fn detect_urls() {
+    fn detect_urls()
+    {
         let string = "aaa http://example.org something";
         let graphemes = UnicodeSegmentation::graphemes(&*string, false).collect::<Vec<&str>>();
         assert_eq!(detect_url(&graphemes, 8), Some(21));

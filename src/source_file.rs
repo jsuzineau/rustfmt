@@ -17,7 +17,8 @@ use crate::formatting::FileRecord;
 use rustc_data_structures::sync::Lrc;
 
 // Append a newline to the end of each file.
-pub(crate) fn append_newline(s: &mut String) {
+pub(crate) fn append_newline(s: &mut String)
+{
     s.push('\n');
 }
 
@@ -59,15 +60,18 @@ pub(crate) fn write_file<T>(
 where
     T: Write,
 {
-    fn ensure_real_path(filename: &FileName) -> &Path {
+    fn ensure_real_path(filename: &FileName) -> &Path
+    {
         match *filename {
             FileName::Real(ref path) => path,
             _ => panic!("cannot format `{}` and emit to files", filename),
         }
     }
 
-    impl From<&FileName> for rustc_span::FileName {
-        fn from(filename: &FileName) -> rustc_span::FileName {
+    impl From<&FileName> for rustc_span::FileName
+    {
+        fn from(filename: &FileName) -> rustc_span::FileName
+        {
             match filename {
                 FileName::Real(path) => {
                     rustc_span::FileName::Real(rustc_span::RealFileName::LocalPath(path.to_owned()))

@@ -10,14 +10,17 @@ use crate::utils::{
 
 /// Sigils that decorate a binop pair.
 #[derive(new, Clone, Copy)]
-pub(crate) struct PairParts<'a> {
+pub(crate) struct PairParts<'a>
+{
     prefix: &'a str,
     infix: &'a str,
     suffix: &'a str,
 }
 
-impl<'a> PairParts<'a> {
-    pub(crate) fn infix(infix: &'a str) -> PairParts<'a> {
+impl<'a> PairParts<'a>
+{
+    pub(crate) fn infix(infix: &'a str) -> PairParts<'a>
+    {
         PairParts {
             prefix: "",
             infix,
@@ -33,7 +36,8 @@ pub(crate) fn rewrite_all_pairs(
     expr: &ast::Expr,
     shape: Shape,
     context: &RewriteContext<'_>,
-) -> Option<String> {
+) -> Option<String>
+{
     expr.flatten(context, shape).and_then(|list| {
         // First we try formatting on one line.
         rewrite_pairs_one_line(&list, shape, context)
@@ -47,7 +51,8 @@ fn rewrite_pairs_one_line<T: Rewrite>(
     list: &PairList<'_, '_, T>,
     shape: Shape,
     context: &RewriteContext<'_>,
-) -> Option<String> {
+) -> Option<String>
+{
     assert!(list.list.len() >= 2, "Not a pair?");
 
     let mut result = String::new();
@@ -93,7 +98,8 @@ fn rewrite_pairs_multiline<T: Rewrite>(
     list: &PairList<'_, '_, T>,
     shape: Shape,
     context: &RewriteContext<'_>,
-) -> Option<String> {
+) -> Option<String>
+{
     let rhs_offset = shape.rhs_overhead(context.config);
     let nested_shape = (match context.config.indent_style() {
         IndentStyle::Visual => shape.visual_indent(0),
@@ -237,23 +243,28 @@ where
 }
 
 // A pair which forms a tree and can be flattened (e.g., binops).
-trait FlattenPair: Rewrite + Sized {
-    fn flatten(&self, _: &RewriteContext<'_>, _: Shape) -> Option<PairList<'_, '_, Self>> {
+trait FlattenPair: Rewrite + Sized
+{
+    fn flatten(&self, _: &RewriteContext<'_>, _: Shape) -> Option<PairList<'_, '_, Self>>
+    {
         None
     }
 }
 
-struct PairList<'a, 'b, T: Rewrite> {
+struct PairList<'a, 'b, T: Rewrite>
+{
     list: Vec<(&'b T, Option<String>)>,
     separators: Vec<&'a str>,
 }
 
-impl FlattenPair for ast::Expr {
+impl FlattenPair for ast::Expr
+{
     fn flatten(
         &self,
         context: &RewriteContext<'_>,
         shape: Shape,
-    ) -> Option<PairList<'_, '_, ast::Expr>> {
+    ) -> Option<PairList<'_, '_, ast::Expr>>
+    {
         let top_op = match self.kind {
             ast::ExprKind::Binary(op, _, _) => op.node,
             _ => return None,

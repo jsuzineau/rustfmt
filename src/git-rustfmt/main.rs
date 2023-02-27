@@ -12,7 +12,8 @@ use rustfmt_nightly as rustfmt;
 
 use crate::rustfmt::{load_config, CliOptions, FormatReportFormatterBuilder, Input, Session};
 
-fn prune_files(files: Vec<&str>) -> Vec<&str> {
+fn prune_files(files: Vec<&str>) -> Vec<&str>
+{
     let prefixes: Vec<_> = files
         .iter()
         .filter(|f| f.ends_with("mod.rs") || f.ends_with("lib.rs"))
@@ -38,7 +39,8 @@ fn prune_files(files: Vec<&str>) -> Vec<&str> {
         .collect()
 }
 
-fn git_diff(commits: &str) -> String {
+fn git_diff(commits: &str) -> String
+{
     let mut cmd = Command::new("git");
     cmd.arg("diff");
     if commits != "0" {
@@ -48,7 +50,8 @@ fn git_diff(commits: &str) -> String {
     String::from_utf8_lossy(&output.stdout).into_owned()
 }
 
-fn get_files(input: &str) -> Vec<&str> {
+fn get_files(input: &str) -> Vec<&str>
+{
     input
         .lines()
         .filter(|line| line.starts_with("+++ b/") && line.ends_with(".rs"))
@@ -56,7 +59,8 @@ fn get_files(input: &str) -> Vec<&str> {
         .collect()
 }
 
-fn fmt_files(files: &[&str]) -> i32 {
+fn fmt_files(files: &[&str]) -> i32
+{
     let (config, _) =
         load_config::<NullOptions>(Some(Path::new(".")), None).expect("couldn't load config");
 
@@ -77,16 +81,20 @@ fn fmt_files(files: &[&str]) -> i32 {
 
 struct NullOptions;
 
-impl CliOptions for NullOptions {
-    fn apply_to(self, _: &mut rustfmt::Config) {
+impl CliOptions for NullOptions
+{
+    fn apply_to(self, _: &mut rustfmt::Config)
+    {
         unreachable!();
     }
-    fn config_path(&self) -> Option<&Path> {
+    fn config_path(&self) -> Option<&Path>
+    {
         unreachable!();
     }
 }
 
-fn uncommitted_files() -> Vec<String> {
+fn uncommitted_files() -> Vec<String>
+{
     let mut cmd = Command::new("git");
     cmd.arg("ls-files");
     cmd.arg("--others");
@@ -101,7 +109,8 @@ fn uncommitted_files() -> Vec<String> {
         .collect()
 }
 
-fn check_uncommitted() {
+fn check_uncommitted()
+{
     let uncommitted = uncommitted_files();
     debug!("uncommitted files: {:?}", uncommitted);
     if !uncommitted.is_empty() {
@@ -115,7 +124,8 @@ fn check_uncommitted() {
     }
 }
 
-fn make_opts() -> Options {
+fn make_opts() -> Options
+{
     let mut opts = Options::new();
     opts.optflag("h", "help", "show this message");
     opts.optflag("c", "check", "check only, don't format (unimplemented)");
@@ -123,13 +133,16 @@ fn make_opts() -> Options {
     opts
 }
 
-struct Config {
+struct Config
+{
     commits: String,
     uncommitted: bool,
 }
 
-impl Config {
-    fn from_args(matches: &Matches, opts: &Options) -> Config {
+impl Config
+{
+    fn from_args(matches: &Matches, opts: &Options) -> Config
+    {
         // `--help` display help message and quit
         if matches.opt_present("h") {
             let message = format!(
@@ -169,7 +182,8 @@ impl Config {
     }
 }
 
-fn main() {
+fn main()
+{
     env_logger::Builder::from_env("RUSTFMT_LOG").init();
 
     let opts = make_opts();

@@ -14,15 +14,18 @@ pub(crate) mod asm;
 pub(crate) mod cfg_if;
 pub(crate) mod lazy_static;
 
-fn build_stream_parser<'a>(sess: &'a ParseSess, tokens: TokenStream) -> Parser<'a> {
+fn build_stream_parser<'a>(sess: &'a ParseSess, tokens: TokenStream) -> Parser<'a>
+{
     stream_to_parser(sess, tokens, MACRO_ARGUMENTS)
 }
 
-fn build_parser<'a>(context: &RewriteContext<'a>, tokens: TokenStream) -> Parser<'a> {
+fn build_parser<'a>(context: &RewriteContext<'a>, tokens: TokenStream) -> Parser<'a>
+{
     build_stream_parser(context.parse_sess.inner(), tokens)
 }
 
-fn parse_macro_arg<'a, 'b: 'a>(parser: &'a mut Parser<'b>) -> Option<MacroArg> {
+fn parse_macro_arg<'a, 'b: 'a>(parser: &'a mut Parser<'b>) -> Option<MacroArg>
+{
     macro_rules! parse_macro_arg {
         ($macro_arg:ident, $parser:expr, $f:expr) => {
             let mut cloned_parser = (*parser).clone();
@@ -69,13 +72,15 @@ fn parse_macro_arg<'a, 'b: 'a>(parser: &'a mut Parser<'b>) -> Option<MacroArg> {
     None
 }
 
-pub(crate) struct ParsedMacroArgs {
+pub(crate) struct ParsedMacroArgs
+{
     pub(crate) vec_with_semi: bool,
     pub(crate) trailing_comma: bool,
     pub(crate) args: Vec<MacroArg>,
 }
 
-fn check_keyword<'a, 'b: 'a>(parser: &'a mut Parser<'b>) -> Option<MacroArg> {
+fn check_keyword<'a, 'b: 'a>(parser: &'a mut Parser<'b>) -> Option<MacroArg>
+{
     for &keyword in RUST_KW.iter() {
         if parser.token.is_keyword(keyword)
             && parser.look_ahead(1, |t| {
@@ -97,7 +102,8 @@ pub(crate) fn parse_macro_args(
     tokens: TokenStream,
     style: Delimiter,
     forced_bracket: bool,
-) -> Option<ParsedMacroArgs> {
+) -> Option<ParsedMacroArgs>
+{
     let mut parser = build_parser(context, tokens);
     let mut args = Vec::new();
     let mut vec_with_semi = false;
@@ -161,7 +167,8 @@ pub(crate) fn parse_macro_args(
 pub(crate) fn parse_expr(
     context: &RewriteContext<'_>,
     tokens: TokenStream,
-) -> Option<ptr::P<ast::Expr>> {
+) -> Option<ptr::P<ast::Expr>>
+{
     let mut parser = build_parser(context, tokens);
     parser.parse_expr().ok()
 }

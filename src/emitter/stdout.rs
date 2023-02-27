@@ -3,17 +3,21 @@ use crate::config::Verbosity;
 use std::io::Write;
 
 #[derive(Debug)]
-pub(crate) struct StdoutEmitter {
+pub(crate) struct StdoutEmitter
+{
     verbosity: Verbosity,
 }
 
-impl StdoutEmitter {
-    pub(crate) fn new(verbosity: Verbosity) -> Self {
+impl StdoutEmitter
+{
+    pub(crate) fn new(verbosity: Verbosity) -> Self
+    {
         Self { verbosity }
     }
 }
 
-impl Emitter for StdoutEmitter {
+impl Emitter for StdoutEmitter
+{
     fn emit_formatted_file(
         &mut self,
         output: &mut dyn Write,
@@ -22,7 +26,8 @@ impl Emitter for StdoutEmitter {
             formatted_text,
             ..
         }: FormattedFile<'_>,
-    ) -> Result<EmitterResult, io::Error> {
+    ) -> Result<EmitterResult, io::Error>
+    {
         if self.verbosity != Verbosity::Quiet {
             writeln!(output, "{}:\n", filename)?;
         }

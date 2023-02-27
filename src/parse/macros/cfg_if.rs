@@ -11,7 +11,8 @@ use crate::parse::session::ParseSess;
 pub(crate) fn parse_cfg_if<'a>(
     sess: &'a ParseSess,
     mac: &'a ast::MacCall,
-) -> Result<Vec<ast::Item>, &'static str> {
+) -> Result<Vec<ast::Item>, &'static str>
+{
     match catch_unwind(AssertUnwindSafe(|| parse_cfg_if_inner(sess, mac))) {
         Ok(Ok(items)) => Ok(items),
         Ok(err @ Err(_)) => err,
@@ -22,7 +23,8 @@ pub(crate) fn parse_cfg_if<'a>(
 fn parse_cfg_if_inner<'a>(
     sess: &'a ParseSess,
     mac: &'a ast::MacCall,
-) -> Result<Vec<ast::Item>, &'static str> {
+) -> Result<Vec<ast::Item>, &'static str>
+{
     let ts = mac.args.tokens.clone();
     let mut parser = build_stream_parser(sess.inner(), ts);
 

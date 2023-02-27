@@ -16,7 +16,8 @@ use crate::utils::{
 };
 use crate::visitor::SnippetProvider;
 
-pub(crate) struct ListFormatting<'a> {
+pub(crate) struct ListFormatting<'a>
+{
     tactic: DefinitiveListTactic,
     separator: &'a str,
     trailing_separator: SeparatorTactic,
@@ -34,8 +35,10 @@ pub(crate) struct ListFormatting<'a> {
     config: &'a Config,
 }
 
-impl<'a> ListFormatting<'a> {
-    pub(crate) fn new(shape: Shape, config: &'a Config) -> Self {
+impl<'a> ListFormatting<'a>
+{
+    pub(crate) fn new(shape: Shape, config: &'a Config) -> Self
+    {
         ListFormatting {
             tactic: DefinitiveListTactic::Vertical,
             separator: ",",
@@ -50,47 +53,56 @@ impl<'a> ListFormatting<'a> {
         }
     }
 
-    pub(crate) fn tactic(mut self, tactic: DefinitiveListTactic) -> Self {
+    pub(crate) fn tactic(mut self, tactic: DefinitiveListTactic) -> Self
+    {
         self.tactic = tactic;
         self
     }
 
-    pub(crate) fn separator(mut self, separator: &'a str) -> Self {
+    pub(crate) fn separator(mut self, separator: &'a str) -> Self
+    {
         self.separator = separator;
         self
     }
 
-    pub(crate) fn trailing_separator(mut self, trailing_separator: SeparatorTactic) -> Self {
+    pub(crate) fn trailing_separator(mut self, trailing_separator: SeparatorTactic) -> Self
+    {
         self.trailing_separator = trailing_separator;
         self
     }
 
-    pub(crate) fn separator_place(mut self, separator_place: SeparatorPlace) -> Self {
+    pub(crate) fn separator_place(mut self, separator_place: SeparatorPlace) -> Self
+    {
         self.separator_place = separator_place;
         self
     }
 
-    pub(crate) fn ends_with_newline(mut self, ends_with_newline: bool) -> Self {
+    pub(crate) fn ends_with_newline(mut self, ends_with_newline: bool) -> Self
+    {
         self.ends_with_newline = ends_with_newline;
         self
     }
 
-    pub(crate) fn preserve_newline(mut self, preserve_newline: bool) -> Self {
+    pub(crate) fn preserve_newline(mut self, preserve_newline: bool) -> Self
+    {
         self.preserve_newline = preserve_newline;
         self
     }
 
-    pub(crate) fn nested(mut self, nested: bool) -> Self {
+    pub(crate) fn nested(mut self, nested: bool) -> Self
+    {
         self.nested = nested;
         self
     }
 
-    pub(crate) fn align_comments(mut self, align_comments: bool) -> Self {
+    pub(crate) fn align_comments(mut self, align_comments: bool) -> Self
+    {
         self.align_comments = align_comments;
         self
     }
 
-    pub(crate) fn needs_trailing_separator(&self) -> bool {
+    pub(crate) fn needs_trailing_separator(&self) -> bool
+    {
         match self.trailing_separator {
             // We always put separator in front.
             SeparatorTactic::Always => true,
@@ -102,14 +114,17 @@ impl<'a> ListFormatting<'a> {
     }
 }
 
-impl AsRef<ListItem> for ListItem {
-    fn as_ref(&self) -> &ListItem {
+impl AsRef<ListItem> for ListItem
+{
+    fn as_ref(&self) -> &ListItem
+    {
         self
     }
 }
 
 #[derive(PartialEq, Eq, Debug, Copy, Clone)]
-pub(crate) enum ListItemCommentStyle {
+pub(crate) enum ListItemCommentStyle
+{
     // Try to keep the comment on the same line with the item.
     SameLine,
     // Put the comment on the previous or the next line of the item.
@@ -119,7 +134,8 @@ pub(crate) enum ListItemCommentStyle {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ListItem {
+pub(crate) struct ListItem
+{
     // None for comments mean that they are not present.
     pub(crate) pre_comment: Option<String>,
     pub(crate) pre_comment_style: ListItemCommentStyle,
@@ -131,8 +147,10 @@ pub(crate) struct ListItem {
     pub(crate) new_lines: bool,
 }
 
-impl ListItem {
-    pub(crate) fn empty() -> ListItem {
+impl ListItem
+{
+    pub(crate) fn empty() -> ListItem
+    {
         ListItem {
             pre_comment: None,
             pre_comment_style: ListItemCommentStyle::None,
@@ -142,11 +160,13 @@ impl ListItem {
         }
     }
 
-    pub(crate) fn inner_as_ref(&self) -> &str {
+    pub(crate) fn inner_as_ref(&self) -> &str
+    {
         self.item.as_ref().map_or("", |s| s)
     }
 
-    pub(crate) fn is_different_group(&self) -> bool {
+    pub(crate) fn is_different_group(&self) -> bool
+    {
         self.inner_as_ref().contains('\n')
             || self.pre_comment.is_some()
             || self
@@ -155,7 +175,8 @@ impl ListItem {
                 .map_or(false, |s| s.contains('\n'))
     }
 
-    pub(crate) fn is_multiline(&self) -> bool {
+    pub(crate) fn is_multiline(&self) -> bool
+    {
         self.inner_as_ref().contains('\n')
             || self
                 .pre_comment
@@ -167,7 +188,8 @@ impl ListItem {
                 .map_or(false, |s| s.contains('\n'))
     }
 
-    pub(crate) fn has_single_line_comment(&self) -> bool {
+    pub(crate) fn has_single_line_comment(&self) -> bool
+    {
         self.pre_comment
             .as_ref()
             .map_or(false, |comment| comment.trim_start().starts_with("//"))
@@ -177,11 +199,13 @@ impl ListItem {
                 .map_or(false, |comment| comment.trim_start().starts_with("//"))
     }
 
-    pub(crate) fn has_comment(&self) -> bool {
+    pub(crate) fn has_comment(&self) -> bool
+    {
         self.pre_comment.is_some() || self.post_comment.is_some()
     }
 
-    pub(crate) fn from_str<S: Into<String>>(s: S) -> ListItem {
+    pub(crate) fn from_str<S: Into<String>>(s: S) -> ListItem
+    {
         ListItem {
             pre_comment: None,
             pre_comment_style: ListItemCommentStyle::None,
@@ -192,8 +216,10 @@ impl ListItem {
     }
 
     // Returns `true` if the item causes something to be written.
-    fn is_substantial(&self) -> bool {
-        fn empty(s: &Option<String>) -> bool {
+    fn is_substantial(&self) -> bool
+    {
+        fn empty(s: &Option<String>) -> bool
+        {
             !matches!(*s, Some(ref s) if !s.is_empty())
         }
 
@@ -203,13 +229,16 @@ impl ListItem {
 
 /// The type of separator for lists.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub(crate) enum Separator {
+pub(crate) enum Separator
+{
     Comma,
     VerticalBar,
 }
 
-impl Separator {
-    pub(crate) fn len(self) -> usize {
+impl Separator
+{
+    pub(crate) fn len(self) -> usize
+    {
         match self {
             // 2 = `, `
             Separator::Comma => 2,
@@ -552,7 +581,8 @@ where
     max_width
 }
 
-fn post_comment_alignment(item_max_width: Option<usize>, inner_item_width: usize) -> usize {
+fn post_comment_alignment(item_max_width: Option<usize>, inner_item_width: usize) -> usize
+{
     item_max_width.unwrap_or(0).saturating_sub(inner_item_width)
 }
 
@@ -572,7 +602,8 @@ where
     leave_last: bool,
 }
 
-pub(crate) fn extract_pre_comment(pre_snippet: &str) -> (Option<String>, ListItemCommentStyle) {
+pub(crate) fn extract_pre_comment(pre_snippet: &str) -> (Option<String>, ListItemCommentStyle)
+{
     let trimmed_pre_snippet = pre_snippet.trim();
     // Both start and end are checked to support keeping a block comment inline with
     // the item, even if there are preceding line comments, while still supporting
@@ -612,7 +643,8 @@ pub(crate) fn extract_post_comment(
     comment_end: usize,
     separator: &str,
     is_last: bool,
-) -> Option<String> {
+) -> Option<String>
+{
     let white_space: &[_] = &[' ', '\t'];
 
     // Cleanup post-comment: strip separators and whitespace.
@@ -661,7 +693,8 @@ pub(crate) fn get_comment_end(
     separator: &str,
     terminator: &str,
     is_last: bool,
-) -> usize {
+) -> usize
+{
     if is_last {
         return post_snippet
             .find_uncommented(terminator)
@@ -709,7 +742,8 @@ pub(crate) fn get_comment_end(
 
 // Account for extra whitespace between items. This is fiddly
 // because of the way we divide pre- and post- comments.
-pub(crate) fn has_extra_newline(post_snippet: &str, comment_end: usize) -> bool {
+pub(crate) fn has_extra_newline(post_snippet: &str, comment_end: usize) -> bool
+{
     if post_snippet.is_empty() || comment_end == 0 {
         return false;
     }
@@ -745,7 +779,8 @@ where
 {
     type Item = ListItem;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next(&mut self) -> Option<Self::Item>
+    {
         self.inner.next().map(|item| {
             // Pre-comment
             let pre_snippet = self
@@ -833,13 +868,15 @@ where
         .fold((0, 0), |acc, l| (acc.0 + 1, acc.1 + l))
 }
 
-pub(crate) fn total_item_width(item: &ListItem) -> usize {
+pub(crate) fn total_item_width(item: &ListItem) -> usize
+{
     comment_len(item.pre_comment.as_ref().map(|x| &(*x)[..]))
         + comment_len(item.post_comment.as_ref().map(|x| &(*x)[..]))
         + item.item.as_ref().map_or(0, |s| unicode_str_width(s))
 }
 
-fn comment_len(comment: Option<&str>) -> usize {
+fn comment_len(comment: Option<&str>) -> usize
+{
     match comment {
         Some(s) => {
             let text_len = s.trim().len();
@@ -860,7 +897,8 @@ pub(crate) fn struct_lit_shape(
     context: &RewriteContext<'_>,
     prefix_width: usize,
     suffix_width: usize,
-) -> Option<(Option<Shape>, Shape)> {
+) -> Option<(Option<Shape>, Shape)>
+{
     let v_shape = match context.config.indent_style() {
         IndentStyle::Visual => shape
             .visual_indent(0)
@@ -888,7 +926,8 @@ pub(crate) fn struct_lit_tactic(
     h_shape: Option<Shape>,
     context: &RewriteContext<'_>,
     items: &[ListItem],
-) -> DefinitiveListTactic {
+) -> DefinitiveListTactic
+{
     if let Some(h_shape) = h_shape {
         let prelim_tactic = match (context.config.indent_style(), items.len()) {
             (IndentStyle::Visual, 1) => ListTactic::HorizontalVertical,
@@ -907,7 +946,8 @@ pub(crate) fn shape_for_tactic(
     tactic: DefinitiveListTactic,
     h_shape: Option<Shape>,
     v_shape: Shape,
-) -> Shape {
+) -> Shape
+{
     match tactic {
         DefinitiveListTactic::Horizontal => h_shape.unwrap(),
         _ => v_shape,
@@ -921,7 +961,8 @@ pub(crate) fn struct_lit_formatting<'a>(
     tactic: DefinitiveListTactic,
     context: &'a RewriteContext<'_>,
     force_no_trailing_comma: bool,
-) -> ListFormatting<'a> {
+) -> ListFormatting<'a>
+{
     let ends_with_newline = context.config.indent_style() != IndentStyle::Visual
         && tactic == DefinitiveListTactic::Vertical;
     ListFormatting {

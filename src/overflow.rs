@@ -66,7 +66,8 @@ const SPECIAL_CASE_ATTR: &[(&str, usize)] = &[
 ];
 
 #[derive(Debug)]
-pub(crate) enum OverflowableItem<'a> {
+pub(crate) enum OverflowableItem<'a>
+{
     Expr(&'a ast::Expr),
     GenericParam(&'a ast::GenericParam),
     MacroArg(&'a MacroArg),
@@ -78,20 +79,26 @@ pub(crate) enum OverflowableItem<'a> {
     Pat(&'a ast::Pat),
 }
 
-impl<'a> Rewrite for OverflowableItem<'a> {
-    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String> {
+impl<'a> Rewrite for OverflowableItem<'a>
+{
+    fn rewrite(&self, context: &RewriteContext<'_>, shape: Shape) -> Option<String>
+    {
         self.map(|item| item.rewrite(context, shape))
     }
 }
 
-impl<'a> Spanned for OverflowableItem<'a> {
-    fn span(&self) -> Span {
+impl<'a> Spanned for OverflowableItem<'a>
+{
+    fn span(&self) -> Span
+    {
         self.map(|item| item.span())
     }
 }
 
-impl<'a> OverflowableItem<'a> {
-    fn has_attrs(&self) -> bool {
+impl<'a> OverflowableItem<'a>
+{
+    fn has_attrs(&self) -> bool
+    {
         match self {
             OverflowableItem::Expr(ast::Expr { attrs, .. })
             | OverflowableItem::GenericParam(ast::GenericParam { attrs, .. }) => !attrs.is_empty(),
@@ -119,7 +126,8 @@ impl<'a> OverflowableItem<'a> {
         }
     }
 
-    pub(crate) fn is_simple(&self) -> bool {
+    pub(crate) fn is_simple(&self) -> bool
+    {
         match self {
             OverflowableItem::Expr(expr) => is_simple_expr(expr),
             OverflowableItem::MacroArg(MacroArg::Keyword(..)) => true,
@@ -134,14 +142,16 @@ impl<'a> OverflowableItem<'a> {
         }
     }
 
-    pub(crate) fn is_expr(&self) -> bool {
+    pub(crate) fn is_expr(&self) -> bool
+    {
         matches!(
             self,
             OverflowableItem::Expr(..) | OverflowableItem::MacroArg(MacroArg::Expr(..))
         )
     }
 
-    pub(crate) fn is_nested_call(&self) -> bool {
+    pub(crate) fn is_nested_call(&self) -> bool
+    {
         match self {
             OverflowableItem::Expr(expr) => is_nested_call(expr),
             OverflowableItem::MacroArg(MacroArg::Expr(expr)) => is_nested_call(expr),
@@ -149,7 +159,8 @@ impl<'a> OverflowableItem<'a> {
         }
     }
 
-    pub(crate) fn to_expr(&self) -> Option<&'a ast::Expr> {
+    pub(crate) fn to_expr(&self) -> Option<&'a ast::Expr>
+    {
         match self {
             OverflowableItem::Expr(expr) => Some(expr),
             OverflowableItem::MacroArg(MacroArg::Expr(ref expr)) => Some(expr),
@@ -157,7 +168,8 @@ impl<'a> OverflowableItem<'a> {
         }
     }
 
-    pub(crate) fn can_be_overflowed(&self, context: &RewriteContext<'_>, len: usize) -> bool {
+    pub(crate) fn can_be_overflowed(&self, context: &RewriteContext<'_>, len: usize) -> bool
+    {
         match self {
             OverflowableItem::Expr(expr) => can_be_overflowed_expr(context, expr, len),
             OverflowableItem::MacroArg(macro_arg) => match macro_arg {
@@ -182,7 +194,8 @@ impl<'a> OverflowableItem<'a> {
         }
     }
 
-    fn special_cases(&self) -> &'static [(&'static str, usize)] {
+    fn special_cases(&self) -> &'static [(&'static str, usize)]
+    {
         match self {
             OverflowableItem::MacroArg(..) => SPECIAL_CASE_MACROS,
             OverflowableItem::NestedMetaItem(..) => SPECIAL_CASE_ATTR,
@@ -191,12 +204,15 @@ impl<'a> OverflowableItem<'a> {
     }
 }
 
-pub(crate) trait IntoOverflowableItem<'a>: Rewrite + Spanned {
+pub(crate) trait IntoOverflowableItem<'a>: Rewrite + Spanned
+{
     fn into_overflowable_item(&'a self) -> OverflowableItem<'a>;
 }
 
-impl<'a, T: 'a + IntoOverflowableItem<'a>> IntoOverflowableItem<'a> for ptr::P<T> {
-    fn into_overflowable_item(&'a self) -> OverflowableItem<'a> {
+impl<'a, T: 'a + IntoOverflowableItem<'a>> IntoOverflowableItem<'a> for ptr::P<T>
+{
+    fn into_overflowable_item(&'a self) -> OverflowableItem<'a>
+    {
         (**self).into_overflowable_item()
     }
 }
@@ -252,7 +268,8 @@ pub(crate) fn rewrite_with_parens<'a, T: 'a + IntoOverflowableItem<'a>>(
     span: Span,
     item_max_width: usize,
     force_separator_tactic: Option<SeparatorTactic>,
-) -> Option<String> {
+) -> Option<String>
+{
     Context::new(
         context,
         items,
@@ -274,7 +291,8 @@ pub(crate) fn rewrite_with_angle_brackets<'a, T: 'a + IntoOverflowableItem<'a>>(
     items: impl Iterator<Item = &'a T>,
     shape: Shape,
     span: Span,
-) -> Option<String> {
+) -> Option<String>
+{
     Context::new(
         context,
         items,
@@ -298,7 +316,8 @@ pub(crate) fn rewrite_with_square_brackets<'a, T: 'a + IntoOverflowableItem<'a>>
     span: Span,
     force_separator_tactic: Option<SeparatorTactic>,
     delim_token: Option<Delimiter>,
-) -> Option<String> {
+) -> Option<String>
+{
     let (lhs, rhs) = match delim_token {
         Some(Delimiter::Parenthesis) => ("(", ")"),
         Some(Delimiter::Brace) => ("{", "}"),
@@ -319,7 +338,8 @@ pub(crate) fn rewrite_with_square_brackets<'a, T: 'a + IntoOverflowableItem<'a>>
     .rewrite(shape)
 }
 
-struct Context<'a> {
+struct Context<'a>
+{
     context: &'a RewriteContext<'a>,
     items: Vec<OverflowableItem<'a>>,
     ident: &'a str,
@@ -334,7 +354,8 @@ struct Context<'a> {
     custom_delims: Option<(&'a str, &'a str)>,
 }
 
-impl<'a> Context<'a> {
+impl<'a> Context<'a>
+{
     fn new<T: 'a + IntoOverflowableItem<'a>>(
         context: &'a RewriteContext<'_>,
         items: impl Iterator<Item = &'a T>,
@@ -346,7 +367,8 @@ impl<'a> Context<'a> {
         item_max_width: usize,
         force_separator_tactic: Option<SeparatorTactic>,
         custom_delims: Option<(&'a str, &'a str)>,
-    ) -> Context<'a> {
+    ) -> Context<'a>
+    {
         let used_width = extra_offset(ident, shape);
         // 1 = `()`
         let one_line_width = shape.width.saturating_sub(used_width + 2);
@@ -373,11 +395,13 @@ impl<'a> Context<'a> {
         }
     }
 
-    fn last_item(&self) -> Option<&OverflowableItem<'_>> {
+    fn last_item(&self) -> Option<&OverflowableItem<'_>>
+    {
         self.items.last()
     }
 
-    fn items_span(&self) -> Span {
+    fn items_span(&self) -> Span
+    {
         let span_lo = self
             .context
             .snippet_provider
@@ -389,7 +413,8 @@ impl<'a> Context<'a> {
         &self,
         last_list_item: &mut ListItem,
         shape: Shape,
-    ) -> Option<String> {
+    ) -> Option<String>
+    {
         let last_item = self.last_item()?;
         let rewrite = match last_item {
             OverflowableItem::Expr(expr) => {
@@ -439,7 +464,8 @@ impl<'a> Context<'a> {
         }
     }
 
-    fn default_tactic(&self, list_items: &[ListItem]) -> DefinitiveListTactic {
+    fn default_tactic(&self, list_items: &[ListItem]) -> DefinitiveListTactic
+    {
         definitive_tactic(
             list_items,
             ListTactic::LimitedHorizontalVertical(self.item_max_width),
@@ -448,7 +474,8 @@ impl<'a> Context<'a> {
         )
     }
 
-    fn try_overflow_last_item(&self, list_items: &mut Vec<ListItem>) -> DefinitiveListTactic {
+    fn try_overflow_last_item(&self, list_items: &mut Vec<ListItem>) -> DefinitiveListTactic
+    {
         // 1 = "("
         let combine_arg_with_callee = self.items.len() == 1
             && self.items[0].is_expr()
@@ -587,7 +614,8 @@ impl<'a> Context<'a> {
         tactic
     }
 
-    fn rewrite_items(&self) -> Option<(bool, String)> {
+    fn rewrite_items(&self) -> Option<(bool, String)>
+    {
         let span = self.items_span();
         let items = itemize_list(
             self.context.snippet_provider,
@@ -630,7 +658,8 @@ impl<'a> Context<'a> {
             .map(|items_str| (tactic == DefinitiveListTactic::Horizontal, items_str))
     }
 
-    fn wrap_items(&self, items_str: &str, shape: Shape, is_extendable: bool) -> String {
+    fn wrap_items(&self, items_str: &str, shape: Shape, is_extendable: bool) -> String
+    {
         let shape = Shape {
             width: shape.width.saturating_sub(last_line_width(self.ident)),
             ..shape
@@ -681,7 +710,8 @@ impl<'a> Context<'a> {
         result
     }
 
-    fn rewrite(&self, shape: Shape) -> Option<String> {
+    fn rewrite(&self, shape: Shape) -> Option<String>
+    {
         let (extendable, items_str) = self.rewrite_items()?;
 
         // If we are using visual indent style and failed to format, retry with block indent.
@@ -699,14 +729,16 @@ impl<'a> Context<'a> {
     }
 }
 
-fn need_block_indent(s: &str, shape: Shape) -> bool {
+fn need_block_indent(s: &str, shape: Shape) -> bool
+{
     s.lines().skip(1).any(|s| {
         s.find(|c| !char::is_whitespace(c))
             .map_or(false, |w| w + 1 < shape.indent.width())
     })
 }
 
-fn can_be_overflowed(context: &RewriteContext<'_>, items: &[OverflowableItem<'_>]) -> bool {
+fn can_be_overflowed(context: &RewriteContext<'_>, items: &[OverflowableItem<'_>]) -> bool
+{
     items
         .last()
         .map_or(false, |x| x.can_be_overflowed(context, items.len()))
@@ -718,7 +750,8 @@ fn last_item_shape(
     items: &[ListItem],
     shape: Shape,
     args_max_width: usize,
-) -> Option<Shape> {
+) -> Option<Shape>
+{
     if items.len() == 1 && !lists.get(0)?.is_nested_call() {
         return Some(shape);
     }
@@ -742,7 +775,8 @@ fn shape_from_indent_style(
     shape: Shape,
     overhead: usize,
     offset: usize,
-) -> Shape {
+) -> Shape
+{
     let (shape, overhead) = if context.use_block_indent() {
         let shape = shape
             .block()
@@ -758,7 +792,8 @@ fn shape_from_indent_style(
     }
 }
 
-fn no_long_items(list: &[ListItem], short_array_element_width_threshold: usize) -> bool {
+fn no_long_items(list: &[ListItem], short_array_element_width_threshold: usize) -> bool
+{
     list.iter()
         .all(|item| item.inner_as_ref().len() <= short_array_element_width_threshold)
 }
@@ -767,7 +802,8 @@ fn no_long_items(list: &[ListItem], short_array_element_width_threshold: usize) 
 pub(crate) fn maybe_get_args_offset(
     callee_str: &str,
     args: &[OverflowableItem<'_>],
-) -> Option<(bool, usize)> {
+) -> Option<(bool, usize)>
+{
     if let Some(&(_, num_args_before)) = args
         .get(0)?
         .special_cases()
