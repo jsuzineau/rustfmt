@@ -83,93 +83,106 @@ pub(crate) fn rewrite_match(
   span: Span,
   attrs: &[ast::Attribute],
 ) -> Option<String>
-{
+  {
   // Do not take the rhs overhead from the upper expressions into account
   // when rewriting match condition.
-  let cond_shape = Shape {
+  let cond_shape
+  =
+   Shape
+    {
     width: context.budget(shape.used_width()),
     ..shape
-  };
-  // 6 = `match `
-  let cond_shape = match context.config.indent_style()
-  {
-    IndentStyle::Visual => cond_shape.shrink_left(6)?,
-    IndentStyle::Block => cond_shape.offset_left(6)?,
-  };
-  let cond_str = cond.rewrite(context, cond_shape)?;
-  let alt_block_sep = &shape.indent.to_string_with_newline(context.config);
-  let block_sep = match context.config.control_brace_style()
-  {
-    ControlBraceStyle::AlwaysNextLine => alt_block_sep,
-    _ if last_line_extendable(&cond_str) => " ",
-    // 2 = ` {`
-    _ if cond_str.contains('\n') || cond_str.len() + 2 > cond_shape.width => alt_block_sep,
-    _ => " ",
-  };
-
-  let nested_indent_str = shape
-    .indent
-    .block_indent(context.config)
-    .to_string(context.config);
-  // Inner attributes.
-  let inner_attrs = &inner_attributes(attrs);
-  let inner_attrs_str = if inner_attrs.is_empty()
-  {
-    String::new()
-  }
-  else
-  {
-    inner_attrs
-      .rewrite(context, shape)
-      .map(|s| format!("{}{}\n", nested_indent_str, s))?
-  };
-
-  let open_brace_pos = if inner_attrs.is_empty()
-  {
-    let hi = if arms.is_empty()
-    {
-      span.hi()
-    }
-    else
-    {
-      arms[0].span().lo()
     };
-    context
+  // 6 = `match `
+  let cond_shape
+  =
+   match context.config.indent_style()
+    {
+    IndentStyle::Visual => cond_shape.shrink_left(6)?,
+    IndentStyle::Block  => cond_shape.offset_left(6)?,
+    };
+  let cond_str      = cond.rewrite(context, cond_shape)?;
+  let alt_block_sep = &shape.indent.to_string_with_newline(context.config);
+  let block_sep
+  =
+   match context.config.control_brace_style()
+     {
+     ControlBraceStyle::AlwaysNextLine    => alt_block_sep,
+     _ if last_line_extendable(&cond_str) => " "          ,
+     // 2 = ` {`
+     _ if cond_str.contains('\n') || cond_str.len() + 2 > cond_shape.width => alt_block_sep,
+     _ => " ",
+     };
+
+  let nested_indent_str
+  =
+   shape
+    .indent
+    .block_indent( context.config)
+    .to_string   ( context.config);
+  // Inner attributes.
+  let inner_attrs     = &inner_attributes(attrs);
+  let inner_attrs_str
+  =
+   if inner_attrs.is_empty()
+     {
+     String::new()
+     }
+   else
+     {
+     inner_attrs
+       .rewrite(context, shape)
+       .map(|s| format!("{}{}\n", nested_indent_str, s))?
+     };
+
+  let open_brace_pos
+  =
+   if inner_attrs.is_empty()
+     {
+     let hi
+     =
+      if   arms.is_empty() { span.hi()          }
+      else                 { arms[0].span().lo()};
+     context
       .snippet_provider
       .span_after(mk_sp(cond.span.hi(), hi), "{")
-  }
-  else
-  {
-    inner_attrs[inner_attrs.len() - 1].span.hi()
-  };
+     }
+   else
+     {
+     inner_attrs[inner_attrs.len() - 1].span.hi()
+     };
 
   if arms.is_empty()
-  {
+    {
     let snippet = context.snippet(mk_sp(open_brace_pos, span.hi() - BytePos(1)));
     if snippet.trim().is_empty()
-    {
+      {
       Some(format!("match {} {{}}", cond_str))
-    }
+      }
     else
-    {
+      {
       // Empty match with comments or inner attributes? We are not going to bother, sorry ;)
       Some(context.snippet(span).to_owned())
+      }
+    }
+  else
+    {
+    let span_after_cond = mk_sp(cond.span.hi(), span.hi());
+    Some
+      (
+      format!
+        (
+        "match {}{}  {{\n{}{}{}\n{}  }}",
+        cond_str,
+        block_sep,
+        inner_attrs_str,
+        nested_indent_str,
+        rewrite_match_arms(context, arms, shape, span_after_cond, open_brace_pos)?,
+        shape.indent.to_string(context.config),
+        )
+      )
     }
   }
-  else
-  {
-    let span_after_cond = mk_sp(cond.span.hi(), span.hi());
-    Some(format!(
-      "match {}{}{{\n{}{}{}\n{}}}",
-      cond_str,
-      block_sep,
-      inner_attrs_str,
-      nested_indent_str,
-      rewrite_match_arms(context, arms, shape, span_after_cond, open_brace_pos)?,
-      shape.indent.to_string(context.config),
-    ))
-  }
-}
 
 fn arm_comma(config: &Config, body: &ast::Expr, is_last: bool) -> &'static str
 {
@@ -440,24 +453,31 @@ fn rewrite_match_body(
   let comma = arm_comma(context.config, body, is_last);
   let alt_block_sep = &shape.indent.to_string_with_newline(context.config);
 
-  let combine_orig_body = |body_str: &str| {
-    let block_sep = match context.config.control_brace_style()
+  let combine_orig_body
+  =
+   |body_str: &str|
+       {
+       let block_sep
+       =
+        match context.config.control_brace_style()
+          {
+          ControlBraceStyle::AlwaysNextLine if is_block => alt_block_sep,
+          _ => " ",
+          };
+
+       Some( format!("{} =>{}{}{}", pats_str, block_sep, body_str, comma))
+       };
+
+  let next_line_indent
+  =
+   if !is_block || is_empty_block
+     {
+     shape.indent.block_indent(context.config)
+     }
+   else
     {
-      ControlBraceStyle::AlwaysNextLine if is_block => alt_block_sep,
-      _ => " ",
-    };
-
-    Some(format!("{} =>{}{}{}", pats_str, block_sep, body_str, comma))
-  };
-
-  let next_line_indent = if !is_block || is_empty_block
-  {
-    shape.indent.block_indent(context.config)
-  }
-  else
-  {
     shape.indent
-  };
+    };
 
   let forbid_same_line =
     (has_guard && pats_str.contains('\n') && !is_empty_block) || !body.attrs.is_empty();
@@ -499,56 +519,50 @@ fn rewrite_match_body(
     }
 
     let indent_str = shape.indent.to_string_with_newline(context.config);
-    let (body_prefix, body_suffix) = if context.config.match_arm_blocks() && !context.inside_macro()
-    {
-      let comma = if context.config.match_block_trailing_comma()
-      {
-        ","
-      }
-      else
-      {
-        ""
-      };
-      let semicolon = if context.config.version() == Version::One
-      {
-        ""
-      }
-      else
-      {
-        if semicolon_for_expr(context, body)
-        {
-          ";"
-        }
+    let (body_prefix, body_suffix)
+    =
+     if context.config.match_arm_blocks() && !context.inside_macro()
+       {
+       let comma
+       =
+        if context.config.match_block_trailing_comma() {","}
+        else                                             {"" };
+       let semicolon
+       =
+        if context.config.version() == Version::One
+          {""}
         else
-        {
-          ""
-        }
-      };
-      ("{", format!("{}{}}}{}", semicolon, indent_str, comma))
-    }
-    else
-    {
-      ("", String::from(","))
-    };
+          {
+          if semicolon_for_expr(context, body) {";"}
+          else                                 {"" }
+          };
 
-    let block_sep = match context.config.control_brace_style()
-    {
-      ControlBraceStyle::AlwaysNextLine => format!("{}{}", alt_block_sep, body_prefix),
-      _ if body_prefix.is_empty() => "".to_owned(),
-      _ if forbid_same_line || !arrow_comment.is_empty() =>
+       ("  {", format!("{}{}  }}{}", semicolon, indent_str, comma))
+       }
+     else
+       {
+       (""   , String::from(",")                                  )
+       };
+
+    let block_sep
+    =
+     match context.config.control_brace_style()
       {
-        format!("{}{}", alt_block_sep, body_prefix)
+      ControlBraceStyle::AlwaysNextLine => format!("{}{}", alt_block_sep, body_prefix),
+      _ if body_prefix.is_empty()       => "".to_owned(),
+      _ if forbid_same_line || !arrow_comment.is_empty()
+                                        =>{format!("{}{}", alt_block_sep, body_prefix)}
+      _                                 => format!(" {}", body_prefix),
       }
-      _ => format!(" {}", body_prefix),
-    } + &nested_indent_str;
+     + &nested_indent_str;
 
     let mut result = pats_str.to_owned();
     result.push_str(" =>");
     if !arrow_comment.is_empty()
-    {
+      {
       result.push_str(&indent_str);
       result.push_str(&arrow_comment);
-    }
+      }
     result.push_str(&block_sep);
     result.push_str(body_str);
     result.push_str(&body_suffix);
