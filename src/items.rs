@@ -825,7 +825,7 @@ pub(crate) fn format_impl(
       {
         result.push(',');
       }
-      result.push_str(&format!("{}{{{}}}", sep, sep));
+      result.push_str(&format!("{} {{{} }}", sep, sep));
     }
     else
     {
@@ -1494,7 +1494,7 @@ pub(crate) fn format_struct_struct(
       if (context.config.brace_style() == BraceStyle::AlwaysNextLine && !fields.is_empty())
         || context.config.max_width() < overhead + result.len()
       {
-        format!("\n{}{{", offset.block_only().to_string(context.config))
+        format!("\n{} {{", offset.block_only().to_string(context.config))
       }
       else
       {

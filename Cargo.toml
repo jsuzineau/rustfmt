@@ -15,6 +15,10 @@ name = "rustfmt"
 path = "src/bin/main.rs"
 
 [[bin]]
+name = "rustformat"
+path = "src/bin/main.rs"
+
+[[bin]]
 name = "cargo-fmt"
 path = "src/cargo-fmt/main.rs"
 
