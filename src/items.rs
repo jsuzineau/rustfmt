@@ -273,7 +273,7 @@ impl<'a> FmtVisitor<'a> {
             self.push_str(&indent_str);
         }
 
-        self.push_str("}");
+        self.push_str("  }");
         self.last_pos = item.span.hi();
     }
 

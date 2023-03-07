@@ -370,7 +370,7 @@ impl<'b, 'a: 'b> FmtVisitor<'a> {
         }
         self.block_indent = self.block_indent.block_unindent(self.config);
         self.push_str(&self.block_indent.to_string_with_newline(config));
-        self.push_str("}");
+        self.push_str("  }");
     }
 
     fn unindent_comment_on_closing_brace(&self, b: &ast::Block) -> bool {
