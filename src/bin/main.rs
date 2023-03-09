@@ -19,7 +19,9 @@ use crate::rustfmt::{
     FormatReportFormatterBuilder, Input, Session, Verbosity,
 };
 
-fn main() {
+fn main() 
+  {
+  println!("coucou");  
     env_logger::Builder::from_env("RUSTFMT_LOG").init();
     let opts = make_opts();
 
