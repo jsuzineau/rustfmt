@@ -35,22 +35,33 @@ impl<'b, T: Write + 'b> Session<'b, T> {
             return Err(ErrorKind::VersionMismatch);
         }
 
-        rustc_span::create_session_if_not_set_then(self.config.edition().into(), |_| {
-            if self.config.disable_all_formatting() {
-                // When the input is from stdin, echo back the input.
-                return match input {
-                    Input::Text(ref buf) => echo_back_stdin(buf),
-                    _ => Ok(FormatReport::new()),
-                };
-            }
+        rustc_span::create_session_if_not_set_then
+          (
+          self.config.edition().into(), 
+          |_| 
+            {
+            if self.config.disable_all_formatting() 
+              {
+              // When the input is from stdin, echo back the input.
+              return 
+                match input 
+                  {
+                  Input::Text(ref buf) => echo_back_stdin(buf),
+                  _                             => Ok(FormatReport::new())   ,
+                  };
+              }
 
             let config = &self.config.clone();
             let format_result = format_project(input, config, self, is_macro_def);
 
-            format_result.map(|report| {
+            format_result.map
+              (
+          |report| 
+                {
                 self.errors.add(&report.internal.borrow().1);
                 report
-            })
+                }
+              )
         })
     }
 }
